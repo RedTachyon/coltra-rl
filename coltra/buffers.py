@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, fields
-from typing import List, Dict, Union, get_type_hints, Callable
+from typing import List, Dict, Union, get_type_hints, Callable, Optional
 
 import numpy as np
 
 import torch
 from torch import Tensor
 
-TensorArray = Union[np.array, torch.Tensor]
+TensorArray = Union[np.ndarray, torch.Tensor]
 
 
 def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
@@ -98,16 +98,16 @@ class Multitype:
 
 @dataclass
 class Observation(Multitype):
-    vector: TensorArray = None
-    rays: TensorArray = None
-    buffer: TensorArray = None
-    image: TensorArray = None
+    vector: Optional[TensorArray] = None
+    rays: Optional[TensorArray] = None
+    buffer: Optional[TensorArray] = None
+    image: Optional[TensorArray] = None
 
 
 @dataclass
 class Action(Multitype):
-    continuous: TensorArray = None
-    discrete: TensorArray = None
+    continuous: Optional[TensorArray] = None
+    discrete: Optional[TensorArray] = None
 
 
 Reward = TensorArray  # float32

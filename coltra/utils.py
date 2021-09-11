@@ -34,7 +34,6 @@ def write_dict(
 ):
     """Writes a dictionary to a tensorboard SummaryWriter"""
     if writer is not None:
-        writer: SummaryWriter
         for key, value in metrics.items():
             writer.add_scalar(tag=key, scalar_value=value, global_step=step)
 
