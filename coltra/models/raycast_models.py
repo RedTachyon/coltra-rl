@@ -12,11 +12,13 @@ from .base_models import FCNetwork, BaseModel
 
 
 class LeeNetwork(nn.Module):
-    def __init__(self,
-                 input_size: int = 4,
-                 output_sizes: List[int] = [2, 2],
-                 rays_input_size: int = 126,
-                 conv_filters: int = 2):
+    def __init__(
+        self,
+        input_size: int = 4,
+        output_sizes: List[int] = [2, 2],
+        rays_input_size: int = 126,
+        conv_filters: int = 2,
+    ):
         super().__init__()
 
         self.stacked_rays = 3
@@ -26,9 +28,9 @@ class LeeNetwork(nn.Module):
         self.int_fc1 = nn.Linear(input_size, 32)
         self.int_fc2 = nn.Linear(32, 64)
 
-        self.ext_conv = nn.Conv2d(in_channels=2,
-                                  out_channels=conv_filters,
-                                  kernel_size=(3, 3))
+        self.ext_conv = nn.Conv2d(
+            in_channels=2, out_channels=conv_filters, kernel_size=(3, 3)
+        )
         conv_size = (rays_input_size // (self.stacked_rays * self.ray_values)) - 2
 
         self.ext_fc = nn.Linear(conv_size * conv_filters, 32)
@@ -70,21 +72,25 @@ class LeeModel(BaseModel):
         Config.update(config)
         self.config = Config
 
-        self.policy_network = LeeNetwork(input_size=self.config.input_size,
-                                         output_sizes=[2, 2],
-                                         rays_input_size=self.config.rays_input_size,
-                                         conv_filters=self.config.conv_filters)
+        self.policy_network = LeeNetwork(
+            input_size=self.config.input_size,
+            output_sizes=[2, 2],
+            rays_input_size=self.config.rays_input_size,
+            conv_filters=self.config.conv_filters,
+        )
 
-        self.value_network = LeeNetwork(input_size=self.config.input_size,
-                                        output_sizes=[1],
-                                        rays_input_size=self.config.rays_input_size,
-                                        conv_filters=self.config.conv_filters)
+        self.value_network = LeeNetwork(
+            input_size=self.config.input_size,
+            output_sizes=[1],
+            rays_input_size=self.config.rays_input_size,
+            conv_filters=self.config.conv_filters,
+        )
 
         self.config = self.config.to_dict()
 
-    def forward(self, x: Observation,
-                state: Tuple = (),
-                get_value: bool = False) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = False
+    ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
 
         [action_mu, action_std] = self.policy_network(x)
         action_std = F.softplus(action_std - 0.5)

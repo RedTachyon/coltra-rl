@@ -62,7 +62,9 @@ class MultiGymEnv(MultiAgentEnv):
         self.observation_space = self.s_env.observation_space
         self.action_space = self.s_env.action_space
 
-        self.is_discrete_action = isinstance(self.s_env.action_space, gym.spaces.Discrete)
+        self.is_discrete_action = isinstance(
+            self.s_env.action_space, gym.spaces.Discrete
+        )
 
     def reset(self, *args, **kwargs):
         obs = self.s_env.reset()
@@ -95,14 +97,14 @@ class MultiGymEnv(MultiAgentEnv):
         def _inner():
             env = cls(env_name, **kwargs)
             return env
+
         return _inner
 
     @classmethod
     def get_venv(cls, workers: int = 8, *args, **kwargs) -> VecEnv:
-        venv = SubprocVecEnv([
-            cls.get_env_creator(*args, **kwargs)
-            for i in range(workers)
-        ])
+        venv = SubprocVecEnv(
+            [cls.get_env_creator(*args, **kwargs) for i in range(workers)]
+        )
         return venv
 
 

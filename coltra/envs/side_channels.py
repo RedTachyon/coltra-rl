@@ -28,14 +28,18 @@ def concat_dicts(dicts: Sequence[Dict[str, float]]) -> Dict[str, np.ndarray]:
 
 def parse_side_message(msg: str) -> Dict[str, np.ndarray]:
     """Parses a message from StatsChannel"""
-    if msg == "": return {}
-    lines = msg.split('\n')
-    out = {line.split(' ')[0]: np_float(float(line.split(' ')[1])) for line in lines if line != ""}
+    if msg == "":
+        return {}
+    lines = msg.split("\n")
+    out = {
+        line.split(" ")[0]: np_float(float(line.split(" ")[1]))
+        for line in lines
+        if line != ""
+    }
     return out
 
 
 class StatsChannel(SideChannel):
-
     def __init__(self) -> None:
         super().__init__(uuid.UUID("621f0a70-4f87-11ea-a6bf-784f4387d1f7"))
         # self.last_msg = ""
@@ -66,4 +70,3 @@ class StatsChannel(SideChannel):
         if clear:
             self.msg_buffer = []
         return result
-

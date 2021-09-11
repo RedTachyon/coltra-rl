@@ -27,9 +27,11 @@ AgentDataBatch = Dict[str, Union[Tensor, Tuple]]
 Array = Union[Tensor, np.ndarray]
 
 
-def write_dict(metrics: Dict[str, Union[int, float]],
-               step: int,
-               writer: Optional[SummaryWriter] = None):
+def write_dict(
+    metrics: Dict[str, Union[int, float]],
+    step: int,
+    writer: Optional[SummaryWriter] = None,
+):
     """Writes a dictionary to a tensorboard SummaryWriter"""
     if writer is not None:
         writer: SummaryWriter
@@ -50,7 +52,7 @@ def get_optimizer(opt_name: str) -> Callable[..., Optimizer]:
         "adamw": AdamW,
         "adagrad": Adagrad,
         "adamax": Adamax,
-        "sgd": SGD
+        "sgd": SGD,
     }
 
     if opt_name not in optimizers.keys():
@@ -69,11 +71,13 @@ def get_activation(act_name: str) -> Callable[[Tensor], Tensor]:
         "sigmoid": F.sigmoid,
         "tanh": torch.tanh,
         "softmax": F.softmax,
-        "gelu": lambda x: x * F.sigmoid(1.702 * x)
+        "gelu": lambda x: x * F.sigmoid(1.702 * x),
     }
 
     if act_name not in activations.keys():
-        raise ValueError(f"Wrong activation: {act_name} is not a valid activation function name.")
+        raise ValueError(
+            f"Wrong activation: {act_name} is not a valid activation function name."
+        )
 
     return activations[act_name]
 
@@ -100,7 +104,9 @@ def get_activation_module(act_name: str) -> Type[nn.Module]:
     }
 
     if act_name not in activations.keys():
-        raise ValueError(f"Wrong activation: {act_name} is not a valid activation function name.")
+        raise ValueError(
+            f"Wrong activation: {act_name} is not a valid activation function name."
+        )
 
     return activations[act_name]
 
@@ -112,11 +118,13 @@ def get_initializer(init_name: str) -> Callable[[Tensor], None]:
         "kaiming_uniform": nn.init.kaiming_uniform_,
         "xavier_normal": nn.init.xavier_normal_,
         "xavier_uniform": nn.init.xavier_uniform_,
-        "zeros": nn.init.zeros_
+        "zeros": nn.init.zeros_,
     }
 
     if init_name not in initializers.keys():
-        raise ValueError(f"Wrong initialization: {init_name} is not a valid initializer name.")
+        raise ValueError(
+            f"Wrong initialization: {init_name} is not a valid initializer name."
+        )
 
     return initializers[init_name]
 
@@ -136,7 +144,9 @@ class Timer:
         return diff
 
 
-def transpose_batch(data_batch: Union[DataBatch, DataBatchT]) -> Union[DataBatchT, DataBatch]:
+def transpose_batch(
+    data_batch: Union[DataBatch, DataBatchT]
+) -> Union[DataBatchT, DataBatch]:
     """
     In a 2-nested dictionary, swap the key levels. So it turns
     {
@@ -167,7 +177,7 @@ class Masked:
 
     @staticmethod
     def accuracy(preds: Tensor, labels: Tensor, mask: Tensor) -> float:
-        preds_thresholded = (preds > .5).to(torch.int)
+        preds_thresholded = (preds > 0.5).to(torch.int)
         correct_preds = (preds_thresholded == labels).to(torch.float)
         accuracy = Masked.mean(correct_preds.mean(-1), mask).item()
 
@@ -175,19 +185,23 @@ class Masked:
 
     @staticmethod
     def logloss(preds: Tensor, labels: Tensor, mask: Tensor) -> Tensor:
-        logloss: Tensor = - labels * torch.log(preds) - (1 - labels) * torch.log(1 - preds)
+        logloss: Tensor = -labels * torch.log(preds) - (1 - labels) * torch.log(
+            1 - preds
+        )
         return Masked.mean(logloss.mean(-1), mask)
 
     @staticmethod
     def accuracy(preds: Tensor, labels: Tensor) -> float:
-        preds_thresholded = (preds > .5).to(torch.int)
+        preds_thresholded = (preds > 0.5).to(torch.int)
         correct_preds = (preds_thresholded == labels).to(torch.float)
         accuracy = correct_preds.mean().item()
 
         return accuracy
 
 
-def concat_subproc_batch(batches: DataBatch, exclude: List[str] = None) -> AgentDataBatch:
+def concat_subproc_batch(
+    batches: DataBatch, exclude: List[str] = None
+) -> AgentDataBatch:
     """Concatenate multiple sets of data in a single batch"""
     if exclude is None:
         exclude = ["__all__"]
@@ -214,7 +228,9 @@ def get_episode_lens(done_batch: Tensor) -> Tuple[int]:
         tuple of episode lengths
     """
     episode_indices = done_batch.cpu().cumsum(dim=0)[:-1]
-    episode_indices = torch.cat([torch.tensor([0]), episode_indices])  # [0, 0, 0, ..., 1, 1, ..., 2, ..., ...]
+    episode_indices = torch.cat(
+        [torch.tensor([0]), episode_indices]
+    )  # [0, 0, 0, ..., 1, 1, ..., 2, ..., ...]
 
     ep_ids, ep_lens_tensor = torch.unique(episode_indices, return_counts=True)
     ep_lens = tuple(ep_lens_tensor.cpu().numpy())
@@ -224,10 +240,12 @@ def get_episode_lens(done_batch: Tensor) -> Tuple[int]:
 
 def get_episode_rewards(batch: DataBatch) -> np.ndarray:
     """Computes the total reward in each episode in a data batch"""
-    batch = transpose_batch(batch)['Agent0']
-    ep_lens = get_episode_lens(batch['dones'])
+    batch = transpose_batch(batch)["Agent0"]
+    ep_lens = get_episode_lens(batch["dones"])
 
-    ep_rewards = np.array([torch.sum(rewards) for rewards in torch.split(batch['rewards'], ep_lens)])
+    ep_rewards = np.array(
+        [torch.sum(rewards) for rewards in torch.split(batch["rewards"], ep_lens)]
+    )
 
     return ep_rewards
 
@@ -235,17 +253,19 @@ def get_episode_rewards(batch: DataBatch) -> np.ndarray:
 def batch_to_gpu(data_batch: AgentDataBatch) -> AgentDataBatch:
     new_batch = {}
     for key in data_batch:
-        if key == 'states':
+        if key == "states":
             new_batch[key] = tuple(state_.cuda() for state_ in data_batch[key])
         else:
             new_batch[key] = data_batch[key].cuda()
     return new_batch
 
 
-def minibatches(data: Dict[str, Tensor], batch_size: int, shuffle: bool = True) -> Tuple[Tensor, Dict[str, Tensor]]:
+def minibatches(
+    data: Dict[str, Tensor], batch_size: int, shuffle: bool = True
+) -> Tuple[Tensor, Dict[str, Tensor]]:
     batch_start = 0
     batch_end = batch_size
-    data_size = len(data['dones'])
+    data_size = len(data["dones"])
 
     if shuffle:
         indices = torch.randperm(data_size)
@@ -275,12 +295,10 @@ def unpack(arrays: Any, keys: List[str]) -> Dict[str, Any]:
 
 
 def parse_agent_name(name: str) -> Dict[str, str]:
-    parts = name.split('&')
-    result = {
-        "name": parts[0]
-    }
+    parts = name.split("&")
+    result = {"name": parts[0]}
     for part in parts[1:]:
-        subname, value = part.split('=')
+        subname, value = part.split("=")
         result[subname] = value
 
     return result
@@ -292,14 +310,14 @@ def split_ana(content: str) -> List[str]:
     """
     outputs = []
     temp = []
-    for line in content.split('\n'):
-        if len(line) > 0 and line[0] != ' ':
-            outputs.append('\n'.join(temp))
+    for line in content.split("\n"):
+        if len(line) > 0 and line[0] != " ":
+            outputs.append("\n".join(temp))
             temp = [line]
         else:
             temp.append(line)
 
-    outputs.append('\n'.join(temp))
+    outputs.append("\n".join(temp))
     return outputs[1:]
 
 
@@ -307,11 +325,11 @@ def parse_segment(content: str) -> Tuple[str, np.ndarray]:
     """Parses a segment of .ana data.
     The first line is assumed to be the title, each line after that has one or more numbers"""
     result = []
-    lines = content.split('\n')
+    lines = content.split("\n")
     name = lines[0]
     for line in lines[1:-1]:
         line = line.strip()
-        numbers = [float(num) for num in line.split(' ') if len(num) > 0]
+        numbers = [float(num) for num in line.split(" ") if len(num) > 0]
 
         result.append(numbers)
 

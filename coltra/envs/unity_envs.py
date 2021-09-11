@@ -2,11 +2,21 @@ import numpy as np
 from typing import Tuple, List, Union, Dict
 from enum import Enum
 
-from mlagents_envs.base_env import ActionTuple, DecisionStep, TerminalStep, DecisionSteps, TerminalSteps, \
-    ObservationSpec
+from mlagents_envs.base_env import (
+    ActionTuple,
+    DecisionStep,
+    TerminalStep,
+    DecisionSteps,
+    TerminalSteps,
+    ObservationSpec,
+)
 from mlagents_envs.environment import UnityEnvironment
-from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
-from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
+from mlagents_envs.side_channel.engine_configuration_channel import (
+    EngineConfigurationChannel,
+)
+from mlagents_envs.side_channel.environment_parameters_channel import (
+    EnvironmentParametersChannel,
+)
 
 from .side_channels import StatsChannel
 from coltra.buffers import Observation, Action
@@ -55,10 +65,16 @@ class Sensor(Enum):
         elif self == Sensor.Vector:
             return "vector"
         else:
-            raise ValueError(f"You have angered the Old God Cthulhu (and need to update the sensors)")
+            raise ValueError(
+                f"You have angered the Old God Cthulhu (and need to update the sensors)"
+            )
 
 
-def process_decisions(decisions: Union[DecisionSteps, TerminalSteps], name: str, obs_specs: List[ObservationSpec]):
+def process_decisions(
+    decisions: Union[DecisionSteps, TerminalSteps],
+    name: str,
+    obs_specs: List[ObservationSpec],
+):
     """
     Takes in a DecisionSteps or TerminalSteps object, and returns the relevant information (observations, rewards, dones)
     """
@@ -71,10 +87,12 @@ def process_decisions(decisions: Union[DecisionSteps, TerminalSteps], name: str,
     for idx in dec_ids:
         agent_name = f"{name}&id={idx}"
 
-        obs = Observation(**{
-            Sensor.from_string(spec.name).to_string(): obs[dec_ids.index(idx)]
-            for spec, obs in zip(obs_specs, dec_obs)
-        })
+        obs = Observation(
+            **{
+                Sensor.from_string(spec.name).to_string(): obs[dec_ids.index(idx)]
+                for spec, obs in zip(obs_specs, dec_obs)
+            }
+        )
 
         obs_dict[agent_name] = obs
         reward_dict[agent_name] = decisions.reward[dec_ids.index(idx)]
@@ -84,7 +102,6 @@ def process_decisions(decisions: Union[DecisionSteps, TerminalSteps], name: str,
 
 
 class UnitySimpleCrowdEnv(MultiAgentEnv):
-
     def __init__(self, file_name: str = None, **kwargs):
 
         super().__init__()
@@ -106,7 +123,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.obs_vector_size = next(iter(self.reset().values())).vector.shape[0]
         self.action_vector_size = 2
 
-    def _get_step_info(self, step: bool = False) -> Tuple[ObsDict, RewardDict, DoneDict, InfoDict]:
+    def _get_step_info(
+        self, step: bool = False
+    ) -> Tuple[ObsDict, RewardDict, DoneDict, InfoDict]:
         names = self.behaviors.keys()
         obs_dict: ObsDict = {}
         reward_dict: RewardDict = {}
@@ -121,8 +140,12 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
             behavior_specs = self.behaviors[name][0]
 
-            n_obs_dict, n_reward_dict, n_done_dict = process_decisions(decisions, name, behavior_specs)
-            n_ter_obs_dict, n_ter_reward_dict, n_ter_done_dict = process_decisions(terminals, name, behavior_specs)
+            n_obs_dict, n_reward_dict, n_done_dict = process_decisions(
+                decisions, name, behavior_specs
+            )
+            n_ter_obs_dict, n_ter_reward_dict, n_ter_done_dict = process_decisions(
+                terminals, name, behavior_specs
+            )
 
             for key, value in n_ter_done_dict.items():
                 n_done_dict[key] = value
@@ -149,7 +172,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         return obs_dict, reward_dict, done_dict, info_dict
 
-    def step(self, action: ActionDict) -> Tuple[ObsDict, RewardDict, DoneDict, InfoDict]:
+    def step(
+        self, action: ActionDict
+    ) -> Tuple[ObsDict, RewardDict, DoneDict, InfoDict]:
 
         for name in self.behaviors.keys():
             decisions, terminals = self.unity.get_steps(name)
@@ -158,9 +183,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
             all_actions = []
             for id_ in dec_ids:
-                single_action = action.get(f"{name}&id={id_}",  # Get the appropriate action
-                                           Action(continuous=np.zeros(action_shape))  # Default value
-                                           )
+                single_action = action.get(
+                    f"{name}&id={id_}",  # Get the appropriate action
+                    Action(continuous=np.zeros(action_shape)),  # Default value
+                )
 
                 cont_action = single_action.apply(np.asarray).continuous.ravel()
 
@@ -199,7 +225,11 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         # All behavior names, except for Manager agents which do not take actions but manage the environment
         behaviors = dict(self.unity.behavior_specs)
-        self.behaviors = {key: value for key, value in behaviors.items() if not key.startswith("Manager")}
+        self.behaviors = {
+            key: value
+            for key, value in behaviors.items()
+            if not key.startswith("Manager")
+        }
 
         # ...but manager is used to collect stats
         # self.manager = [key for key in behaviors if key.startswith("Manager")][0]
@@ -229,10 +259,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def close(self):
         self.unity.close()
 
-    def render(self, mode='human'):
+    def render(self, mode="human"):
         raise NotImplementedError
 
-    def set_timescale(self, timescale: float = 100.):
+    def set_timescale(self, timescale: float = 100.0):
         self.engine_channel.set_configuration_parameters(time_scale=timescale)
 
     @classmethod
@@ -245,9 +275,20 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         return _inner
 
     @classmethod
-    def get_venv(cls, workers: int = 8, file_name: str = None, *args, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv([
-            cls.get_env_creator(file_name=file_name, no_graphics=False, worker_id=i, seed=i, *args, **kwargs)
-            for i in range(workers)
-        ])
+    def get_venv(
+        cls, workers: int = 8, file_name: str = None, *args, **kwargs
+    ) -> SubprocVecEnv:
+        venv = SubprocVecEnv(
+            [
+                cls.get_env_creator(
+                    file_name=file_name,
+                    no_graphics=False,
+                    worker_id=i,
+                    seed=i,
+                    *args,
+                    **kwargs,
+                )
+                for i in range(workers)
+            ]
+        )
         return venv

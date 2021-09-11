@@ -6,10 +6,12 @@ import torch
 from torch import Tensor
 
 
-def load_weights(base_path: str,
-                 base_name: str = 'weights',
-                 start: int = 0,
-                 end: Optional[int] = None) -> List[Dict[str, Tensor]]:
+def load_weights(
+    base_path: str,
+    base_name: str = "weights",
+    start: int = 0,
+    end: Optional[int] = None,
+) -> List[Dict[str, Tensor]]:
     """
     Loads a list of model weights from a certain path
     """
@@ -20,7 +22,7 @@ def load_weights(base_path: str,
             for fname in os.listdir(base_path)
             if fname.startswith(base_name)
         ],
-        key=lambda x: int(x.split('_')[-1])
+        key=lambda x: int(x.split("_")[-1]),
     )
     weight_paths = weight_paths[start:end]
 

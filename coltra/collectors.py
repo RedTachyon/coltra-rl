@@ -17,28 +17,30 @@ from coltra.envs import MultiAgentEnv
 from coltra.buffers import MemoryRecord, MemoryBuffer, AgentMemoryBuffer
 
 
-def collect_crowd_data(agent: Agent,
-                       env: MultiAgentEnv,
-                       num_steps: Optional[int] = None,
-                       mode: Mode = Mode.Random,
-                       num_agents: int = None,
-                       deterministic: bool = False,
-                       disable_tqdm: bool = True) -> Tuple[MemoryRecord, Dict]:
+def collect_crowd_data(
+    agent: Agent,
+    env: MultiAgentEnv,
+    num_steps: Optional[int] = None,
+    mode: Mode = Mode.Random,
+    num_agents: int = None,
+    deterministic: bool = False,
+    disable_tqdm: bool = True,
+) -> Tuple[MemoryRecord, Dict]:
     """
-        Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
+    Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
 
-        Args:
-            agent: Agent with which to collect the data
-            env: Environment in which the agent will act
-            num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
-            mode: which environment should be used
-            num_agents: how many agents in the environment
-            deterministic: whether each agent should use the greedy policy; False by default
-            disable_tqdm: whether a live progress bar should be (not) displayed
+    Args:
+        agent: Agent with which to collect the data
+        env: Environment in which the agent will act
+        num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
+        mode: which environment should be used
+        num_agents: how many agents in the environment
+        deterministic: whether each agent should use the greedy policy; False by default
+        disable_tqdm: whether a live progress bar should be (not) displayed
 
-        Returns:
-            data: a nested dictionary with the data
-            metrics: a dictionary of metrics passed by the environment
+    Returns:
+        data: a nested dictionary with the data
+        metrics: a dictionary of metrics passed by the environment
     """
     memory = MemoryBuffer()
 
@@ -58,7 +60,9 @@ def collect_crowd_data(agent: Agent,
         actions, states, extra = agent.act(obs_array, (), deterministic, get_value=True)
         values = extra["value"]
 
-        action_dict = unpack(actions, agent_keys)  # Convert an array to a agent-indexed dictionary
+        action_dict = unpack(
+            actions, agent_keys
+        )  # Convert an array to a agent-indexed dictionary
         values_dict = unpack(values, agent_keys)
 
         # Actual step in the environment
@@ -79,28 +83,30 @@ def collect_crowd_data(agent: Agent,
     return data, metrics
 
 
-def collect_heterogeneous_data(agent_group: MacroAgent,
-                               env: MultiAgentEnv,
-                               num_steps: Optional[int] = None,
-                               mode: Mode = Mode.Random,
-                               num_agents: int = None,
-                               deterministic: bool = False,
-                               disable_tqdm: bool = True) -> Tuple[MemoryRecord, Dict]:
+def collect_heterogeneous_data(
+    agent_group: MacroAgent,
+    env: MultiAgentEnv,
+    num_steps: Optional[int] = None,
+    mode: Mode = Mode.Random,
+    num_agents: int = None,
+    deterministic: bool = False,
+    disable_tqdm: bool = True,
+) -> Tuple[MemoryRecord, Dict]:
     """
-        Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
+    Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
 
-        Args:
-            agent_group: MacroAgent with which to collect the data
-            env: Environment in which the agent will act
-            num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
-            mode: which environment should be used
-            num_agents: how many agents in the environment
-            deterministic: whether each agent should use the greedy policy; False by default
-            disable_tqdm: whether a live progress bar should be (not) displayed
+    Args:
+        agent_group: MacroAgent with which to collect the data
+        env: Environment in which the agent will act
+        num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
+        mode: which environment should be used
+        num_agents: how many agents in the environment
+        deterministic: whether each agent should use the greedy policy; False by default
+        disable_tqdm: whether a live progress bar should be (not) displayed
 
-        Returns:
-            data: a nested dictionary with the data
-            metrics: a dictionary of metrics passed by the environment
+    Returns:
+        data: a nested dictionary with the data
+        metrics: a dictionary of metrics passed by the environment
     """
     memory = MemoryBuffer()
 
@@ -124,7 +130,9 @@ def collect_heterogeneous_data(agent_group: MacroAgent,
         # Converts a dict to a compact array which will be fed to the network - needs rethinking
 
         # Centralize the action computation for better parallelization
-        action_dict, states, extra = agent_group.act(obs_dict, deterministic, get_value=True)
+        action_dict, states, extra = agent_group.act(
+            obs_dict, deterministic, get_value=True
+        )
 
         values_dict = extra["value"]
 
@@ -155,6 +163,8 @@ def collect_heterogeneous_data(agent_group: MacroAgent,
 
     data = memory.crowd_tensorify()  # TODO: add heterogeneity support here for metrics?
     return data, metrics
+
+
 # def _collection_worker(agent: Agent, i: int, env_path: str, num_steps: int, base_seed: int) -> Tuple[DataBatch, Dict]:
 #     # seed = round(time.time() % 100000) + i  # Ensure it's different every time
 #     seed = base_seed * 100 + i

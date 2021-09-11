@@ -13,6 +13,7 @@ from .base_models import FCNetwork, BaseModel
 
 class MLPModel(BaseModel):
     """DEPRECATED (mostly)"""
+
     def __init__(self, config: Dict):
         super().__init__()
 
@@ -41,7 +42,7 @@ class MLPModel(BaseModel):
                 hidden_sizes=self.config.hidden_sizes,
                 activation=self.config.activation,
                 initializer=self.config.initializer,
-                is_policy=[True, False]
+                is_policy=[True, False],
             )
 
             self.value_network = None
@@ -52,7 +53,7 @@ class MLPModel(BaseModel):
                 hidden_sizes=self.config.hidden_sizes,
                 activation=self.config.activation,
                 initializer=self.config.initializer,
-                is_policy=True
+                is_policy=True,
             )
 
             self.value_network = FCNetwork(
@@ -61,16 +62,18 @@ class MLPModel(BaseModel):
                 hidden_sizes=self.config.hidden_sizes,
                 activation=self.config.activation,
                 initializer=self.config.initializer,
-                is_policy=False
+                is_policy=False,
             )
 
-        self.std = nn.Parameter(torch.tensor(self.config.sigma0) * torch.ones(1, self.config.num_actions))
+        self.std = nn.Parameter(
+            torch.tensor(self.config.sigma0) * torch.ones(1, self.config.num_actions)
+        )
 
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
-    def forward(self, x: Observation,
-                state: Tuple = (),
-                get_value: bool = True) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = True
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
         if self.separate_value:
             [action_mu] = self.policy_network(x.vector)
             value = None
@@ -89,8 +92,7 @@ class MLPModel(BaseModel):
 
         return action_distribution, state, extra_outputs
 
-    def value(self, x: Observation,
-              state: Tuple = ()) -> Tensor:
+    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
         if self.separate_value:
             [value] = self.value_network(x.vector)
         else:
@@ -120,9 +122,11 @@ class FancyMLPModel(BaseModel):
 
         self.activation: Callable = get_activation(self.config.activation)
 
-        heads = [self.config.num_actions] \
-            if self.discrete \
+        heads = (
+            [self.config.num_actions]
+            if self.discrete
             else [self.config.num_actions, self.config.num_actions]
+        )
 
         # Create the policy network
         self.policy_network = FCNetwork(
@@ -131,7 +135,7 @@ class FancyMLPModel(BaseModel):
             hidden_sizes=self.config.hidden_sizes,
             activation=self.config.activation,
             initializer=self.config.initializer,
-            is_policy=[True, False]
+            is_policy=[True, False],
         )
 
         self.value_network = FCNetwork(
@@ -140,14 +144,14 @@ class FancyMLPModel(BaseModel):
             hidden_sizes=self.config.hidden_sizes,
             activation=self.config.activation,
             initializer=self.config.initializer,
-            is_policy=False
+            is_policy=False,
         )
 
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
-    def forward(self, x: Observation,
-                state: Tuple = (),
-                get_value: bool = True) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = True
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
 
         if self.discrete:
             [action_logits] = self.policy_network(x.vector)
@@ -166,7 +170,6 @@ class FancyMLPModel(BaseModel):
 
         return action_distribution, state, extra_outputs
 
-    def value(self, x: Observation,
-              state: Tuple = ()) -> Tensor:
+    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
         [value] = self.value_network(x.vector)
         return value

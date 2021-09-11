@@ -19,6 +19,7 @@ InfoDict = Dict[str, Any]
 StepReturn = Tuple[ObsDict, RewardDict, DoneDict, InfoDict]
 VecEnvIndices = Union[None, int, Iterable[int]]
 
+
 class AlreadySteppingError(Exception):
     """
     Raised when an asynchronous step is running while
@@ -26,7 +27,7 @@ class AlreadySteppingError(Exception):
     """
 
     def __init__(self):
-        msg = 'already running an async step'
+        msg = "already running an async step"
         Exception.__init__(self, msg)
 
 
@@ -37,21 +38,21 @@ class NotSteppingError(Exception):
     """
 
     def __init__(self):
-        msg = 'not running an async step'
+        msg = "not running an async step"
         Exception.__init__(self, msg)
 
 
 class VecEnv(ABC):
     """
     An abstract asynchronous, vectorized environment.
+    Copied with some modifications from Stable Baselines 3.
 
     :param num_envs: (int) the number of environments
     :param observation_space: (Gym Space) the observation space
     :param action_space: (Gym Space) the action space
     """
-    metadata = {
-        'render.modes': ['human', 'rgb_array']
-    }
+
+    metadata = {"render.modes": ["human", "rgb_array"]}
 
     def __init__(self, num_envs, observation_space, action_space):
         self.num_envs = num_envs
@@ -164,7 +165,7 @@ class VecEnv(ABC):
         """
         raise NotImplementedError
 
-    def render(self, mode: str = 'human'):
+    def render(self, mode: str = "human"):
         return
 
     def getattr_depth_check(self, name, already_found):
@@ -245,7 +246,7 @@ class MultiAgentEnv(gym.Env):
         """
         raise NotImplementedError
 
-    def render(self, mode='human'):
+    def render(self, mode="human"):
         raise NotImplementedError
 
     @staticmethod
@@ -264,6 +265,7 @@ class MultiAgentEnv(gym.Env):
     def get_env_creator(cls, *args, **kwargs):
         def _inner():
             return cls(*args, **kwargs)
+
         return _inner
 
     @classmethod
@@ -320,13 +322,25 @@ class VecEnvWrapper(VecEnv):
     def get_attr(self, attr_name: str, indices: VecEnvIndices = None) -> List[Any]:
         return self.venv.get_attr(attr_name, indices)
 
-    def set_attr(self, attr_name: str, value: Any, indices: VecEnvIndices = None) -> None:
+    def set_attr(
+        self, attr_name: str, value: Any, indices: VecEnvIndices = None
+    ) -> None:
         return self.venv.set_attr(attr_name, value, indices)
 
-    def env_method(self, method_name: str, *method_args, indices: VecEnvIndices = None, **method_kwargs) -> List[Any]:
-        return self.venv.env_method(method_name, *method_args, indices=indices, **method_kwargs)
+    def env_method(
+        self,
+        method_name: str,
+        *method_args,
+        indices: VecEnvIndices = None,
+        **method_kwargs,
+    ) -> List[Any]:
+        return self.venv.env_method(
+            method_name, *method_args, indices=indices, **method_kwargs
+        )
 
-    def env_is_wrapped(self, wrapper_class: Type[gym.Wrapper], indices: VecEnvIndices = None) -> List[bool]:
+    def env_is_wrapped(
+        self, wrapper_class: Type[gym.Wrapper], indices: VecEnvIndices = None
+    ) -> List[bool]:
         return self.venv.env_is_wrapped(wrapper_class, indices=indices)
 
     def __getattr__(self, name: str) -> Any:

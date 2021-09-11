@@ -22,17 +22,16 @@ class BaseModel(nn.Module):
         super().__init__()
         self._stateful = False
         # self.config = config
-        self.device = 'cpu'
+        self.device = "cpu"
 
     # TO IMPLEMENT
-    def forward(self, x: Observation,
-                state: Tuple,
-                get_value: bool) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
+    def forward(
+        self, x: Observation, state: Tuple, get_value: bool
+    ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
         # Output: action_dist, state, {value, whatever else}
         raise NotImplementedError
 
-    def value(self, x: Observation,
-              state: Tuple) -> Tensor:
+    def value(self, x: Observation, state: Tuple) -> Tensor:
         raise NotImplementedError
 
     # Built-ins
@@ -45,36 +44,38 @@ class BaseModel(nn.Module):
 
     def cuda(self, *args, **kwargs):
         super().cuda(*args, **kwargs)
-        self.device = 'cuda'
+        self.device = "cuda"
 
     def cpu(self):
         super().cpu()
-        self.device = 'cpu'
-
+        self.device = "cpu"
 
 
 class FCNetwork(nn.Module):
-    def __init__(self,
-                 input_size: int,
-                 output_sizes: List[int],
-                 hidden_sizes: List[int],
-                 activation: str,
-                 initializer: str = "kaiming_uniform",
-                 is_policy: Union[bool, List[bool]] = False):
+    def __init__(
+        self,
+        input_size: int,
+        output_sizes: List[int],
+        hidden_sizes: List[int],
+        activation: str,
+        initializer: str = "kaiming_uniform",
+        is_policy: Union[bool, List[bool]] = False,
+    ):
         super().__init__()
 
         self.activation: Callable = get_activation(activation)
         layer_sizes = [input_size] + hidden_sizes
 
-        self.hidden_layers = nn.ModuleList([
-            nn.Linear(in_size, out_size)
-            for in_size, out_size in zip(layer_sizes, layer_sizes[1:])
-        ])
+        self.hidden_layers = nn.ModuleList(
+            [
+                nn.Linear(in_size, out_size)
+                for in_size, out_size in zip(layer_sizes, layer_sizes[1:])
+            ]
+        )
 
-        self.heads = nn.ModuleList([
-            nn.Linear(layer_sizes[-1], output_size)
-            for output_size in output_sizes
-        ])
+        self.heads = nn.ModuleList(
+            [nn.Linear(layer_sizes[-1], output_size) for output_size in output_sizes]
+        )
 
         if initializer:
             # If given an initializer, initialize all weights using it, and all biases with 0's
@@ -90,7 +91,8 @@ class FCNetwork(nn.Module):
                     divide = is_policy[i]
                 else:
                     divide = is_policy
-                if divide: head.weight.data /= 100.
+                if divide:
+                    head.weight.data /= 100.0
                 nn.init.zeros_(head.bias)
 
     def forward(self, x: Tensor) -> List[Tensor]:

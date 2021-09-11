@@ -9,19 +9,41 @@ from typarse import BaseConfig
 
 from coltra.agents import Agent
 from coltra.discounting import discount_experience, get_episode_rewards
-from coltra.utils import get_optimizer, DataBatch, Timer, AgentDataBatch, \
-    write_dict, batch_to_gpu
+from coltra.utils import (
+    get_optimizer,
+    DataBatch,
+    Timer,
+    AgentDataBatch,
+    write_dict,
+    batch_to_gpu,
+)
 
-from coltra.buffers import Reward, Value, Done, Multitype, get_batch_size, MemoryRecord, Observation, Action
+from coltra.buffers import (
+    Reward,
+    Value,
+    Done,
+    Multitype,
+    get_batch_size,
+    MemoryRecord,
+    Observation,
+    Action,
+)
 
 
-def minibatches(*tensors: Union[Tensor, Multitype], batch_size: int = 32, shuffle: bool = True, rng: Generator = None):
+def minibatches(
+    *tensors: Union[Tensor, Multitype],
+    batch_size: int = 32,
+    shuffle: bool = True,
+    rng: Generator = None,
+):
     if shuffle and rng is None:
         rng = np.random.default_rng()
 
     full_size = get_batch_size(tensors[0])
     for tensor in tensors:
-        assert get_batch_size(tensor) == full_size, "One of the tensors has a different batch size"
+        assert (
+            get_batch_size(tensor) == full_size
+        ), "One of the tensors has a different batch size"
 
     if shuffle:
         indices = rng.permutation(full_size)
@@ -39,8 +61,7 @@ class CrowdPPOptimizer:
     An optimizer for a single homogeneous crowd agent. Estimates the gradient from the whole batch (no SGD).
     """
 
-    def __init__(self, agent: Agent,
-                 config: Dict[str, Any]):
+    def __init__(self, agent: Agent, config: Dict[str, Any]):
 
         self.agent = agent
 
@@ -56,7 +77,7 @@ class CrowdPPOptimizer:
             eps: float = 0.1
             target_kl: float = 0.03
             entropy_coeff: float = 0.001
-            entropy_decay_time: float = 100.
+            entropy_decay_time: float = 100.0
             min_entropy: float = 0.001
             value_coeff: float = 1.0  # Technically irrelevant
             advantage_normalization: bool = False
@@ -79,16 +100,17 @@ class CrowdPPOptimizer:
         Config.update(config)
         self.config = Config
 
-        self.policy_optimizer = get_optimizer(self.config.optimizer)(agent.model.parameters(),
-                                                                     **self.config.OptimizerKwargs.to_dict())
+        self.policy_optimizer = get_optimizer(self.config.optimizer)(
+            agent.model.parameters(), **self.config.OptimizerKwargs.to_dict()
+        )
 
         self.gamma: float = self.config.gamma
         self.eps: float = self.config.eps
         self.gae_lambda: float = self.config.gae_lambda
 
-    def train_on_data(self, data: MemoryRecord,
-                      step: int = 0,
-                      writer: Optional[SummaryWriter] = None) -> Dict[str, float]:
+    def train_on_data(
+        self, data: MemoryRecord, step: int = 0, writer: Optional[SummaryWriter] = None
+    ) -> Dict[str, float]:
         """
         Performs a single update step with PPO on the given batch of data.
 
@@ -106,7 +128,7 @@ class CrowdPPOptimizer:
 
         entropy_coeff = max(
             self.config.entropy_coeff * 0.1 ** (step / self.config.entropy_decay_time),
-            self.config.min_entropy
+            self.config.min_entropy,
         )
 
         agent_id = "crowd"
@@ -140,7 +162,7 @@ class CrowdPPOptimizer:
         # advantages_batch = advantages_batch / (torch.sqrt(torch.mean(advantages_batch ** 2) + 1e-8))
 
         # Initialize metrics
-        kl_divergence = 0.
+        kl_divergence = 0.0
         ppo_step = -1
         gradient_updates = 0
         value_loss = torch.tensor(0)
@@ -153,25 +175,29 @@ class CrowdPPOptimizer:
         batch_size = self.config.minibatch_size
 
         for ppo_step in range(self.config.ppo_epochs):
-            returns, advantages = discount_experience(rewards,
-                                                      old_values,
-                                                      dones,
-                                                      use_ugae=self.config.use_ugae,
-                                                      γ=self.config.gamma,
-                                                      η=self.config.eta,
-                                                      λ=self.config.gae_lambda)
+            returns, advantages = discount_experience(
+                rewards,
+                old_values,
+                dones,
+                use_ugae=self.config.use_ugae,
+                γ=self.config.gamma,
+                η=self.config.eta,
+                λ=self.config.gae_lambda,
+            )
 
             if self.config.advantage_normalization:
                 advantages = advantages - advantages.mean()
                 advantages = advantages / (advantages.std() + 1e-8)
 
-            for m_obs, m_action, m_old_logprob, m_return, m_advantage in minibatches(obs,
-                                                                                     actions,
-                                                                                     old_logprobs,
-                                                                                     returns,
-                                                                                     advantages,
-                                                                                     batch_size=batch_size,
-                                                                                     shuffle=True):
+            for m_obs, m_action, m_old_logprob, m_return, m_advantage in minibatches(
+                obs,
+                actions,
+                old_logprobs,
+                returns,
+                advantages,
+                batch_size=batch_size,
+                shuffle=True,
+            ):
                 # Evaluate again after the PPO step, for new values and gradients, aka forward pass
                 m_logprob, m_value, m_entropy = agent.evaluate(m_obs, m_action)
                 # Compute the KL divergence for early stopping
@@ -186,9 +212,11 @@ class CrowdPPOptimizer:
                 prob_ratio = torch.exp(m_logprob - m_old_logprob)
                 surr1 = prob_ratio * m_advantage
 
-                surr2 = torch.where(torch.gt(m_advantage, 0),
-                                    (1 + self.eps) * m_advantage,
-                                    (1 - self.eps) * m_advantage)
+                surr2 = torch.where(
+                    torch.gt(m_advantage, 0),
+                    (1 + self.eps) * m_advantage,
+                    (1 - self.eps) * m_advantage,
+                )
 
                 policy_loss = -torch.min(surr1, surr2)
 
@@ -196,9 +224,9 @@ class CrowdPPOptimizer:
                 value_loss = (m_value - m_return) ** 2
 
                 loss = (
-                        policy_loss.mean()
-                        + value_loss.mean()
-                        - (entropy_coeff * m_entropy.mean())
+                    policy_loss.mean()
+                    + value_loss.mean()
+                    - (entropy_coeff * m_entropy.mean())
                 )
 
                 ############################################# Update step ##############################################

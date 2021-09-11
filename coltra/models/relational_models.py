@@ -11,17 +11,18 @@ from .base_models import FCNetwork, BaseModel
 
 
 class RelationNetwork(nn.Module):
-    def __init__(self,
-                 vec_input_size: int = 4,
-                 rel_input_size: int = 4,
-                 vec_hidden_layers: List[int] = [32, 32],
-                 rel_hidden_layers: List[int] = [32, 32],
-                 com_hidden_layers: List[int] = [32, 32],
-                 output_sizes: List[int] = [2, 2],
-                 is_policy: Union[bool, List[bool]] = [True, False],
-                 activation: str = "tanh",
-                 initializer: str = "kaiming_uniform"
-                 ):
+    def __init__(
+        self,
+        vec_input_size: int = 4,
+        rel_input_size: int = 4,
+        vec_hidden_layers: List[int] = [32, 32],
+        rel_hidden_layers: List[int] = [32, 32],
+        com_hidden_layers: List[int] = [32, 32],
+        output_sizes: List[int] = [2, 2],
+        is_policy: Union[bool, List[bool]] = [True, False],
+        activation: str = "tanh",
+        initializer: str = "kaiming_uniform",
+    ):
         super().__init__()
 
         *vec_hidden, vec_head = vec_hidden_layers
@@ -31,7 +32,7 @@ class RelationNetwork(nn.Module):
             hidden_sizes=vec_hidden,
             activation=activation,
             initializer=initializer,
-            is_policy=False
+            is_policy=False,
         )
 
         *rel_hidden, rel_head = rel_hidden_layers
@@ -41,7 +42,7 @@ class RelationNetwork(nn.Module):
             hidden_sizes=rel_hidden,
             activation=activation,
             initializer=initializer,
-            is_policy=False
+            is_policy=False,
         )
 
         self.com_mlp = FCNetwork(
@@ -50,7 +51,7 @@ class RelationNetwork(nn.Module):
             hidden_sizes=com_hidden_layers,
             activation=activation,
             initializer=initializer,
-            is_policy=is_policy
+            is_policy=is_policy,
         )
 
     def forward(self, x: Observation) -> List[Tensor]:
@@ -97,7 +98,7 @@ class RelationModel(BaseModel):
             output_sizes=[self.config.num_actions, self.config.num_actions],
             is_policy=[True, False],
             activation=self.config.activation,
-            initializer=self.config.initializer
+            initializer=self.config.initializer,
         )
 
         self.value_network = RelationNetwork(
@@ -109,14 +110,14 @@ class RelationModel(BaseModel):
             output_sizes=[1],
             is_policy=False,
             activation=self.config.activation,
-            initializer=self.config.initializer
+            initializer=self.config.initializer,
         )
 
         self.config = self.config.to_dict()
 
-    def forward(self, x: Observation,
-                state: Tuple = (),
-                get_value: bool = True) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = True
+    ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
 
         [action_mu, action_std] = self.policy_network(x)
         action_std = F.softplus(action_std)  # TODO.txt: Figure out the low entropy
@@ -131,7 +132,6 @@ class RelationModel(BaseModel):
 
         return action_distribution, (), extra_outputs
 
-    def value(self, x: Observation,
-              state: Tuple = ()) -> Tensor:
+    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
         [value] = self.value_network(x)
         return value

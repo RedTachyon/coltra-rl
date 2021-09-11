@@ -15,35 +15,38 @@ WEST = 2
 EAST = 3
 STAY = 4
 
-AGENT = 'A'
-OBSTACLE = 'O'
-EMPTY = ','
-GOAL = 'G'
+AGENT = "A"
+OBSTACLE = "O"
+EMPTY = ","
+GOAL = "G"
 
 COLOUR_FG = {
-    EMPTY:   (400, 400, 400),      # Gray background
-    AGENT:  (999, 0,   0),   # Red agent
-    OBSTACLE: (999,   999, 999),  # Black obstacle
-    GOAL:    (999, 999, 0),   # Yellow goal
+    EMPTY: (400, 400, 400),  # Gray background
+    AGENT: (999, 0, 0),  # Red agent
+    OBSTACLE: (999, 999, 999),  # Black obstacle
+    GOAL: (999, 999, 0),  # Yellow goal
 }
 
 STEP_REWARD = -0.01
-GOAL_REWARD = 1.
+GOAL_REWARD = 1.0
 
 
-BOARD = ",,,,,,,,,,,,,\n" \
-        ",,,,,,,,,,,,,\n" \
-        ",,,O,,,,,O,,,\n" \
-        ",,,O,,,,,O,,,\n" \
-        ",,,O,,,,,O,,,\n" \
-        ",,,O,,A,,O,,,\n" \
-        ",,,O,,,,,O,,,\n" \
-        ",,,O,,,,,O,,,\n" \
-        ",,,O,,,,,O,,,\n" \
-        ",,,OOOOOOO,,,\n" \
-        ",,,,,,,,,,,,,\n" \
-        ",,,,,,G,,,,,,\n" \
-        ",,,,,,,,,,,,,"
+BOARD = (
+    ",,,,,,,,,,,,,\n"
+    ",,,,,,,,,,,,,\n"
+    ",,,O,,,,,O,,,\n"
+    ",,,O,,,,,O,,,\n"
+    ",,,O,,,,,O,,,\n"
+    ",,,O,,A,,O,,,\n"
+    ",,,O,,,,,O,,,\n"
+    ",,,O,,,,,O,,,\n"
+    ",,,O,,,,,O,,,\n"
+    ",,,OOOOOOO,,,\n"
+    ",,,,,,,,,,,,,\n"
+    ",,,,,,G,,,,,,\n"
+    ",,,,,,,,,,,,,"
+)
+
 
 class Forager(MazeWalker):
     """
@@ -51,21 +54,23 @@ class Forager(MazeWalker):
     Can walk anywhere within the board, collect subgoals and reach the goal
     """
 
-    def __init__(self,
-                 corner: NamedTuple,
-                 position: NamedTuple,
-                 character: str,
-                 impassable: str):
+    def __init__(
+        self, corner: NamedTuple, position: NamedTuple, character: str, impassable: str
+    ):
 
-        super().__init__(corner, position, character, impassable=impassable, confined_to_board=True)
+        super().__init__(
+            corner, position, character, impassable=impassable, confined_to_board=True
+        )
 
-    def update(self,
-               action: int,
-               board: np.ndarray,
-               layers: Dict[str, np.ndarray],
-               backdrop: Backdrop,
-               things: Dict[str, Union[Sprite, Drape]],
-               the_plot: Plot):
+    def update(
+        self,
+        action: int,
+        board: np.ndarray,
+        layers: Dict[str, np.ndarray],
+        backdrop: Backdrop,
+        things: Dict[str, Union[Sprite, Drape]],
+        the_plot: Plot,
+    ):
 
         # Take the action, using methods from the MazeWalker template
         if action == NORTH:
@@ -88,9 +93,9 @@ class Obstacle(Drape):
     with coordinates stored in the positions argument.
     """
 
-    def __init__(self, curtain: np.ndarray,
-                 character: str,
-                 positions: List[Tuple[int, int]]):
+    def __init__(
+        self, curtain: np.ndarray, character: str, positions: List[Tuple[int, int]]
+    ):
 
         super().__init__(curtain, character)
 
@@ -98,15 +103,18 @@ class Obstacle(Drape):
         for (s_row, s_col) in positions:
             self.curtain[s_row, s_col] = True
 
-    def update(self,
-               actions: Dict[str, int],
-               board: np.ndarray,
-               layers: Dict[str, np.ndarray],
-               backdrop: Backdrop,
-               things: Dict[str, Union[Sprite, Drape]],
-               the_plot: Plot):
+    def update(
+        self,
+        actions: Dict[str, int],
+        board: np.ndarray,
+        layers: Dict[str, np.ndarray],
+        backdrop: Backdrop,
+        things: Dict[str, Union[Sprite, Drape]],
+        the_plot: Plot,
+    ):
 
         pass
+
 
 class Goal(Sprite):
     """
@@ -116,13 +124,15 @@ class Goal(Sprite):
     def __init__(self, corner, position, character):
         super().__init__(corner, position, character)
 
-    def update(self,
-               actions: Dict[str, int],
-               board: np.ndarray,
-               layers: Dict[str, np.ndarray],
-               backdrop: Backdrop,
-               things: Dict[str, Union[Sprite, Drape]],
-               the_plot: Plot):
+    def update(
+        self,
+        actions: Dict[str, int],
+        board: np.ndarray,
+        layers: Dict[str, np.ndarray],
+        backdrop: Backdrop,
+        things: Dict[str, Union[Sprite, Drape]],
+        the_plot: Plot,
+    ):
 
         the_plot.add_reward(STEP_REWARD)  # Small negative reward at each time step
 
@@ -146,9 +156,9 @@ class Field(Backdrop):
         np.copyto(self.curtain, start)
 
 
-def parse_board(board: str) -> Tuple[Tuple[int, int],
-                                     List[Tuple[int, int]],
-                                     Tuple[int, int]]:
+def parse_board(
+    board: str,
+) -> Tuple[Tuple[int, int], List[Tuple[int, int]], Tuple[int, int]]:
     """
     Example of board representation:
     A,OO
@@ -174,11 +184,14 @@ def parse_board(board: str) -> Tuple[Tuple[int, int],
     return agent_position, obstacle_positions, goal_position
 
 
-def create_game(rows: int = 13, cols: int = 13,
-                agent_position: Tuple[int, int] = None,
-                obstacle_positions: List[Tuple[int, int]] = None,
-                goal_position: Tuple[int, int] = None,
-                **kwargs) -> Engine:
+def create_game(
+    rows: int = 13,
+    cols: int = 13,
+    agent_position: Tuple[int, int] = None,
+    obstacle_positions: List[Tuple[int, int]] = None,
+    goal_position: Tuple[int, int] = None,
+    **kwargs,
+) -> Engine:
     """
     Sets up the pycolab foraging game.
 
@@ -188,32 +201,24 @@ def create_game(rows: int = 13, cols: int = 13,
     engine = Engine(rows=rows, cols=cols, occlusion_in_layers=False)
     engine.set_backdrop(EMPTY, Field)
 
-    engine.update_group('1. Agents')
+    engine.update_group("1. Agents")
     engine.add_sprite(AGENT, agent_position, Forager, impassable=[OBSTACLE])
 
-    engine.update_group('2. Obstacles')
+    engine.update_group("2. Obstacles")
     engine.add_drape(OBSTACLE, Obstacle, positions=obstacle_positions)
 
-    engine.update_group('3. Goal')
+    engine.update_group("3. Goal")
     engine.add_sprite(GOAL, goal_position, Goal)
 
     return engine
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     # print(*parse_board(BOARD))
     game = create_game(13, 13, *parse_board(BOARD))
 
     ui = human_ui.CursesUi(
-        keys_to_actions={
-                         'w': NORTH,
-                         's': SOUTH,
-                         'a': WEST,
-                         'd': EAST,
-
-                         'f': STAY
-                         },
+        keys_to_actions={"w": NORTH, "s": SOUTH, "a": WEST, "d": EAST, "f": STAY},
         delay=1000,
         colour_fg=COLOUR_FG,
     )

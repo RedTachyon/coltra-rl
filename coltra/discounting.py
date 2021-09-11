@@ -9,7 +9,7 @@ from coltra.buffers import Reward, Value, Done
 
 import warnings
 
-warnings.simplefilter('ignore', category=NumbaPerformanceWarning)
+warnings.simplefilter("ignore", category=NumbaPerformanceWarning)
 
 # Disable njit for whatever reason
 # njit = lambda x: x
@@ -25,7 +25,9 @@ def get_episode_lens(dones: Tensor) -> List[int]:
         tuple of episode lengths
     """
     episode_indices = dones.to(torch.int).cumsum(dim=0)[:-1]
-    episode_indices = torch.cat([torch.tensor([0]), episode_indices])  # [0, 0, 0, ..., 1, 1, ..., 2, ..., ...]
+    episode_indices = torch.cat(
+        [torch.tensor([0]), episode_indices]
+    )  # [0, 0, 0, ..., 1, 1, ..., 2, ..., ...]
 
     ep_ids, ep_lens_tensor = torch.unique(episode_indices, return_counts=True)
     ep_lens = tuple(ep_lens_tensor.cpu().numpy())
@@ -37,22 +39,25 @@ def get_episode_rewards(rewards: Tensor, dones: Tensor) -> Tensor:
     """Computes the total reward in each episode in a data batch"""
     ep_lens = get_episode_lens(dones)
 
-    ep_rewards = torch.tensor([torch.sum(rewards) for rewards in torch.split(rewards, ep_lens)])
+    ep_rewards = torch.tensor(
+        [torch.sum(rewards) for rewards in torch.split(rewards, ep_lens)]
+    )
 
     return ep_rewards
 
 
 @njit
-def _discount_bgae(rewards: np.ndarray,  # float tensor (T, N)
-                   values: np.ndarray,  # float tensor (T, N)
-                   dones: np.array,  # boolean tensor (T, N)
-                   γ: float,  # \in (0, 1); extreme values imply with eta = 0
-                   η: float = 0,
-                   λ: float = 0.95,  # \in [0, 1]; possible [0, \infty)
-                   *,
-                   gamma: float = None,
-                   eta: float = None
-                   ) -> np.ndarray:
+def _discount_bgae(
+    rewards: np.ndarray,  # float tensor (T, N)
+    values: np.ndarray,  # float tensor (T, N)
+    dones: np.array,  # boolean tensor (T, N)
+    γ: float,  # \in (0, 1); extreme values imply with eta = 0
+    η: float = 0,
+    λ: float = 0.95,  # \in [0, 1]; possible [0, \infty)
+    *,
+    gamma: float = None,
+    eta: float = None
+) -> np.ndarray:
     """
     A numpy/numba-based CPU-optimized computation. Wrapped by discount_bgae for a Tensor interface
     """
@@ -74,15 +79,15 @@ def _discount_bgae(rewards: np.ndarray,  # float tensor (T, N)
 
     for t in range(T):
         s_rewards = rewards[:, t:]
-        s_values = values[:, t + 1:]
+        s_values = values[:, t + 1 :]
         old_value = values[:, t]
 
-        Γ_v = Γ_all[:T-t]
-        Γ_v1 = Γ_all[1:T-t]
-        λ_v = λ_all[:T-t]
+        Γ_v = Γ_all[: T - t]
+        Γ_v1 = Γ_all[1 : T - t]
+        λ_v = λ_all[: T - t]
 
         future_rewards = s_rewards @ (λ_v * Γ_v)
-        future_values = s_values @ (np.float32(1.-λ) * (λ_v[:-1] * Γ_v1))
+        future_values = s_values @ (np.float32(1.0 - λ) * (λ_v[:-1] * Γ_v1))
 
         advantage = -old_value + future_rewards + future_values
         advantages[:, t] = advantage
@@ -90,17 +95,18 @@ def _discount_bgae(rewards: np.ndarray,  # float tensor (T, N)
     return advantages
 
 
-def discount_experience(rewards: Tensor,  # float tensor (T, )
-                        values: Tensor,  # float tensor (T, )
-                        dones: Tensor,  # boolean tensor (T, )
-                        γ: float = 0.99,  # \in (0, 1); extreme values imply with eta = 0
-                        η: float = 0.,
-                        λ: float = 0.95,  # \in [0, 1]; possible [0, \infty)
-                        use_ugae: bool = False,
-                        *,
-                        gamma: float = None,
-                        eta: float = None
-                        ) -> Tuple[Tensor, Tensor]:
+def discount_experience(
+    rewards: Tensor,  # float tensor (T, )
+    values: Tensor,  # float tensor (T, )
+    dones: Tensor,  # boolean tensor (T, )
+    γ: float = 0.99,  # \in (0, 1); extreme values imply with eta = 0
+    η: float = 0.0,
+    λ: float = 0.95,  # \in [0, 1]; possible [0, \infty)
+    use_ugae: bool = False,
+    *,
+    gamma: float = None,
+    eta: float = None
+) -> Tuple[Tensor, Tensor]:
     """
     Performs discounting and advantage estimation using the βGAE algorithm described in (Kwiatkowski et al., 2021).
 
@@ -133,7 +139,9 @@ def discount_experience(rewards: Tensor,  # float tensor (T, )
 
         # breakpoint()
 
-        np_rewards = rewards.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
+        np_rewards = (
+            rewards.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
+        )
         np_values = values.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
         np_dones = dones.view((-1, ep_len)).detach().cpu().numpy()
 
@@ -141,7 +149,9 @@ def discount_experience(rewards: Tensor,  # float tensor (T, )
         # values = values.detach().cpu().numpy()
         # dones = dones.cpu().numpy()
 
-        advantages = _discount_bgae(np_rewards, np_values, np_dones, γ, η, λ, gamma=gamma, eta=eta)
+        advantages = _discount_bgae(
+            np_rewards, np_values, np_dones, γ, η, λ, gamma=gamma, eta=eta
+        )
 
     advantages = torch.as_tensor(advantages.ravel(), device=values.device)
     returns = advantages + values  # A = R - V
@@ -158,8 +168,8 @@ def convert_params(μ: float, η: float) -> Tuple[float, float]:
         α = μ  # Exponential discounting
         β = np.inf
     else:
-        α = μ / (η * (np.float32(1.) - μ))
-        β = 1. / η
+        α = μ / (η * (np.float32(1.0) - μ))
+        β = 1.0 / η
 
     return α, β
 
@@ -204,14 +214,20 @@ def get_beta_vector(T: int, α: float, β: float) -> np.ndarray:
 
 
 @njit
-def _fast_discount_gae(rewards: np.ndarray, values: np.ndarray, dones: np.ndarray, γ: float = 0.99, λ: float = 0.95):
+def _fast_discount_gae(
+    rewards: np.ndarray,
+    values: np.ndarray,
+    dones: np.ndarray,
+    γ: float = 0.99,
+    λ: float = 0.95,
+):
     advantages = np.zeros_like(rewards)
     lastgaelam = 0
     buffer_size = rewards.shape[0]
 
     for t in range(buffer_size - 1, -1, -1):
         if t == buffer_size - 1 or dones[t]:
-            nextvalue = 0.
+            nextvalue = 0.0
             lastgaelam = 0
         else:
             nextvalue = values[t + 1]

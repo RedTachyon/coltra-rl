@@ -18,13 +18,18 @@ class Agent:
     def __init__(self, *args, **kwargs):
         pass
 
-    def act(self, obs_batch: Observation,
-            state_batch: Tuple = (),
-            deterministic: bool = False,
-            get_value: bool = False) -> Tuple[Action, Tuple, Dict]:
+    def act(
+        self,
+        obs_batch: Observation,
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+    ) -> Tuple[Action, Tuple, Dict]:
         raise NotImplementedError
 
-    def evaluate(self, obs_batch: Observation, action_batch: Action) -> Tuple[Tensor, Tensor, Tensor]:
+    def evaluate(
+        self, obs_batch: Observation, action_batch: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
         raise NotImplementedError
 
     def cuda(self):
@@ -39,14 +44,18 @@ class Agent:
         return self.model.state_dict(*args, **kwargs)
 
     def get_initial_state(self, requires_grad=True):
-        return getattr(self.model, "get_initial_state", lambda *x, **xx: ())(requires_grad=requires_grad)
+        return getattr(self.model, "get_initial_state", lambda *x, **xx: ())(
+            requires_grad=requires_grad
+        )
 
     @classmethod
-    def load_agent(cls,
-                   base_path: str,
-                   weight_idx: Optional[int] = None,
-                   fname: str = 'base_agent.pt',
-                   weight_fname: str = 'weights') -> "Agent":
+    def load_agent(
+        cls,
+        base_path: str,
+        weight_idx: Optional[int] = None,
+        fname: str = "base_agent.pt",
+        weight_fname: str = "weights",
+    ) -> "Agent":
         """
         Loads a saved model and wraps it as an Agent.
         The input path must point to a directory holding a pytorch file passed as fname
@@ -54,12 +63,18 @@ class Agent:
         model: BaseModel = torch.load(os.path.join(base_path, fname))
 
         if weight_idx == -1:
-            weight_idx = max([int(fname.split('_')[-1])  # Get the last agent
-                              for fname in os.listdir(os.path.join(base_path, "saved_weights"))
-                              if fname.startswith(weight_fname)])
+            weight_idx = max(
+                [
+                    int(fname.split("_")[-1])  # Get the last agent
+                    for fname in os.listdir(os.path.join(base_path, "saved_weights"))
+                    if fname.startswith(weight_fname)
+                ]
+            )
 
         if weight_idx is not None:
-            weights = torch.load(os.path.join(base_path, "saved_weights", f"{weight_fname}_{weight_idx}"))
+            weights = torch.load(
+                os.path.join(base_path, "saved_weights", f"{weight_fname}_{weight_idx}")
+            )
             model.load_state_dict(weights)
 
         return cls(model)
@@ -73,10 +88,13 @@ class CAgent(Agent):  # Continuous Agent
         self.model = model
         self.stateful = model.stateful
 
-    def act(self, obs_batch: Observation,  # [B, ...]
-            state_batch: Tuple = (),
-            deterministic: bool = False,
-            get_value: bool = False) -> Tuple[Action, Tuple, Dict]:
+    def act(
+        self,
+        obs_batch: Observation,  # [B, ...]
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+    ) -> Tuple[Action, Tuple, Dict]:
         """Computes the action for an observation,
         passes along the state for recurrent models, and optionally the value"""
         obs_batch = obs_batch.tensor(self.model.device)
@@ -87,7 +105,9 @@ class CAgent(Agent):  # Continuous Agent
         actions: Tensor
 
         with torch.no_grad():
-            action_distribution, states, extra_outputs = self.model(obs_batch, state_batch, get_value=get_value)
+            action_distribution, states, extra_outputs = self.model(
+                obs_batch, state_batch, get_value=get_value
+            )
 
             if deterministic:
                 actions = action_distribution.loc
@@ -101,8 +121,9 @@ class CAgent(Agent):  # Continuous Agent
 
         return Action(continuous=actions.cpu().numpy()), states, extra
 
-    def evaluate(self, obs_batch: Observation,
-                 action_batch: Action) -> Tuple[Tensor, Tensor, Tensor]:
+    def evaluate(
+        self, obs_batch: Observation, action_batch: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Computes action logprobs, observation values and policy entropy for each of the (obs, action, hidden_state)
         transitions. Preserves all the necessary gradients.
@@ -137,10 +158,13 @@ class DAgent(Agent):
         self.model = model
         self.stateful = model.stateful
 
-    def act(self, obs_batch: Observation,
-            state_batch: Tuple = (),
-            deterministic: bool = False,
-            get_value: bool = False) -> Tuple[Action, Tuple, Dict]:
+    def act(
+        self,
+        obs_batch: Observation,
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+    ) -> Tuple[Action, Tuple, Dict]:
 
         obs_batch = obs_batch.tensor(self.model.device)
         state_batch = tuple(s.to(self.model.device) for s in state_batch)
@@ -150,7 +174,9 @@ class DAgent(Agent):
         actions: Tensor
 
         with torch.no_grad():
-            action_distribution, states, extra_outputs = self.model(obs_batch, state_batch, get_value=get_value)
+            action_distribution, states, extra_outputs = self.model(
+                obs_batch, state_batch, get_value=get_value
+            )
 
             if deterministic:
                 actions = action_distribution.probs.argmax(dim=-1)
@@ -164,8 +190,9 @@ class DAgent(Agent):
 
         return Action(discrete=actions.cpu().numpy()), states, extra
 
-    def evaluate(self, obs_batch: Observation,
-                 action_batch: Action) -> Tuple[Tensor, Tensor, Tensor]:
+    def evaluate(
+        self, obs_batch: Observation, action_batch: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Computes action logprobs, observation values and policy entropy for each of the (obs, action)
         transitions. Works on discrete actions.
@@ -193,22 +220,30 @@ class DAgent(Agent):
 
 
 class ConstantAgent(Agent):
-
     def __init__(self, action: np.array, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.action = np.asarray(action, dtype=np.float32)
 
-    def act(self, obs_batch: Observation,
-            state_batch: Tuple = (),
-            deterministic: bool = False,
-            get_value: bool = False) -> Tuple[Action, Tuple, Dict]:
+    def act(
+        self,
+        obs_batch: Observation,
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+    ) -> Tuple[Action, Tuple, Dict]:
 
         batch_size = obs_batch.batch_size
 
-        return Action(continuous=np.tile(self.action, (batch_size, 1))), (), {"value": np.zeros((batch_size,))}
+        return (
+            Action(continuous=np.tile(self.action, (batch_size, 1))),
+            (),
+            {"value": np.zeros((batch_size,))},
+        )
 
-    def evaluate(self, obs_batch: Observation, action_batch: Action) -> Tuple[Tensor, Tensor, Tensor]:
-        zero = torch.zeros((obs_batch.batch_size, ))
+    def evaluate(
+        self, obs_batch: Observation, action_batch: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
+        zero = torch.zeros((obs_batch.batch_size,))
         return zero, zero, zero
 
 
@@ -217,30 +252,43 @@ class RandomDAgent(Agent):
         super().__init__(*args, **kwargs)
         self.num_actions = num_actions
 
-    def act(self, obs_batch: Observation,
-            state_batch: Tuple = (),
-            deterministic: bool = False,
-            get_value: bool = False) -> Tuple[Action, Tuple, Dict]:
+    def act(
+        self,
+        obs_batch: Observation,
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+    ) -> Tuple[Action, Tuple, Dict]:
         batch_size = obs_batch.batch_size
 
-        return Action(discrete=np.random.randint(0, self.num_actions, batch_size)), (), {"value": np.zeros((batch_size,))}
+        return (
+            Action(discrete=np.random.randint(0, self.num_actions, batch_size)),
+            (),
+            {"value": np.zeros((batch_size,))},
+        )
 
-    def evaluate(self, obs_batch: Observation, action_batch: Action) -> Tuple[Tensor, Tensor, Tensor]:
-        zero = torch.zeros((obs_batch.batch_size, ))
+    def evaluate(
+        self, obs_batch: Observation, action_batch: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
+        zero = torch.zeros((obs_batch.batch_size,))
         return zero, zero, zero
 
 
 class ORCAAgent(Agent):
-
     def __init__(self):
         super(ORCAAgent, self).__init__()
 
-    def act(self, obs: Observation,
-            state: Tuple = (),
-            deterministic: bool = True,
-            get_value: bool = False) -> Tuple[Action, Tuple, Dict]:
+    def act(
+        self,
+        obs: Observation,
+        state: Tuple = (),
+        deterministic: bool = True,
+        get_value: bool = False,
+    ) -> Tuple[Action, Tuple, Dict]:
         pass
 
-    def evaluate(self, obs_batch: Observation, action_batch: Action) -> Tuple[Tensor, Tensor, Tensor]:
-        zero = torch.zeros((obs_batch.batch_size, ))
+    def evaluate(
+        self, obs_batch: Observation, action_batch: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
+        zero = torch.zeros((obs_batch.batch_size,))
         return zero, zero, zero

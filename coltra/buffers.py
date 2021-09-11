@@ -20,14 +20,15 @@ def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
 
 @dataclass
 class Multitype:
-
     @classmethod
     def stack_tensor(cls, value_list: List[Multitype], dim: int = 0) -> Multitype:
         res = cls()
         for field_ in get_type_hints(cls):
-            tensors = [torch.as_tensor(getattr(value, field_))
-                       for value in value_list
-                       if getattr(value, field_) is not None]
+            tensors = [
+                torch.as_tensor(getattr(value, field_))
+                for value in value_list
+                if getattr(value, field_) is not None
+            ]
 
             value = torch.stack(tensors, dim=dim) if tensors else None
             setattr(res, field_, value)
@@ -38,9 +39,11 @@ class Multitype:
     def cat_tensor(cls, value_list: List[Multitype], dim: int = 0) -> Multitype:
         res = cls()
         for field_ in get_type_hints(cls):
-            tensors = [torch.as_tensor(getattr(value, field_))
-                       for value in value_list
-                       if getattr(value, field_) is not None]
+            tensors = [
+                torch.as_tensor(getattr(value, field_))
+                for value in value_list
+                if getattr(value, field_) is not None
+            ]
 
             value = torch.cat(tensors, dim=dim) if tensors else None
             setattr(res, field_, value)
@@ -55,11 +58,13 @@ class Multitype:
             if value is None and field_value is not None:
                 value = field_value.shape[0]
             elif value is not None and field_value is not None:
-                assert value == field_value.shape[0], "Different types have different batch sizes"
+                assert (
+                    value == field_value.shape[0]
+                ), "Different types have different batch sizes"
 
         return value
 
-    def tensor(self, device: str = 'cpu'):
+    def tensor(self, device: str = "cpu"):
         res = type(self)()
         for field_ in fields(self):
             value = getattr(self, field_.name)
@@ -105,10 +110,10 @@ class Action(Multitype):
     discrete: TensorArray = None
 
 
-Reward = TensorArray   # float32
+Reward = TensorArray  # float32
 LogProb = TensorArray  # float32
-Value = TensorArray    # float32
-Done = TensorArray     # bool
+Value = TensorArray  # float32
+Done = TensorArray  # bool
 
 
 @dataclass
@@ -150,24 +155,27 @@ class AgentMemoryBuffer:
             getattr(self, name).append(record_value)
 
 
-
 @dataclass
 class MemoryBuffer:
     data: Dict[str, AgentMemoryBuffer] = field(default_factory=dict)
 
-    def append(self,
-               obs: Dict[str, Observation],
-               action: Dict[str, Action],
-               reward: Dict[str, Reward],
-               value: Dict[str, Value],
-               done: Dict[str, Done]):
+    def append(
+        self,
+        obs: Dict[str, Observation],
+        action: Dict[str, Action],
+        reward: Dict[str, Reward],
+        value: Dict[str, Value],
+        done: Dict[str, Done],
+    ):
 
         for agent_id in obs:  # Assume the keys are identical
-            record = MemoryRecord(obs[agent_id],
-                                  action[agent_id],
-                                  reward[agent_id],
-                                  value[agent_id],
-                                  done[agent_id])
+            record = MemoryRecord(
+                obs[agent_id],
+                action[agent_id],
+                reward[agent_id],
+                value[agent_id],
+                done[agent_id],
+            )
 
             self.data.setdefault(agent_id, AgentMemoryBuffer()).append(record)
 
@@ -186,7 +194,7 @@ class MemoryBuffer:
                 action=Action.stack_tensor(agent_buffer.action),
                 reward=torch.tensor(agent_buffer.reward),
                 value=torch.tensor(agent_buffer.value),
-                done=torch.tensor(agent_buffer.done)
+                done=torch.tensor(agent_buffer.done),
             )
         return result
 
@@ -194,9 +202,13 @@ class MemoryBuffer:
     def crowd_tensorify(self) -> MemoryRecord:
         tensor_data = self.tensorify().values()
         return MemoryRecord(
-            obs=Observation.cat_tensor([agent_buffer.obs for agent_buffer in tensor_data]),
-            action=Action.cat_tensor([agent_buffer.action for agent_buffer in tensor_data]),
+            obs=Observation.cat_tensor(
+                [agent_buffer.obs for agent_buffer in tensor_data]
+            ),
+            action=Action.cat_tensor(
+                [agent_buffer.action for agent_buffer in tensor_data]
+            ),
             reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
             value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
-            done=torch.cat([agent_buffer.done for agent_buffer in tensor_data])
+            done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
         )

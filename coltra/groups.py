@@ -16,10 +16,12 @@ class MacroAgent(abc.ABC):
         self.policy_names = []
 
     @abc.abstractmethod
-    def act(self,
-            obs_dict: Dict[str, Observation],
-            deterministic: bool = False,
-            get_value: bool = False) -> Tuple[Dict[str, Action], Tuple, Dict]:
+    def act(
+        self,
+        obs_dict: Dict[str, Observation],
+        deterministic: bool = False,
+        get_value: bool = False,
+    ) -> Tuple[Dict[str, Action], Tuple, Dict]:
         pass
 
 
@@ -27,22 +29,27 @@ class HomogeneousGroup(MacroAgent):
     """
     A simple macroagent with a single policy
     """
+
     def __init__(self, agent: Agent):
         super().__init__()
         self.policy_names.append("crowd")
         self.agent = agent
 
-    def act(self,
-            obs_dict: Dict[str, Observation],
-            deterministic: bool = False,
-            get_value: bool = False):
+    def act(
+        self,
+        obs_dict: Dict[str, Observation],
+        deterministic: bool = False,
+        get_value: bool = False,
+    ):
 
         obs, keys = pack(obs_dict)
-        actions, states, extra = self.agent.act(obs, (), deterministic, get_value=get_value)
+        actions, states, extra = self.agent.act(
+            obs, (), deterministic, get_value=get_value
+        )
 
         actions_dict = unpack(actions, keys)
 
-        extra = {key: unpack(value, keys) for key, value in extra.items() }
+        extra = {key: unpack(value, keys) for key, value in extra.items()}
 
         return actions_dict, states, extra
 
@@ -54,15 +61,22 @@ class HeterogeneousGroup(MacroAgent):
     """
     A "macroagent" combining several individual agents
     """
-    def __init__(self, agents: Dict[str, Agent], policy_mapper: Callable[[str], str] = lambda x: x):
+
+    def __init__(
+        self,
+        agents: Dict[str, Agent],
+        policy_mapper: Callable[[str], str] = lambda x: x,
+    ):
         super().__init__()
         self.agents = {key: HomogeneousGroup(agent) for key, agent in agents.items()}
         self.policy_mapper = policy_mapper
 
-    def act(self,
-            obs_dict: Dict[str, Observation],
-            deterministic: bool = False,
-            get_value: bool = False):
+    def act(
+        self,
+        obs_dict: Dict[str, Observation],
+        deterministic: bool = False,
+        get_value: bool = False,
+    ):
 
         policy_obs = {}
 
@@ -87,4 +101,3 @@ class HeterogeneousGroup(MacroAgent):
                 all_extras.setdefault(key, {}).update(extra_dict)
 
         return all_actions, states, all_extras
-
