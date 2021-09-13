@@ -338,10 +338,10 @@ class VecEnvWrapper(VecEnv):
             method_name, *method_args, indices=indices, **method_kwargs
         )
 
-    def env_is_wrapped(
-        self, wrapper_class: Type[gym.Wrapper], indices: VecEnvIndices = None
-    ) -> List[bool]:
-        return self.venv.env_is_wrapped(wrapper_class, indices=indices)
+    # def env_is_wrapped(
+    #     self, wrapper_class: Type[gym.Wrapper], indices: VecEnvIndices = None
+    # ) -> List[bool]:
+    #     return self.venv.env_is_wrapped(wrapper_class, indices=indices)
 
     def __getattr__(self, name: str) -> Any:
         """Find attribute from wrapped venv(s) if this wrapper does not have it.
@@ -384,7 +384,7 @@ class VecEnvWrapper(VecEnv):
 
         return attr
 
-    def getattr_depth_check(self, name: str, already_found: bool) -> str:
+    def getattr_depth_check(self, name: str, already_found: bool) -> Optional[str]:
         """See base class.
         :return: name of module whose attribute is being shadowed, if any.
         """

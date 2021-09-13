@@ -13,15 +13,17 @@ TensorArray = Union[np.ndarray, torch.Tensor]
 
 def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
     if isinstance(tensor, Tensor):
-        return tensor.shape[0]
+        _tensor: Tensor = tensor  # Just for types
+        return _tensor.shape[0]
     else:
-        return tensor.batch_size
+        _multitensor: Multitype = tensor
+        return _multitensor.batch_size
 
 
 @dataclass
 class Multitype:
     @classmethod
-    def stack_tensor(cls, value_list: List[Multitype], dim: int = 0) -> Multitype:
+    def stack_tensor(cls, value_list: List[Multitype], dim: int = 0):
         res = cls()
         for field_ in get_type_hints(cls):
             tensors = [
@@ -36,7 +38,7 @@ class Multitype:
         return res
 
     @classmethod
-    def cat_tensor(cls, value_list: List[Multitype], dim: int = 0) -> Multitype:
+    def cat_tensor(cls, value_list: List[Multitype], dim: int = 0):
         res = cls()
         for field_ in get_type_hints(cls):
             tensors = [
@@ -51,13 +53,13 @@ class Multitype:
         return res
 
     @property
-    def batch_size(self):
-        value = None
+    def batch_size(self) -> int:
+        value = -1
         for field_ in fields(self):
             field_value = getattr(self, field_.name)
-            if value is None and field_value is not None:
+            if value < 0 and field_value is not None:
                 value = field_value.shape[0]
-            elif value is not None and field_value is not None:
+            elif value >= 0 and field_value is not None:
                 assert (
                     value == field_value.shape[0]
                 ), "Different types have different batch sizes"
@@ -113,7 +115,7 @@ class Action(Multitype):
 Reward = TensorArray  # float32
 LogProb = TensorArray  # float32
 Value = TensorArray  # float32
-Done = TensorArray  # bool
+Done = Union[TensorArray, bool]  # bool
 
 
 @dataclass

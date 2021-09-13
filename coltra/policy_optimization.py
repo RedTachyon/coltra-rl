@@ -11,11 +11,8 @@ from coltra.agents import Agent
 from coltra.discounting import discount_experience, get_episode_rewards
 from coltra.utils import (
     get_optimizer,
-    DataBatch,
     Timer,
-    AgentDataBatch,
     write_dict,
-    batch_to_gpu,
 )
 
 from coltra.buffers import (

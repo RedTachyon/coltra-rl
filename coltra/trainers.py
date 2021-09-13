@@ -14,7 +14,7 @@ from coltra.agents import Agent
 from coltra.collectors import collect_crowd_data
 from coltra.envs import SubprocVecEnv, MultiAgentEnv
 from coltra.policy_optimization import CrowdPPOptimizer
-from coltra.utils import Timer, write_dict, concat_subproc_batch
+from coltra.utils import Timer, write_dict
 from coltra.envs.unity_envs import Mode
 from coltra.envs.base_env import VecEnv
 

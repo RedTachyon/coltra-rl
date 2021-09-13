@@ -159,7 +159,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             ter_reward_dict.update(n_ter_reward_dict)
 
         if len(reward_dict) < len(obs_dict):
-            breakpoint()
+            raise ValueError("This shouldn't happen, check it")
         done_dict["__all__"] = all(done_dict.values())
 
         info_dict["final_obs"] = ter_obs_dict
@@ -208,7 +208,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         obs_dict, reward_dict, done_dict, info_dict = self._get_step_info(step=True)
 
         if len(reward_dict) < len(obs_dict):
-            breakpoint()
+            raise ValueError("Old debugging code, this shouldn't happen")
 
         return obs_dict, reward_dict, done_dict, info_dict
 
