@@ -126,11 +126,12 @@ class MemoryRecord:
 
     def apply(self, func: Callable[[TensorArray], TensorArray]):
         """Applies a function to each field, returns a new object"""
-        res = type(self)()
+        kwargs = {}
         for field_ in fields(self):
             value = getattr(self, field_.name)
             new_field = func(value) if value is not None else None
-            setattr(res, field_.name, new_field)
+            kwargs[field_.name] = new_field
+        res = MemoryRecord(**kwargs)
         return res
 
     def cuda(self, *args, **kwargs):

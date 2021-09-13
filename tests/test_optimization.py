@@ -95,6 +95,8 @@ def test_ppo_step():
         "use_gpu": torch.cuda.is_available(),
     })
 
+    data.cpu()
+
     metrics = ppo.train_on_data(data)
     new_params = model.parameters()
 
