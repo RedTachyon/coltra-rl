@@ -34,7 +34,7 @@ def minibatches(
     *tensors: Union[Tensor, Multitype],
     batch_size: int = 32,
     shuffle: bool = True,
-    rng: Generator = None,
+    rng: Optional[Generator] = None,
 ):
     if shuffle and rng is None:
         rng = np.random.default_rng()

@@ -340,8 +340,8 @@ def parse_ana(content: str) -> Dict:
     """Parse the text of the entire file, split it into segments and return a dictionary of arrays"""
     segments = split_ana(content)
     data = [parse_segment(segment) for segment in segments]
-    data = {name.strip(): array for name, array in data}
-    return data
+    data_dict = {name.strip(): array for name, array in data}
+    return data_dict
 
 
 def read_ana(path: str) -> Dict:

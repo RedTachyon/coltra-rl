@@ -71,8 +71,8 @@ class MultiGymEnv(MultiAgentEnv):
         obs = Observation(vector=obs.astype(np.float32))
         return self._dict(obs)
 
-    def step(self, action: Dict[str, Action], *args, **kwargs):
-        action = action[self.name]
+    def step(self, action_dict: Dict[str, Action], *args, **kwargs):
+        action = action_dict[self.name]
         if self.is_discrete_action:
             action = action.discrete
         else:
