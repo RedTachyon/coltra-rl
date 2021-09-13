@@ -57,47 +57,47 @@ class HomogeneousGroup(MacroAgent):
     #     raise NotImplementedError
 
 
-class HeterogeneousGroup(MacroAgent):
-    """
-    A "macroagent" combining several individual agents
-    """
-
-    def __init__(
-        self,
-        agents: Dict[str, Agent],
-        policy_mapper: Callable[[str], str] = lambda x: x,
-    ):
-        super().__init__()
-        self.agents = {key: HomogeneousGroup(agent) for key, agent in agents.items()}
-        self.policy_mapper = policy_mapper
-
-    def act(
-        self,
-        obs_dict: Dict[str, Observation],
-        deterministic: bool = False,
-        get_value: bool = False,
-    ):
-
-        policy_obs = {}
-
-        for key, obs in obs_dict:
-            policy_name = self.policy_mapper(key)
-            policy_obs.setdefault(policy_name, {})[key] = obs
-
-        assert set(policy_obs.keys()).issubset(self.agents.keys())
-        # TODO: Reconsider variable names here
-
-        all_actions = {}
-        all_extras = {}
-        states = ()  # TODO: fix for recurrent policies
-
-        for policy_name, obs in policy_obs:
-            agent = self.agents[policy_name]
-            actions_dict, states, extra = agent.act(obs, deterministic, get_value)
-
-            all_actions.update(actions_dict)
-
-            for key, extra_dict in extra:
-                all_extras.setdefault(key, {}).update(extra_dict)
-
-        return all_actions, states, all_extras
+# class HeterogeneousGroup(MacroAgent):
+#     """
+#     A "macroagent" combining several individual agents
+#     """
+#
+#     def __init__(
+#         self,
+#         agents: Dict[str, Agent],
+#         policy_mapper: Callable[[str], str] = lambda x: x,
+#     ):
+#         super().__init__()
+#         self.agents = {key: HomogeneousGroup(agent) for key, agent in agents.items()}
+#         self.policy_mapper = policy_mapper
+#
+#     def act(
+#         self,
+#         obs_dict: Dict[str, Observation],
+#         deterministic: bool = False,
+#         get_value: bool = False,
+#     ):
+#
+#         policy_obs: Dict[str, Observation] = {}
+#
+#         for key, obs in obs_dict:
+#             policy_name = self.policy_mapper(key)
+#             policy_obs.setdefault(policy_name, {})[key] = obs
+#
+#         assert set(policy_obs.keys()).issubset(self.agents.keys())
+#         # TODO: Reconsider variable names here
+#
+#         all_actions = {}
+#         all_extras = {}
+#         states = ()  # TODO: fix for recurrent policies
+#
+#         for policy_name, obs in policy_obs:
+#             agent = self.agents[policy_name]
+#             actions_dict, states, extra = agent.act(obs, deterministic, get_value)
+#
+#             all_actions.update(actions_dict)
+#
+#             for key, extra_dict in extra:
+#                 all_extras.setdefault(key, {}).update(extra_dict)
+#
+#         return all_actions, states, all_extras

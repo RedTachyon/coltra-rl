@@ -91,7 +91,8 @@ def test_ppo_step():
     ppo = CrowdPPOptimizer(agent=agent, config={
         # 30 updates total
         "minibatch_size": 100,
-        "ppo_epochs": 3
+        "ppo_epochs": 3,
+        "use_gpu": torch.cuda.is_available(),
     })
 
     metrics = ppo.train_on_data(data)
