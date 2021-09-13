@@ -1,3 +1,5 @@
+import numpy as np
+
 from coltra.envs import SubprocVecEnv, ConstRewardEnv
 from coltra.collectors import collect_crowd_data
 from coltra.agents import ConstantAgent
@@ -26,7 +28,7 @@ def test_venv():
 
 def test_collect():
     venv = ConstRewardEnv.get_venv(workers=8, num_agents=10)
-    agent = ConstantAgent([1])
+    agent = ConstantAgent(np.array([1.]))
 
     data, stats = collect_crowd_data(agent, venv, 500)
 

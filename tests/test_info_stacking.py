@@ -15,6 +15,7 @@ def test_flatten_info():
 
     info = _flatten_info(infos)
 
+    assert isinstance(info["m_metric"], np.ndarray)
     assert info["m_metric"].shape == (2,)
     assert all(info["m_metric"] == np.array([1, 2], dtype=np.float32))
     assert info["foo"] == ["asdf", None, None, "potato"]

@@ -28,7 +28,7 @@ class ConstRewardEnv(MultiAgentEnv):
         zero_obs = Observation(vector=np.ones((1,), dtype=np.float32))
         return {agent_id: zero_obs for agent_id in self.active_agents}
 
-    def step(self, actions: Dict[str, Action] = None):
+    def step(self, actions: Dict[str, Action]):
         zero_obs = {
             agent_id: Observation(vector=np.ones((1,), dtype=np.float32))
             for agent_id in self.active_agents

@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, List, Union, Dict
+from typing import Tuple, List, Union, Dict, Optional
 from enum import Enum
 
 from mlagents_envs.base_env import (
@@ -102,7 +102,7 @@ def process_decisions(
 
 
 class UnitySimpleCrowdEnv(MultiAgentEnv):
-    def __init__(self, file_name: str = None, **kwargs):
+    def __init__(self, file_name: Optional[str] = None, **kwargs):
 
         super().__init__()
         self.engine_channel = EngineConfigurationChannel()
@@ -212,7 +212,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         return obs_dict, reward_dict, done_dict, info_dict
 
-    def reset(self, mode: Mode = None, num_agents: int = None, **kwargs) -> ObsDict:
+    def reset(self, mode: Optional[Mode] = None, num_agents: Optional[int] = None, **kwargs) -> ObsDict:
         if mode:
             self.param_channel.set_float_parameter("mode", mode.value)
         if num_agents:
@@ -276,7 +276,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
     @classmethod
     def get_venv(
-        cls, workers: int = 8, file_name: str = None, *args, **kwargs
+        cls, workers: int = 8, file_name: Optional[str] = None, *args, **kwargs
     ) -> SubprocVecEnv:
         venv = SubprocVecEnv(
             [

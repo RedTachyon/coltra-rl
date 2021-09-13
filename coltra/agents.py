@@ -220,7 +220,7 @@ class DAgent(Agent):
 
 
 class ConstantAgent(Agent):
-    def __init__(self, action: np.array, *args, **kwargs):
+    def __init__(self, action: np.ndarray, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.action = np.asarray(action, dtype=np.float32)
 
@@ -274,21 +274,21 @@ class RandomDAgent(Agent):
         return zero, zero, zero
 
 
-class ORCAAgent(Agent):
-    def __init__(self):
-        super(ORCAAgent, self).__init__()
-
-    def act(
-        self,
-        obs: Observation,
-        state: Tuple = (),
-        deterministic: bool = True,
-        get_value: bool = False,
-    ) -> Tuple[Action, Tuple, Dict]:
-        pass
-
-    def evaluate(
-        self, obs_batch: Observation, action_batch: Action
-    ) -> Tuple[Tensor, Tensor, Tensor]:
-        zero = torch.zeros((obs_batch.batch_size,))
-        return zero, zero, zero
+# class ORCAAgent(Agent):
+#     def __init__(self):
+#         super(ORCAAgent, self).__init__()
+#
+#     def act(
+#         self,
+#         obs: Observation,
+#         state: Tuple = (),
+#         deterministic: bool = True,
+#         get_value: bool = False,
+#     ) -> Tuple[Action, Tuple, Dict]:
+#         pass
+#
+#     def evaluate(
+#         self, obs_batch: Observation, action_batch: Action
+#     ) -> Tuple[Tensor, Tensor, Tensor]:
+#         zero = torch.zeros((obs_batch.batch_size,))
+#         return zero, zero, zero

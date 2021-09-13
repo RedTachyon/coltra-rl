@@ -1,6 +1,6 @@
 import multiprocessing
 from collections import OrderedDict
-from typing import Sequence, Any, Dict, List, Callable
+from typing import Sequence, Any, Dict, List, Callable, Union, Optional
 
 import gym
 import numpy as np
@@ -81,7 +81,7 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
            Defaults to 'forkserver' on available platforms, and 'spawn' otherwise.
     """
 
-    def __init__(self, env_fns: List[Callable], start_method: str = None):
+    def __init__(self, env_fns: List[Callable], start_method: Optional[str] = None):
         self.waiting = False
         self.closed = False
         n_envs = len(env_fns)
@@ -220,7 +220,7 @@ def _flatten_scalar(values: List[Dict[str, Any]]) -> Dict[str, np.ndarray]:
     return {k: np.array([v[k] for v in values]) for k in keys}
 
 
-def _flatten_info(infos: List[Dict[str, np.ndarray]]) -> Dict[str, np.ndarray]:
+def _flatten_info(infos: List[Dict[str, np.ndarray]]) -> Dict[str, Union[np.ndarray, List]]:
     all_metrics = {}
 
     all_keys = set([k for dictionary in infos for k in dictionary])

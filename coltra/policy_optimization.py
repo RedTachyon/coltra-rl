@@ -33,9 +33,6 @@ def minibatches(
     shuffle: bool = True,
     rng: Optional[Generator] = None,
 ):
-    if shuffle and rng is None:
-        rng = np.random.default_rng()
-
     full_size = get_batch_size(tensors[0])
     for tensor in tensors:
         assert (
@@ -43,7 +40,12 @@ def minibatches(
         ), "One of the tensors has a different batch size"
 
     if shuffle:
-        indices = rng.permutation(full_size)
+        _rng: Generator
+        if rng is None:
+            _rng = np.random.default_rng()
+        else:
+            _rng: Generator = rng
+        indices = _rng.permutation(full_size)
     else:
         indices = np.arange(full_size)
 
