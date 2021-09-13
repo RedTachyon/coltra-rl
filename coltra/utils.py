@@ -1,4 +1,15 @@
-from typing import Dict, List, Union, Tuple, Any, Callable, Optional, Iterator, Type, Generator
+from typing import (
+    Dict,
+    List,
+    Union,
+    Tuple,
+    Any,
+    Callable,
+    Optional,
+    Iterator,
+    Type,
+    Generator,
+)
 
 import numpy as np
 
@@ -188,7 +199,6 @@ class Masked:
             1 - preds
         )
         return Masked.mean(logloss.mean(-1), mask)
-
 
 
 # def concat_subproc_batch(

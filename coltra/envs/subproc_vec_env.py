@@ -226,8 +226,12 @@ def _flatten_info(infos: List[Dict[str, np.ndarray]]) -> Dict[str, np.ndarray]:
     all_keys = set([k for dictionary in infos for k in dictionary])
     for key in all_keys:
         if key.startswith("m_"):
-            all_metrics[key] = np.concatenate([info_i[key] for info_i in infos if key in info_i])
+            all_metrics[key] = np.concatenate(
+                [info_i[key] for info_i in infos if key in info_i]
+            )
         else:
-            all_metrics[key] = [info_i[key] if key in info_i else None for info_i in infos]
+            all_metrics[key] = [
+                info_i[key] if key in info_i else None for info_i in infos
+            ]
 
     return all_metrics
