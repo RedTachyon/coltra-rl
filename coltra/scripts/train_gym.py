@@ -41,7 +41,7 @@ class Parser(BaseParser):
     }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CUDA = torch.cuda.is_available()
 
     args = Parser()
@@ -82,7 +82,6 @@ if __name__ == '__main__':
 
     model_cls = FancyMLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
-
 
     if args.start_dir:
         agent = agent_cls.load_agent(args.start_dir, weight_idx=args.start_idx)

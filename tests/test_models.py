@@ -15,12 +15,14 @@ from coltra.models.relational_models import RelationNetwork, RelationModel
 def test_fc():
     torch.manual_seed(0)
 
-    network = FCNetwork(input_size=10,
-                        output_sizes=[2, 2],
-                        hidden_sizes=[64, 64],
-                        activation='tanh',
-                        initializer='kaiming_uniform',
-                        is_policy=True)
+    network = FCNetwork(
+        input_size=10,
+        output_sizes=[2, 2],
+        hidden_sizes=[64, 64],
+        activation="tanh",
+        initializer="kaiming_uniform",
+        is_policy=True,
+    )
 
     inp = torch.zeros(5, 10)
     [out1, out2] = network(inp)
@@ -40,12 +42,14 @@ def test_fc():
 
 
 def test_empty_fc():
-    network = FCNetwork(input_size=10,
-                        output_sizes=[32],
-                        hidden_sizes=[],
-                        activation='elu',
-                        initializer='kaiming_uniform',
-                        is_policy=False)
+    network = FCNetwork(
+        input_size=10,
+        output_sizes=[32],
+        hidden_sizes=[],
+        activation="elu",
+        initializer="kaiming_uniform",
+        is_policy=False,
+    )
 
     inp = torch.randn(5, 10)
     [out] = network(inp)
@@ -55,10 +59,9 @@ def test_empty_fc():
 
 
 def test_lee():
-    network = LeeNetwork(input_size=4,
-                         output_sizes=[2, 4],
-                         rays_input_size=126,
-                         conv_filters=2)
+    network = LeeNetwork(
+        input_size=4, output_sizes=[2, 4], rays_input_size=126, conv_filters=2
+    )
 
     obs = Observation(vector=torch.randn(10, 4), rays=torch.randn(10, 126))
 
@@ -91,10 +94,7 @@ def test_relnet():
     config = Config.to_dict()
     model = RelationModel(config)
 
-    obs = Observation(
-        vector=torch.rand(7, 4),
-        buffer=torch.rand(7, 11, 5)
-    )
+    obs = Observation(vector=torch.rand(7, 4), buffer=torch.rand(7, 11, 5))
 
     action, state, extra = model(obs, get_value=True)
 

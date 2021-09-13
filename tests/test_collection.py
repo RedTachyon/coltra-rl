@@ -16,7 +16,12 @@ def test_const_reward():
 
     assert data.obs.vector.shape == (1000, 1)
     assert torch.allclose(data.obs.vector, torch.ones(1000, 1))
-    assert torch.allclose(data.reward, torch.ones(1000, ))
+    assert torch.allclose(
+        data.reward,
+        torch.ones(
+            1000,
+        ),
+    )
 
     assert all(data.done)
     assert env.render() == 0

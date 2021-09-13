@@ -220,7 +220,9 @@ def _flatten_scalar(values: List[Dict[str, Any]]) -> Dict[str, np.ndarray]:
     return {k: np.array([v[k] for v in values]) for k in keys}
 
 
-def _flatten_info(infos: List[Dict[str, np.ndarray]]) -> Dict[str, Union[np.ndarray, List]]:
+def _flatten_info(
+    infos: List[Dict[str, np.ndarray]]
+) -> Dict[str, Union[np.ndarray, List]]:
     all_metrics = {}
 
     all_keys = set([k for dictionary in infos for k in dictionary])

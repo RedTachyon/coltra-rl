@@ -212,7 +212,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         return obs_dict, reward_dict, done_dict, info_dict
 
-    def reset(self, mode: Optional[Mode] = None, num_agents: Optional[int] = None, **kwargs) -> ObsDict:
+    def reset(
+        self, mode: Optional[Mode] = None, num_agents: Optional[int] = None, **kwargs
+    ) -> ObsDict:
         if mode:
             self.param_channel.set_float_parameter("mode", mode.value)
         if num_agents:

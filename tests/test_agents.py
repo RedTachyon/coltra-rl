@@ -9,7 +9,7 @@ from coltra.buffers import Observation
 
 def test_constant_agent():
     obs = Observation(vector=np.random.randn(5, 81), buffer=np.random.randn(5, 10, 4))
-    agent = ConstantAgent(np.array([1., 1.], dtype=np.float32))
+    agent = ConstantAgent(np.array([1.0, 1.0], dtype=np.float32))
 
     actions, _, _ = agent.act(obs_batch=obs)
 
@@ -79,8 +79,10 @@ def test_constant_agent():
 
 
 def test_fancy_mlp_agent():
-    obs = Observation(vector=np.random.randn(5, 81).astype(np.float32),
-                      buffer=np.random.randn(5, 10, 4).astype(np.float32))
+    obs = Observation(
+        vector=np.random.randn(5, 81).astype(np.float32),
+        buffer=np.random.randn(5, 10, 4).astype(np.float32),
+    )
 
     model = FancyMLPModel({"input_size": 81, "hidden_sizes": [32, 32]})
 
@@ -126,10 +128,14 @@ def test_fancy_mlp_agent():
 
 
 def test_discrete_fancy_mlp_agent():
-    obs = Observation(vector=np.random.randn(5, 81).astype(np.float32),
-                      buffer=np.random.randn(5, 10, 4).astype(np.float32))
+    obs = Observation(
+        vector=np.random.randn(5, 81).astype(np.float32),
+        buffer=np.random.randn(5, 10, 4).astype(np.float32),
+    )
 
-    model = FancyMLPModel({"input_size": 81, "hidden_sizes": [32, 32], "discrete": True})
+    model = FancyMLPModel(
+        {"input_size": 81, "hidden_sizes": [32, 32], "discrete": True}
+    )
 
     assert len(model.policy_network.hidden_layers) == 2
     assert model.discrete

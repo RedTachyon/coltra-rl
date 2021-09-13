@@ -1,12 +1,17 @@
 import numpy as np
 import torch
-from coltra.discounting import discount_experience, _discount_bgae, convert_params, get_beta_vector
+from coltra.discounting import (
+    discount_experience,
+    _discount_bgae,
+    convert_params,
+    get_beta_vector,
+)
 
 
 def test_convert():
     assert np.allclose(convert_params(0.5, 0), (0.5, np.inf))
-    assert np.allclose(convert_params(0.9, 0.5), (9*2, 2))
-    assert np.allclose(convert_params(0.99, 0.5), (99*2, 2))
+    assert np.allclose(convert_params(0.9, 0.5), (9 * 2, 2))
+    assert np.allclose(convert_params(0.99, 0.5), (99 * 2, 2))
     assert np.allclose(convert_params(0.9, 1), (9, 1))
 
 
@@ -15,16 +20,16 @@ def test_beta_vector():
     Γ = get_beta_vector(T=100, α=0.9, β=np.inf)
 
     assert Γ.shape == (100,)
-    assert np.allclose(Γ, np.array([0.9**t for t in range(100)]))
+    assert np.allclose(Γ, np.array([0.9 ** t for t in range(100)]))
 
     # Hyperbolic
     Γ = get_beta_vector(T=100, α=0.9, β=1)
 
     assert Γ.shape == (100,)
-    assert np.allclose(Γ, np.array([1 / (1 + (1/0.9) * t) for t in range(100)]))
+    assert np.allclose(Γ, np.array([1 / (1 + (1 / 0.9) * t) for t in range(100)]))
 
     # Some intermediate values
-    Γ = get_beta_vector(T=100, α=0.9, β=2.)
+    Γ = get_beta_vector(T=100, α=0.9, β=2.0)
     assert Γ.shape == (100,)
 
     Γ = get_beta_vector(T=100, α=0.99, β=0.5)
@@ -46,9 +51,9 @@ def test_discounting():
 
     rewards = torch.cat([torch.zeros(10), torch.zeros(10) + 1, torch.zeros(10) + 2])
     values = torch.cat([torch.zeros(10), torch.zeros(10) + 1, torch.zeros(10) + 2])
-    dones = torch.tensor([False if (t+1) % 5 else True for t in range(30)])
+    dones = torch.tensor([False if (t + 1) % 5 else True for t in range(30)])
 
-    returns, advantages = discount_experience(rewards, values, dones, 0.99, 0., 1.)
+    returns, advantages = discount_experience(rewards, values, dones, 0.99, 0.0, 1.0)
 
     assert isinstance(returns, torch.Tensor)
     assert isinstance(advantages, torch.Tensor)
@@ -58,7 +63,7 @@ def test_discounting():
 
     rewards = torch.randn(1000)
     values = torch.randn(1000)
-    dones = torch.tensor([False if (t+1) % 500 else True for t in range(1000)])
+    dones = torch.tensor([False if (t + 1) % 500 else True for t in range(1000)])
 
     returns, advantages = discount_experience(rewards, values, dones, 0.99, 0.5, 0.95)
 
@@ -72,7 +77,7 @@ def test_discounting():
 
     rewards = torch.ones(2000)
     values = torch.zeros(2000)
-    dones = torch.tensor([False if (t+1) % 1000 else True for t in range(2000)])
+    dones = torch.tensor([False if (t + 1) % 1000 else True for t in range(2000)])
 
     returns, advantages = discount_experience(rewards, values, dones, 0.99, 1.0, 0.95)
 

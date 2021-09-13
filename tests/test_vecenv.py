@@ -6,7 +6,7 @@ from coltra.agents import ConstantAgent
 
 
 def test_venv():
- 
+
     venv = ConstRewardEnv.get_venv(workers=8, num_agents=10)
     obs = venv.reset()
     assert len(obs) == 80
@@ -28,9 +28,9 @@ def test_venv():
 
 def test_collect():
     venv = ConstRewardEnv.get_venv(workers=8, num_agents=10)
-    agent = ConstantAgent(np.array([1.]))
+    agent = ConstantAgent(np.array([1.0]))
 
     data, stats = collect_crowd_data(agent, venv, 500)
 
-    assert data.obs.vector.shape == (8*10 * 500, 1)
+    assert data.obs.vector.shape == (8 * 10 * 500, 1)
     assert stats["stat"].shape == (500, 3 * 8)
