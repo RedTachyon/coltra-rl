@@ -23,7 +23,7 @@ def test_venv():
             assert name in reward
             assert name in done
 
-    assert info["m_stat"].shape[0] == 3 * 8
+    assert info["m_stat"].shape[0] == 8
 
 
 def test_collect():
@@ -33,4 +33,4 @@ def test_collect():
     data, stats = collect_crowd_data(agent, venv, 500)
 
     assert data.obs.vector.shape == (8 * 10 * 500, 1)
-    assert stats["stat"].shape == (500, 3 * 8)
+    assert stats["stat"].shape == (500, 8)

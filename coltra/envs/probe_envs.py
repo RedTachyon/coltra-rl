@@ -36,7 +36,11 @@ class ConstRewardEnv(MultiAgentEnv):
         }
         reward = {agent_id: np.float32(1.0) for agent_id in self.active_agents}
         done = {agent_id: True for agent_id in self.active_agents}
-        info = {"m_stat": np_float(1), "m_another_stat": np_float(2), "m_random_stat": np.random.randn(1)}
+        info = {
+            "m_stat": np_float(1),
+            "m_another_stat": np_float(2),
+            "m_random_stat": np.random.randn(1),
+        }
         return zero_obs, reward, done, info
 
     def render(self, mode="human"):
@@ -76,9 +80,16 @@ class ObsDependentRewardEnv(MultiAgentEnv):
             agent_id: Observation(vector=np_float(np.random.choice([-1, 1])))
             for agent_id in self.active_agents
         }
-        reward = {agent_id: np.float32(1.0 if obs[agent_id] > 0 else -1.0) for agent_id in self.active_agents}
+        reward = {
+            agent_id: np.float32(1.0 if obs[agent_id] > 0 else -1.0)
+            for agent_id in self.active_agents
+        }
         done = {agent_id: True for agent_id in self.active_agents}
-        info = {"m_stat": np_float(1), "m_another_stat": np_float(2), "m_random_stat": np.random.randn(1)}
+        info = {
+            "m_stat": np_float(1),
+            "m_another_stat": np_float(2),
+            "m_random_stat": np.random.randn(1),
+        }
         return obs, reward, done, info
 
     def render(self, mode="human"):
