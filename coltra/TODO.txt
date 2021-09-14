@@ -1,3 +1,5 @@
 TODO: Implement discounting that works for arbitrary episode lengths
 
-TODO: make a dummy multiagent env with the desired `manager` format
+TODO: wandb integration
+
+TODO: check discrete models

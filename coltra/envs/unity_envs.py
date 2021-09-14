@@ -284,7 +284,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             [
                 cls.get_env_creator(
                     file_name=file_name,
-                    no_graphics=False,
                     worker_id=i,
                     seed=i,
                     *args,
