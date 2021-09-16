@@ -7,16 +7,17 @@ from typarse import BaseParser
 
 from coltra.agents import CAgent, DAgent
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
-from coltra.envs.probe_envs import ConstRewardEnv
+from coltra.envs.probe_envs import ConstRewardEnv, ObsDependentRewardEnv
 from coltra.models.mlp_models import FancyMLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
-from coltra.envs import ConstRewardEnv
+from coltra.envs import probe_env_classes
 
 
 class Parser(BaseParser):
-    config: str = "configs/base_config.yaml"
+    config: str = "configs/probe_config.yaml"
+    probe: int = 0
     iters: int = 500
     name: str
     workers: int = 8
@@ -25,6 +26,7 @@ class Parser(BaseParser):
 
     _help = {
         "config": "Config file for the coltra",
+        "probe": "The index of the probe environment",
         "iters": "Number of coltra iterations",
         "name": "Name of the tb directory to store the logs",
         "workers": "Number of parallel collection envs to use",
@@ -34,6 +36,7 @@ class Parser(BaseParser):
 
     _abbrev = {
         "config": "c",
+        "probe": "p",
         "iters": "i",
         "name": "n",
         "workers": "w",
@@ -59,7 +62,8 @@ if __name__ == "__main__":
     workers = trainer_config.get("workers") or 8  # default value
 
     # Initialize the environment
-    env = ConstRewardEnv.get_venv(8)
+    # env = ConstRewardEnv.get_venv(8)
+    env = ObsDependentRewardEnv.get_venv(8)
     action_space = env.action_space
 
     print(f"{env.observation_space=}")

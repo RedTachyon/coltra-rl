@@ -1,5 +1,5 @@
-TODO: Implement discounting that works for arbitrary episode lengths
-
 TODO: wandb integration
+
+TODO: Implement discounting that works for arbitrary episode lengths
 
 TODO: check discrete models

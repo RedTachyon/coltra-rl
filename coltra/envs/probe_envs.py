@@ -66,6 +66,8 @@ class ObsDependentRewardEnv(MultiAgentEnv):
         self.observation_space = Box(-1, 1, (1,))
         self.action_space = Box(-1, 1, (1,))
 
+        self.current_obs = {}
+
     def reset(self, *args, **kwargs):
         if num_agents := kwargs.get("num_agents"):
             self.num_agents = num_agents
@@ -73,7 +75,9 @@ class ObsDependentRewardEnv(MultiAgentEnv):
 
         obs = np.random.choice([-1, 1])
         random_obs = Observation(vector=np_float(obs))
-        return {agent_id: random_obs for agent_id in self.active_agents}
+
+        self.current_obs = {agent_id: random_obs for agent_id in self.active_agents}
+        return self.current_obs
 
     def step(self, actions: Dict[str, Action]):
         obs = {
@@ -81,7 +85,7 @@ class ObsDependentRewardEnv(MultiAgentEnv):
             for agent_id in self.active_agents
         }
         reward = {
-            agent_id: np.float32(1.0 if obs[agent_id] > 0 else -1.0)
+            agent_id: np.float32(1.0 if self.current_obs[agent_id].vector > 0 else -1.0)
             for agent_id in self.active_agents
         }
         done = {agent_id: True for agent_id in self.active_agents}
@@ -90,6 +94,7 @@ class ObsDependentRewardEnv(MultiAgentEnv):
             "m_another_stat": np_float(2),
             "m_random_stat": np.random.randn(1),
         }
+        self.current_obs = obs
         return obs, reward, done, info
 
     def render(self, mode="human"):
@@ -101,3 +106,8 @@ class ObsDependentRewardEnv(MultiAgentEnv):
             [cls.get_env_creator(*args, **kwargs) for _ in range(workers)]
         )
         return venv
+
+probe_env_classes = [
+    ConstRewardEnv,
+    ObsDependentRewardEnv
+]
