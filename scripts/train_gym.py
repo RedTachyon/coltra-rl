@@ -10,6 +10,7 @@ from coltra.models.mlp_models import FancyMLPModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
 
+import wandb
 
 class Parser(BaseParser):
     config: str = "configs/base_config.yaml"
@@ -49,11 +50,19 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = yaml.load(f.read(), yaml.Loader)
 
+
     trainer_config = config["trainer"]
     model_config = config["model"]
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
+
+    wandb.init(
+        project="coltra",
+        entity="redtachyon",
+        sync_tensorboard=True,
+        config=config
+    )
 
     workers = trainer_config.get("workers") or 8  # default value
 

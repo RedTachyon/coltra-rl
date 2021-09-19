@@ -3,6 +3,8 @@ trainer:
   steps: 10
   workers: 8
 
+  num_agents: 1
+
   tensorboard_name:
   save_freq: 10
 
@@ -15,9 +17,9 @@ trainer:
       weight_decay: 0
       amsgrad: false
 
-    gamma: 0.99
+    gamma: 1.0
     eta: 0.0
-    gae_lambda: 0.95
+    gae_lambda: 1.0
 
     advantage_normalization: true
 
@@ -28,7 +30,7 @@ trainer:
     min_entropy: 0.0
     value_coeff: 1.0
 
-    ppo_epochs: 10
+    ppo_epochs: 2
     minibatch_size: 80
 
     use_gpu: false

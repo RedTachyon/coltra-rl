@@ -14,6 +14,8 @@ from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
 from coltra.envs import probe_env_classes
 
+import wandb
+
 
 class Parser(BaseParser):
     config: str = "configs/probe_config.yaml"
@@ -62,8 +64,8 @@ if __name__ == "__main__":
     workers = trainer_config.get("workers") or 8  # default value
 
     # Initialize the environment
-    # env = ConstRewardEnv.get_venv(8)
-    env = ObsDependentRewardEnv.get_venv(8)
+    env_cls = probe_env_classes[args.probe]
+    env = env_cls.get_venv(workers)
     action_space = env.action_space
 
     print(f"{env.observation_space=}")

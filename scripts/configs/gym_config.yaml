@@ -1,7 +1,7 @@
 ---
 trainer:
-  steps: 2
-  workers: 2
+  steps: 500
+  workers: 8
 
   tensorboard_name:
   save_freq: 10
@@ -31,7 +31,7 @@ trainer:
     ppo_epochs: 10
     minibatch_size: 8000
 
-    use_gpu: false
+    use_gpu:
 
 model:
   input_size:
