@@ -52,6 +52,7 @@ def collect_crowd_data(
     # }
     metrics = {}
 
+    # TODO: Handle the number of steps better/differently
     for step in trange(num_steps, disable=disable_tqdm):
         # Converts a dict to a compact array which will be fed to the network - needs rethinking
         obs_array, agent_keys = pack(obs_dict)

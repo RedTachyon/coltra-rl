@@ -1,7 +1,7 @@
 ---
 trainer:
-  steps: 500
-  workers: 8
+  steps: 1000
+  workers: 16
 
   tensorboard_name:
   save_freq: 10
@@ -9,7 +9,7 @@ trainer:
   PPOConfig:
     optimizer: adam
     OptimizerKwargs:
-      lr: 0.0003
+      lr: 0.00003
       betas: !!python/tuple [0.9, 0.999]
       eps: 1.0e-07
       weight_decay: 0
@@ -17,7 +17,7 @@ trainer:
 
     gamma: 0.99
     eta: 0.0
-    gae_lambda: 0.95
+    gae_lambda: 0.9
 
     advantage_normalization: true
 
@@ -28,18 +28,18 @@ trainer:
     min_entropy: 0.0
     value_coeff: 1.0
 
-    ppo_epochs: 10
-    minibatch_size: 8000
+    ppo_epochs: 20
+    minibatch_size: 128
 
     use_gpu:
 
 model:
   input_size:
   num_actions:
-  activation: tanh
+  activation: relu
   discrete:
 
-  hidden_sizes: [16, 16]
+  hidden_sizes: [256, 256]
   separate_value: true
 
   rays_input_size:

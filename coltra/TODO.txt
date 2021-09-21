@@ -1,4 +1,6 @@
-TODO: wandb integration
+TODO: wandb integration (finish)
+
+TODO: Fix the configs (1: model arguments, 2: more sane structure to avoid having to manually propagate the changes in typarsers)
 
 TODO: Implement discounting that works for arbitrary episode lengths
 
