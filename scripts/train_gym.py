@@ -12,6 +12,8 @@ from coltra.envs import MultiGymEnv
 
 import wandb
 
+import pybullet_envs
+
 class Parser(BaseParser):
     config: str = "configs/base_config.yaml"
     iters: int = 500
