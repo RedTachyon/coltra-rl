@@ -164,7 +164,8 @@ class AgentMemoryBuffer:
         for field_ in fields(record):
             name = field_.name
             record_value = getattr(record, name)
-            getattr(self, name).append(record_value)
+            if record_value is not None:
+                getattr(self, name).append(record_value)
 
 
 @dataclass
