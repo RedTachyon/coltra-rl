@@ -21,10 +21,9 @@ def collect_crowd_data(
     agent: Agent,
     env: MultiAgentEnv,
     num_steps: Optional[int] = None,
-    mode: Optional[Mode] = None,
-    num_agents: Optional[int] = None,
     deterministic: bool = False,
     disable_tqdm: bool = True,
+    **kwargs
 ) -> Tuple[MemoryRecord, Dict]:
     """
     Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
@@ -33,8 +32,6 @@ def collect_crowd_data(
         agent: Agent with which to collect the data
         env: Environment in which the agent will act
         num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
-        mode: which environment should be used
-        num_agents: how many agents in the environment
         deterministic: whether each agent should use the greedy policy; False by default
         disable_tqdm: whether a live progress bar should be (not) displayed
 
@@ -45,7 +42,7 @@ def collect_crowd_data(
     memory = MemoryBuffer()
 
     # reset_start: change here in case I ever need to not reset
-    obs_dict = env.reset(mode=mode, num_agents=num_agents)
+    obs_dict = env.reset(**kwargs)
 
     # state = {
     #     agent_id: self.agents[agent_id].get_initial_state(requires_grad=False) for agent_id in self.agent_ids
@@ -80,7 +77,7 @@ def collect_crowd_data(
 
     metrics = {key: np.array(value) for key, value in metrics.items()}
 
-    data = memory.crowd_tensorify()
+    data = memory.crowd_tensorify(None)
     return data, metrics
 
 

@@ -26,11 +26,16 @@ class Agent:
         deterministic: bool = False,
         get_value: bool = False,
     ) -> Tuple[Action, Tuple, Dict]:
+        """Return: Action, State, Extras"""
         raise NotImplementedError
 
     def evaluate(
         self, obs_batch: Observation, action_batch: Action
     ) -> Tuple[Tensor, Tensor, Tensor]:
+        """Return: logprobs, values, entropies"""
+        raise NotImplementedError
+
+    def value(self, obs_batch: Observation) -> Tensor:
         raise NotImplementedError
 
     def cuda(self):
@@ -82,11 +87,25 @@ class Agent:
 
 
 class ToyAgent(Agent):
+    def act(
+        self,
+        obs_batch: Observation,
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+    ) -> Tuple[Action, Tuple, Dict]:
+        """Return: Action, State, Extras"""
+        raise NotImplementedError
+
     def evaluate(
         self, obs_batch: Observation, action_batch: Action
     ) -> Tuple[Tensor, Tensor, Tensor]:
         zero = torch.zeros((obs_batch.batch_size,))
         return zero, zero, zero
+
+    def value(self, obs_batch: Observation) -> Tensor:
+        zero = torch.zeros((obs_batch.batch_size,))
+        return zero
 
 
 class RandomGymAgent(ToyAgent):
@@ -191,6 +210,10 @@ class CAgent(Agent):  # Continuous Agent
 
         return action_logprobs, values, entropies
 
+    def value(self, obs_batch: Observation) -> Tensor:
+        values = self.model.value(obs_batch, ())
+        return values
+
 
 class DAgent(Agent):
     model: BaseModel
@@ -260,6 +283,10 @@ class DAgent(Agent):
 
         return action_logprobs, values, entropies
 
+    def value(self, obs_batch: Observation) -> Tensor:
+        values = self.model.value(obs_batch, ())
+        return values
+
 
 class ConstantAgent(ToyAgent):
     def __init__(self, action: np.ndarray, *args, **kwargs):
@@ -282,7 +309,7 @@ class ConstantAgent(ToyAgent):
         )
 
 
-class RandomDAgent(Agent):
+class RandomDAgent(ToyAgent):
     def __init__(self, num_actions: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.num_actions = num_actions
@@ -301,29 +328,3 @@ class RandomDAgent(Agent):
             (),
             {"value": np.zeros((batch_size,))},
         )
-
-    def evaluate(
-        self, obs_batch: Observation, action_batch: Action
-    ) -> Tuple[Tensor, Tensor, Tensor]:
-        zero = torch.zeros((obs_batch.batch_size,))
-        return zero, zero, zero
-
-
-# class ORCAAgent(Agent):
-#     def __init__(self):
-#         super(ORCAAgent, self).__init__()
-#
-#     def act(
-#         self,
-#         obs: Observation,
-#         state: Tuple = (),
-#         deterministic: bool = True,
-#         get_value: bool = False,
-#     ) -> Tuple[Action, Tuple, Dict]:
-#         pass
-#
-#     def evaluate(
-#         self, obs_batch: Observation, action_batch: Action
-#     ) -> Tuple[Tensor, Tensor, Tensor]:
-#         zero = torch.zeros((obs_batch.batch_size,))
-#         return zero, zero, zero

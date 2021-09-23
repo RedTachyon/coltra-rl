@@ -60,7 +60,11 @@ class Multitype:
             # TODO: Fix this shit
             if field_value is None:
                 continue
-            _batch_size = field_value.shape[0] if (len(field_value.shape) > 1 or field_.name == "discrete") else 1
+            _batch_size = (
+                field_value.shape[0]
+                if (len(field_value.shape) > 1 or field_.name == "discrete")
+                else 1
+            )
             if value < 0:
                 value = _batch_size
             elif value >= 0:
@@ -129,6 +133,7 @@ class MemoryRecord:
     reward: Reward
     value: Value
     done: Done
+    last_value: Optional[Value]
 
     def apply(self, func: Callable[[TensorArray], TensorArray]):
         """Applies a function to each field, returns a new object"""
@@ -182,6 +187,7 @@ class MemoryBuffer:
                 reward[agent_id],
                 value[agent_id],
                 done[agent_id],
+                None,
             )
 
             self.data.setdefault(agent_id, AgentMemoryBuffer()).append(record)
@@ -202,11 +208,12 @@ class MemoryBuffer:
                 reward=torch.tensor(agent_buffer.reward),
                 value=torch.tensor(agent_buffer.value),
                 done=torch.tensor(agent_buffer.done),
+                last_value=None,
             )
         return result
 
     # TODO: reconsider whether different agents' experiences should be concatenated or stacked?
-    def crowd_tensorify(self) -> MemoryRecord:
+    def crowd_tensorify(self, last_value: Optional[Value] = None) -> MemoryRecord:
         tensor_data = self.tensorify().values()
         return MemoryRecord(
             obs=Observation.cat_tensor(
@@ -218,7 +225,9 @@ class MemoryBuffer:
             reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
             value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
             done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
+            last_value=last_value,
         )
+
     # def crowd_tensorify(self) -> MemoryRecord:
     #     tensor_data = self.tensorify().values()
     #     return MemoryRecord(

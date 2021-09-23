@@ -90,6 +90,7 @@ class MultiGymEnv(MultiAgentEnv):
         obs, reward, done, info = self.s_env.step(action, *args, **kwargs)
 
         if done:
+            info["final_obs"] = Observation(vector=obs.astype(np.float32))
             obs = self.s_env.reset()
 
         obs = Observation(vector=obs.astype(np.float32))
