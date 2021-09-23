@@ -148,15 +148,6 @@ class PPOCrowdTrainer(Trainer):
                 mode=Mode.from_string(self.config.mode),
                 num_agents=self.config.num_agents,
             )
-            # breakpoint()
-            # full_batch = concat_subproc_batch(full_batch)
-
-            # full_batch, collector_metrics = collect_parallel_unity(num_workers=self.config["workers"],
-            #                                                        num_runs=self.config["workers"],
-            #                                                        agent=self.agent,
-            #                                                        env_path=self.env_path,
-            #                                                        num_steps=self.config["steps"],
-            #                                                        base_seed=step)
 
             data_time = timer.checkpoint()
 

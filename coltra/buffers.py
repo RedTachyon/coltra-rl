@@ -214,32 +214,32 @@ class MemoryBuffer:
         return result
 
     # TODO: reconsider whether different agents' experiences should be concatenated or stacked?
-    # def crowd_tensorify(self, last_value: Optional[Value] = None) -> MemoryRecord:
-    #     tensor_data = self.tensorify().values()
-    #     return MemoryRecord(
-    #         obs=Observation.cat_tensor(
-    #             [agent_buffer.obs for agent_buffer in tensor_data]
-    #         ),
-    #         action=Action.cat_tensor(
-    #             [agent_buffer.action for agent_buffer in tensor_data]
-    #         ),
-    #         reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
-    #         value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
-    #         done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
-    #         last_value=last_value,
-    #     )
-
     def crowd_tensorify(self, last_value: Optional[Value] = None) -> MemoryRecord:
         tensor_data = self.tensorify().values()
         return MemoryRecord(
-            obs=Observation.stack_tensor(
+            obs=Observation.cat_tensor(
                 [agent_buffer.obs for agent_buffer in tensor_data]
             ),
-            action=Action.stack_tensor(
+            action=Action.cat_tensor(
                 [agent_buffer.action for agent_buffer in tensor_data]
             ),
-            reward=torch.stack([agent_buffer.reward for agent_buffer in tensor_data]),
-            value=torch.stack([agent_buffer.value for agent_buffer in tensor_data]),
-            done=torch.stack([agent_buffer.done for agent_buffer in tensor_data]),
+            reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
+            value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
+            done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
             last_value=last_value,
         )
+
+    # def crowd_tensorify(self, last_value: Optional[Value] = None) -> MemoryRecord:
+    #     tensor_data = self.tensorify().values()
+    #     return MemoryRecord(
+    #         obs=Observation.stack_tensor(
+    #             [agent_buffer.obs for agent_buffer in tensor_data]
+    #         ),
+    #         action=Action.stack_tensor(
+    #             [agent_buffer.action for agent_buffer in tensor_data]
+    #         ),
+    #         reward=torch.stack([agent_buffer.reward for agent_buffer in tensor_data]),
+    #         value=torch.stack([agent_buffer.value for agent_buffer in tensor_data]),
+    #         done=torch.stack([agent_buffer.done for agent_buffer in tensor_data]),
+    #         last_value=last_value,
+    #     )
