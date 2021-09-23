@@ -167,7 +167,7 @@ class FancyMLPModel(BaseModel):
         extra_outputs = {}
 
         if get_value:
-            [value] = self.value_network(x.vector)
+            value = self.value(x)
             extra_outputs["value"] = value
 
         return action_distribution, state, extra_outputs

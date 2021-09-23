@@ -57,11 +57,13 @@ class Multitype:
         value = -1
         for field_ in fields(self):
             field_value = getattr(self, field_.name)
-            if value < 0 and field_value is not None:
-                _batch_size = field_value.shape[0] if len(field_value.shape) > 1 else 1
+            # TODO: Fix this shit
+            if field_value is None:
+                continue
+            _batch_size = field_value.shape[0] if (len(field_value.shape) > 1 or field_.name == "discrete") else 1
+            if value < 0:
                 value = _batch_size
-            elif value >= 0 and field_value is not None:
-                _batch_size = field_value.shape[0] if len(field_value.shape) > 1 else 1
+            elif value >= 0:
                 assert (
                     value == field_value.shape[0]
                 ), "Different types have different batch sizes"
@@ -217,3 +219,16 @@ class MemoryBuffer:
             value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
             done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
         )
+    # def crowd_tensorify(self) -> MemoryRecord:
+    #     tensor_data = self.tensorify().values()
+    #     return MemoryRecord(
+    #         obs=Observation.stack_tensor(
+    #             [agent_buffer.obs for agent_buffer in tensor_data]
+    #         ),
+    #         action=Action.stack_tensor(
+    #             [agent_buffer.action for agent_buffer in tensor_data]
+    #         ),
+    #         reward=torch.stack([agent_buffer.reward for agent_buffer in tensor_data]),
+    #         value=torch.stack([agent_buffer.value for agent_buffer in tensor_data]),
+    #         done=torch.stack([agent_buffer.done for agent_buffer in tensor_data]),
+    #     )
