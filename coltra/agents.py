@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.distributions import Normal, Categorical
+import gym
 
 from coltra.models.base_models import BaseModel
 from coltra.buffers import Observation, Action
@@ -78,6 +79,47 @@ class Agent:
             model.load_state_dict(weights)
 
         return cls(model)
+
+
+class ToyAgent(Agent):
+    def evaluate(
+        self, obs_batch: Observation, action_batch: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
+        zero = torch.zeros((obs_batch.batch_size,))
+        return zero, zero, zero
+
+
+class RandomGymAgent(ToyAgent):
+    def __init__(self, action_space: gym.Space, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.action_space = action_space
+
+    def act(
+        self,
+        obs_batch: Observation,
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+    ) -> Tuple[Action, Tuple, Dict]:
+        batch_size = obs_batch.batch_size
+
+        if isinstance(self.action_space, gym.spaces.Box):
+            _action = np.tile(self.action_space.sample(), (batch_size, 1))
+            if batch_size == 1:
+                _action = _action.ravel()
+            action = Action(continuous=_action)
+        else:
+            action = Action(
+                discrete=np.array(
+                    [self.action_space.sample() for _ in range(batch_size)]
+                )
+            )
+
+        return (
+            action,
+            (),
+            {"value": np.zeros((batch_size,))},
+        )
 
 
 class CAgent(Agent):  # Continuous Agent
@@ -219,7 +261,7 @@ class DAgent(Agent):
         return action_logprobs, values, entropies
 
 
-class ConstantAgent(Agent):
+class ConstantAgent(ToyAgent):
     def __init__(self, action: np.ndarray, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.action = np.asarray(action, dtype=np.float32)
@@ -231,7 +273,6 @@ class ConstantAgent(Agent):
         deterministic: bool = False,
         get_value: bool = False,
     ) -> Tuple[Action, Tuple, Dict]:
-
         batch_size = obs_batch.batch_size
 
         return (
@@ -239,12 +280,6 @@ class ConstantAgent(Agent):
             (),
             {"value": np.zeros((batch_size,))},
         )
-
-    def evaluate(
-        self, obs_batch: Observation, action_batch: Action
-    ) -> Tuple[Tensor, Tensor, Tensor]:
-        zero = torch.zeros((obs_batch.batch_size,))
-        return zero, zero, zero
 
 
 class RandomDAgent(Agent):

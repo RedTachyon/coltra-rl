@@ -5,3 +5,9 @@ TODO: Fix the configs (1: model arguments, 2: more sane structure to avoid havin
 TODO: Implement discounting that works for arbitrary episode lengths
 
 TODO: check discrete models
+
+Big controversial TODO: remove all default values from configs
+
+TODO: Integrate Action/Observation abstractions with gym.spaces
+
+TODO: AGAIN rethink the done's, episode termination etc.

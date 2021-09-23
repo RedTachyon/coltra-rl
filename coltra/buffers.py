@@ -58,8 +58,10 @@ class Multitype:
         for field_ in fields(self):
             field_value = getattr(self, field_.name)
             if value < 0 and field_value is not None:
-                value = field_value.shape[0]
+                _batch_size = field_value.shape[0] if len(field_value.shape) > 1 else 1
+                value = _batch_size
             elif value >= 0 and field_value is not None:
+                _batch_size = field_value.shape[0] if len(field_value.shape) > 1 else 1
                 assert (
                     value == field_value.shape[0]
                 ), "Different types have different batch sizes"

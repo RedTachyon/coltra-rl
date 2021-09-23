@@ -54,8 +54,17 @@ class MultiGymEnv(MultiAgentEnv):
     A wrapper for environments that can be `gym.make`'d
     """
 
-    def __init__(self, env_name: str, name: str = "agent", *args, **kwargs):
+    def __init__(
+        self,
+        env_name: str,
+        name: str = "agent",
+        import_bullet: bool = False,
+        *args,
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
+        if import_bullet:
+            import pybullet_envs
         self.s_env = gym.make(env_name, **kwargs)
         self.name = name
 

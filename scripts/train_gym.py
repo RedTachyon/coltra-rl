@@ -14,6 +14,7 @@ import wandb
 
 import pybullet_envs
 
+
 class Parser(BaseParser):
     config: str = "configs/base_config.yaml"
     iters: int = 500
@@ -52,7 +53,6 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = yaml.load(f.read(), yaml.Loader)
 
-
     trainer_config = config["trainer"]
     model_config = config["model"]
 
@@ -60,10 +60,7 @@ if __name__ == "__main__":
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
     wandb.init(
-        project="coltra",
-        entity="redtachyon",
-        sync_tensorboard=True,
-        config=config
+        project="coltra", entity="redtachyon", sync_tensorboard=True, config=config
     )
 
     workers = trainer_config.get("workers") or 8  # default value

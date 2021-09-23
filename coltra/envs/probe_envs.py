@@ -136,7 +136,10 @@ class ActionDependentRewardEnv(MultiAgentEnv):
             agent_id: Observation(vector=np.ones((1,), dtype=np.float32))
             for agent_id in self.active_agents
         }
-        reward = {agent_id: np.float32(1.0 if action.discrete > 0 else -1.0) for agent_id, action in actions.items()}
+        reward = {
+            agent_id: np.float32(1.0 if action.discrete > 0 else -1.0)
+            for agent_id, action in actions.items()
+        }
         done = {agent_id: True for agent_id in self.active_agents}
         info = {
             "m_stat": np_float(1),
@@ -153,8 +156,5 @@ class ActionDependentRewardEnv(MultiAgentEnv):
         )
         return venv
 
-probe_env_classes = [
-    ConstRewardEnv,
-    ObsDependentRewardEnv,
-    ActionDependentRewardEnv
-]
+
+probe_env_classes = [ConstRewardEnv, ObsDependentRewardEnv, ActionDependentRewardEnv]

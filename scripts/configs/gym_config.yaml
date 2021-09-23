@@ -29,7 +29,7 @@ trainer:
     value_coeff: 1.0
 
     ppo_epochs: 20
-    minibatch_size: 128
+    minibatch_size: 2048
 
     use_gpu:
 

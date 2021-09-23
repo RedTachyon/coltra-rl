@@ -100,7 +100,7 @@ from .base_models import FCNetwork, BaseModel
 #
 #         return value
 
-
+# TODO: Make it possible to set std as a parameter
 class FancyMLPModel(BaseModel):
     def __init__(self, config: Dict):
         super().__init__()
