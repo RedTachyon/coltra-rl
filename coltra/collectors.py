@@ -77,7 +77,14 @@ def collect_crowd_data(
 
     metrics = {key: np.array(value) for key, value in metrics.items()}
 
-    data = memory.crowd_tensorify(None)
+    # Get the last values
+    obs_array, agent_keys = pack(obs_dict)
+
+    values = agent.value(obs_array)
+
+    # values_dict = unpack(values, agent_keys)
+
+    data = memory.crowd_tensorify(values)
     return data, metrics
 
 
