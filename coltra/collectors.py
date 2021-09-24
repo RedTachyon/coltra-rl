@@ -49,7 +49,6 @@ def collect_crowd_data(
     # }
     metrics = {}
 
-    # TODO: Handle the number of steps better/differently
     for step in trange(num_steps, disable=disable_tqdm):
         # Converts a dict to a compact array which will be fed to the network - needs rethinking
         obs_array, agent_keys = pack(obs_dict)
@@ -80,11 +79,9 @@ def collect_crowd_data(
     # Get the last values
     obs_array, agent_keys = pack(obs_dict)
 
-    values = agent.value(obs_array)
+    last_values = agent.value(obs_array).detach().view(-1)
 
-    # values_dict = unpack(values, agent_keys)
-
-    data = memory.crowd_tensorify(values)
+    data = memory.crowd_tensorify(last_value=last_values)
     return data, metrics
 
 

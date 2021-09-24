@@ -51,9 +51,12 @@ def test_discounting():
 
     rewards = torch.cat([torch.zeros(10), torch.zeros(10) + 1, torch.zeros(10) + 2])
     values = torch.cat([torch.zeros(10), torch.zeros(10) + 1, torch.zeros(10) + 2])
+    last_values = torch.zeros((10,))
     dones = torch.tensor([False if (t + 1) % 5 else True for t in range(30)])
 
-    returns, advantages = discount_experience(rewards, values, dones, 0.99, 0.0, 1.0)
+    returns, advantages = discount_experience(
+        rewards, values, dones, last_values, 0.99, 0.0, 1.0
+    )
 
     assert isinstance(returns, torch.Tensor)
     assert isinstance(advantages, torch.Tensor)
@@ -63,9 +66,12 @@ def test_discounting():
 
     rewards = torch.randn(1000)
     values = torch.randn(1000)
+    last_values = torch.zeros((10,))
     dones = torch.tensor([False if (t + 1) % 500 else True for t in range(1000)])
 
-    returns, advantages = discount_experience(rewards, values, dones, 0.99, 0.5, 0.95)
+    returns, advantages = discount_experience(
+        rewards, values, dones, last_values, 0.99, 0.5, 0.95
+    )
 
     assert isinstance(returns, torch.Tensor)
     assert isinstance(advantages, torch.Tensor)
@@ -75,11 +81,33 @@ def test_discounting():
     # assert torch.allclose(returns[:500], returns[500:])
     # assert torch.allclose(advantages[:500], advantages[500:])
 
+    rewards = torch.randn(500)
+    rewards = torch.cat([rewards, rewards])
+    values = torch.randn(500)
+    values = torch.cat([values, values])
+    last_values = torch.ones((10,))
+    dones = torch.tensor([False if (t + 1) % 500 else True for t in range(1000)])
+
+    returns, advantages = discount_experience(
+        rewards, values, dones, last_values, 0.99, 0.5, 0.95
+    )
+
+    assert isinstance(returns, torch.Tensor)
+    assert isinstance(advantages, torch.Tensor)
+    assert returns.shape == (1000,)
+    assert advantages.shape == (1000,)
+    assert torch.allclose(returns, advantages + values)
+    assert torch.allclose(returns[:500], returns[500:])
+    assert torch.allclose(advantages[:500], advantages[500:])
+
     rewards = torch.ones(2000)
     values = torch.zeros(2000)
+    last_values = torch.zeros((20,))
     dones = torch.tensor([False if (t + 1) % 1000 else True for t in range(2000)])
 
-    returns, advantages = discount_experience(rewards, values, dones, 0.99, 1.0, 0.95)
+    returns, advantages = discount_experience(
+        rewards, values, dones, last_values, 0.99, 1.0, 0.95
+    )
 
     assert isinstance(returns, torch.Tensor)
     assert isinstance(advantages, torch.Tensor)

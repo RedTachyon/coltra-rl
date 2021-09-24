@@ -104,7 +104,7 @@ class ToyAgent(Agent):
         return zero, zero, zero
 
     def value(self, obs_batch: Observation) -> Tensor:
-        zero = torch.zeros((obs_batch.batch_size,))
+        zero = torch.zeros((obs_batch.batch_size, 1))
         return zero
 
 

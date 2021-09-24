@@ -213,7 +213,6 @@ class MemoryBuffer:
             )
         return result
 
-    # TODO: reconsider whether different agents' experiences should be concatenated or stacked?
     def crowd_tensorify(self, last_value: Optional[Value] = None) -> MemoryRecord:
         tensor_data = self.tensorify().values()
         return MemoryRecord(
