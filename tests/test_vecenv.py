@@ -30,7 +30,7 @@ def test_collect():
     venv = probe_env_classes[0].get_venv(workers=8, num_agents=10)
     agent = ConstantAgent(np.array([1.0]))
 
-    data, stats = collect_crowd_data(agent, venv, 500)
+    data, stats, shape = collect_crowd_data(agent, venv, 500)
 
     assert data.obs.vector.shape == (8 * 10 * 500, 1)
-    assert stats["stat"].shape == (500, 8)
+    assert stats["stat"].shape == (500 * 8,)

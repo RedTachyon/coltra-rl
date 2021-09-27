@@ -227,7 +227,7 @@ def _flatten_info(
 
     all_keys = set([k for dictionary in infos for k in dictionary])
     for key in all_keys:
-        if key.startswith("m_"):
+        if key.startswith("m_") or key.startswith("e_"):
             all_metrics[key] = np.concatenate(
                 [info_i[key] for info_i in infos if key in info_i]
             )

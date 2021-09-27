@@ -9,6 +9,8 @@ from .base_env import MultiAgentEnv, VecEnvWrapper, StepReturn
 from .subproc_vec_env import VecEnv, SubprocVecEnv
 from coltra.buffers import Observation, Action
 
+from coltra.utils import np_float
+
 
 # class MultiAgentWrapper(MultiAgentEnv):
 #     """
@@ -75,9 +77,13 @@ class MultiGymEnv(MultiAgentEnv):
             self.s_env.action_space, gym.spaces.Discrete
         )
 
+        self.total_reward = 0
+
     def reset(self, *args, **kwargs):
         obs = self.s_env.reset()
         obs = Observation(vector=obs.astype(np.float32))
+        self.total_reward = 0
+
         return self._dict(obs)
 
     def step(self, action_dict: Dict[str, Action], *args, **kwargs):
@@ -88,9 +94,12 @@ class MultiGymEnv(MultiAgentEnv):
             action = action.continuous
 
         obs, reward, done, info = self.s_env.step(action, *args, **kwargs)
+        self.total_reward += reward
 
         if done:
             info["final_obs"] = Observation(vector=obs.astype(np.float32))
+            info["e_episode_reward"] = np_float(self.total_reward)
+            self.total_reward = 0
             obs = self.s_env.reset()
 
         obs = Observation(vector=obs.astype(np.float32))

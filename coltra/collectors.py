@@ -24,7 +24,7 @@ def collect_crowd_data(
     deterministic: bool = False,
     disable_tqdm: bool = True,
     **kwargs
-) -> Tuple[MemoryRecord, Dict]:
+) -> Tuple[MemoryRecord, Dict, Tuple]:
     """
     Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
 
@@ -65,7 +65,11 @@ def collect_crowd_data(
         # Actual step in the environment
         next_obs, reward_dict, done_dict, info_dict = env.step(action_dict)
 
-        all_metrics = {k: v for k, v in info_dict.items() if k.startswith("m_")}
+        all_metrics = {
+            k: v
+            for k, v in info_dict.items()
+            if k.startswith("m_") or k.startswith("e_")
+        }
 
         for key in all_metrics:
             metrics.setdefault(key[2:], []).append(all_metrics[key])
@@ -74,7 +78,7 @@ def collect_crowd_data(
 
         obs_dict = next_obs
 
-    metrics = {key: np.array(value) for key, value in metrics.items()}
+    metrics = {key: np.concatenate(value) for key, value in metrics.items()}
 
     # Get the last values
     obs_array, agent_keys = pack(obs_dict)
@@ -82,7 +86,9 @@ def collect_crowd_data(
     last_values = agent.value(obs_array).detach().view(-1)
 
     data = memory.crowd_tensorify(last_value=last_values)
-    return data, metrics
+
+    data_shape = tuple(last_values.shape) + (num_steps,)
+    return data, metrics, data_shape
 
 
 # def collect_heterogeneous_data(
