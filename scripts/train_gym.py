@@ -66,7 +66,7 @@ if __name__ == "__main__":
     workers = trainer_config.get("workers") or 8  # default value
 
     # Initialize the environment
-    env = MultiGymEnv.get_venv(workers=workers, env_name=args.env_name)
+    env = MultiGymEnv.get_venv(workers=workers, env=args.env_name)
     action_space = env.action_space
 
     print(f"{env.observation_space=}")

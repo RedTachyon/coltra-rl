@@ -1,6 +1,6 @@
 typarse==3.3.0
 numpy>=1.18
-gym>=0.19.0
+gym>=0.20.0
 jupyter>=1.0.0
 jupyterlab>=3.0.7
 mlagents>=0.24.0

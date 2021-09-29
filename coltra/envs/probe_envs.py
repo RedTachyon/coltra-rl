@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from gym.spaces import Box, Discrete
 import numpy as np
@@ -12,8 +12,8 @@ import wandb
 
 
 class ConstRewardEnv(MultiAgentEnv):
-    def __init__(self, num_agents: int = 1):
-        super().__init__()
+    def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
+        super().__init__(seed)
         self.num_agents = num_agents
         self.active_agents = [f"Agent{i}" for i in range(num_agents)]
 
@@ -49,16 +49,14 @@ class ConstRewardEnv(MultiAgentEnv):
         return 0
 
     @classmethod
-    def get_venv(cls, workers: int = 8, *args, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv(
-            [cls.get_env_creator(*args, **kwargs) for _ in range(workers)]
-        )
+    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
+        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
 
 class ObsDependentRewardEnv(MultiAgentEnv):
-    def __init__(self, num_agents: int = 1):
-        super().__init__()
+    def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
+        super().__init__(seed)
         self.num_agents = num_agents
         self.active_agents = [f"Agent{i}" for i in range(num_agents)]
 
@@ -75,7 +73,7 @@ class ObsDependentRewardEnv(MultiAgentEnv):
             self.num_agents = num_agents
             self.active_agents = [f"Agent{i}" for i in range(num_agents)]
 
-        obs = np.random.choice([-1, 1])
+        obs = self.rng.choice([-1, 1])
         random_obs = Observation(vector=np_float(obs))
 
         self.current_obs = {agent_id: random_obs for agent_id in self.active_agents}
@@ -83,7 +81,7 @@ class ObsDependentRewardEnv(MultiAgentEnv):
 
     def step(self, actions: Dict[str, Action]):
         obs = {
-            agent_id: Observation(vector=np_float(np.random.choice([-1, 1])))
+            agent_id: Observation(vector=np_float(self.rng.choice([-1, 1])))
             for agent_id in self.active_agents
         }
         reward = {
@@ -103,16 +101,14 @@ class ObsDependentRewardEnv(MultiAgentEnv):
         return 0
 
     @classmethod
-    def get_venv(cls, workers: int = 8, *args, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv(
-            [cls.get_env_creator(*args, **kwargs) for _ in range(workers)]
-        )
+    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
+        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
 
 class ActionDependentRewardEnv(MultiAgentEnv):
-    def __init__(self, num_agents: int = 1):
-        super().__init__()
+    def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
+        super().__init__(seed)
         self.num_agents = num_agents
         self.active_agents = [f"Agent{i}" for i in range(num_agents)]
 
@@ -150,11 +146,84 @@ class ActionDependentRewardEnv(MultiAgentEnv):
         return 0
 
     @classmethod
-    def get_venv(cls, workers: int = 8, *args, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv(
-            [cls.get_env_creator(*args, **kwargs) for _ in range(workers)]
-        )
+    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
+        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
 
-probe_env_classes = [ConstRewardEnv, ObsDependentRewardEnv, ActionDependentRewardEnv]
+class StateActionDependentRewardEnv(MultiAgentEnv):
+    def __init__(
+        self, num_agents: int = 1, ep_end_prob: float = 0.1, seed: Optional[int] = None
+    ):
+        super().__init__(seed)
+        self.num_agents = num_agents
+        self.ep_end_prob = ep_end_prob
+        self.active_agents = [f"Agent{i}" for i in range(num_agents)]
+
+        self.obs_vector_size = 1
+        self.action_vector_size = 1
+
+        self.observation_space = Box(-1, 1, (1,))
+        # self.action_space = Box(-1, 1, (1,))
+        self.action_space = Discrete(2)
+
+        self.last_obs = {}
+
+    def reset(self, *args, **kwargs):
+        if num_agents := kwargs.get("num_agents"):
+            self.num_agents = num_agents
+            self.active_agents = [f"Agent{i}" for i in range(num_agents)]
+
+        self.last_obs = {
+            agent_id: np_float(self.rng.integers(2))
+            for agent_id in self.active_agents
+        }
+        obs = {
+            agent_id: Observation(vector=agent_obs)
+            for agent_id, agent_obs in self.last_obs.items()
+        }
+
+        return obs
+
+    def step(self, actions: Dict[str, Action]):
+
+        reward = {
+            agent_id: np.float32(
+                1.0 if np.allclose(action.discrete, self.last_obs[agent_id]) else -1.0
+            )
+            for agent_id, action in actions.items()
+        }
+        done = {
+            agent_id: self.rng.random() < self.ep_end_prob
+            for agent_id in self.active_agents
+        }
+
+        self.last_obs = {
+            agent_id: np_float(self.rng.integers(2))
+            for agent_id in self.active_agents
+        }
+        obs = {
+            agent_id: Observation(vector=agent_obs)
+            for agent_id, agent_obs in self.last_obs.items()
+        }
+
+        info = {
+            "m_stat": np_float(1),
+        }
+        return obs, reward, done, info
+
+    def render(self, mode="human"):
+        return 0
+
+    @classmethod
+    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
+        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
+        return venv
+
+
+probe_env_classes = [
+    ConstRewardEnv,
+    ObsDependentRewardEnv,
+    ActionDependentRewardEnv,
+    StateActionDependentRewardEnv,
+]
