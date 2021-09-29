@@ -8,7 +8,11 @@ from torch.utils.tensorboard import SummaryWriter
 from typarse import BaseConfig
 
 from coltra.agents import Agent
-from coltra.discounting import discount_experience, get_episode_rewards, get_episode_lengths
+from coltra.discounting import (
+    discount_experience,
+    get_episode_rewards,
+    get_episode_lengths,
+)
 from coltra.utils import (
     get_optimizer,
     Timer,

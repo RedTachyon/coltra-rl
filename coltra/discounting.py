@@ -35,10 +35,9 @@ def get_episode_rewards(
     returns = np.array(returns)
     return returns
 
+
 @njit
-def get_episode_lengths(
-    dones: np.ndarray, shape: Tuple[int, int]
-) -> np.ndarray:
+def get_episode_lengths(dones: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     dones = dones.reshape(shape)
     batch_size, num_steps = shape
 
