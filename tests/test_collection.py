@@ -12,7 +12,7 @@ def test_const_reward():
     model = FancyMLPModel({"input_size": env.obs_vector_size})
     agent = CAgent(model)
 
-    data, stats = collect_crowd_data(agent, env, num_steps=100)
+    data, stats, shape = collect_crowd_data(agent, env, num_steps=100)
 
     assert data.obs.vector.shape == (1000, 1)
     assert torch.allclose(data.obs.vector, torch.ones(1000, 1))
@@ -25,7 +25,7 @@ def test_const_reward():
 
     assert all(data.done)
     assert env.render() == 0
-    assert stats["stat"].shape == (100, 1)
+    assert stats["stat"].shape == (100,)
 
     assert isinstance(data.obs.vector, Tensor)
     assert isinstance(data.action.continuous, Tensor)

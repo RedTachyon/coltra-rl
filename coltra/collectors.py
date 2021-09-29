@@ -21,11 +21,10 @@ def collect_crowd_data(
     agent: Agent,
     env: MultiAgentEnv,
     num_steps: Optional[int] = None,
-    mode: Optional[Mode] = None,
-    num_agents: Optional[int] = None,
     deterministic: bool = False,
     disable_tqdm: bool = True,
-) -> Tuple[MemoryRecord, Dict]:
+    **kwargs
+) -> Tuple[MemoryRecord, Dict, Tuple]:
     """
     Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
 
@@ -33,8 +32,6 @@ def collect_crowd_data(
         agent: Agent with which to collect the data
         env: Environment in which the agent will act
         num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
-        mode: which environment should be used
-        num_agents: how many agents in the environment
         deterministic: whether each agent should use the greedy policy; False by default
         disable_tqdm: whether a live progress bar should be (not) displayed
 
@@ -45,14 +42,13 @@ def collect_crowd_data(
     memory = MemoryBuffer()
 
     # reset_start: change here in case I ever need to not reset
-    obs_dict = env.reset(mode=mode, num_agents=num_agents)
+    obs_dict = env.reset(**kwargs)
 
     # state = {
     #     agent_id: self.agents[agent_id].get_initial_state(requires_grad=False) for agent_id in self.agent_ids
     # }
     metrics = {}
 
-    # TODO: Handle the number of steps better/differently
     for step in trange(num_steps, disable=disable_tqdm):
         # Converts a dict to a compact array which will be fed to the network - needs rethinking
         obs_array, agent_keys = pack(obs_dict)
@@ -69,7 +65,11 @@ def collect_crowd_data(
         # Actual step in the environment
         next_obs, reward_dict, done_dict, info_dict = env.step(action_dict)
 
-        all_metrics = {k: v for k, v in info_dict.items() if k.startswith("m_")}
+        all_metrics = {
+            k: v
+            for k, v in info_dict.items()
+            if k.startswith("m_") or k.startswith("e_")
+        }
 
         for key in all_metrics:
             metrics.setdefault(key[2:], []).append(all_metrics[key])
@@ -78,10 +78,17 @@ def collect_crowd_data(
 
         obs_dict = next_obs
 
-    metrics = {key: np.array(value) for key, value in metrics.items()}
+    metrics = {key: np.concatenate(value) for key, value in metrics.items()}
 
-    data = memory.crowd_tensorify()
-    return data, metrics
+    # Get the last values
+    obs_array, agent_keys = pack(obs_dict)
+
+    last_values = agent.value(obs_array).detach().view(-1)
+
+    data = memory.crowd_tensorify(last_value=last_values)
+
+    data_shape = tuple(last_values.shape) + (num_steps,)
+    return data, metrics, data_shape
 
 
 # def collect_heterogeneous_data(

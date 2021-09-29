@@ -1,13 +1,11 @@
-TODO: wandb integration (finish)
+TODO: wandb integration (finish - some videos)
 
 TODO: Fix the configs (1: model arguments, 2: more sane structure to avoid having to manually propagate the changes in typarsers)
 
-TODO: Implement discounting that works for arbitrary episode lengths
-
-TODO: check discrete models
+TODO: Implement ugae  that works for arbitrary episode lengths
 
 Big controversial TODO: remove all default values from configs
 
 TODO: Integrate Action/Observation abstractions with gym.spaces
 
-TODO: AGAIN rethink the done's, episode termination etc.
+TODO: Add a trainer with tensorboard test. Maybe a "full training" test?

@@ -88,7 +88,9 @@ def test_ppo_step():
     agent = CAgent(model)
     env = ConstRewardEnv(num_agents=10)
 
-    data, _ = collect_crowd_data(agent, env, num_steps=100)  # 1000 steps total
+    data, metrics, shape = collect_crowd_data(
+        agent, env, num_steps=100
+    )  # 1000 steps total
 
     ppo = CrowdPPOptimizer(
         agent=agent,
@@ -102,7 +104,7 @@ def test_ppo_step():
 
     data.cpu()
 
-    metrics = ppo.train_on_data(data)
+    metrics = ppo.train_on_data(data, shape)
     new_params = model.parameters()
 
     # Check that something has changed

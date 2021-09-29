@@ -29,7 +29,7 @@ from coltra.trainers import PPOCrowdTrainer
 
 
 def test_multigym():
-    env = MultiGymEnv.get_venv(1, "MountainCar-v0")
+    env = MultiGymEnv.get_venv(workers=1, env_name="MountainCar-v0")
     obs = env.reset()
 
     name = list(obs.keys())[0]
@@ -116,7 +116,7 @@ model:
     model_config = config["model"]
     workers = 2
 
-    env = MultiGymEnv.get_venv(workers, "MountainCar-v0")
+    env = MultiGymEnv.get_venv(workers=workers, env_name="MountainCar-v0")
     action_space = env.action_space
 
     print(f"{env.observation_space=}")

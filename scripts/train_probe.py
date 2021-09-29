@@ -80,10 +80,8 @@ if __name__ == "__main__":
     # Initialize the agent
     sample_obs = next(iter(env.reset().values()))
     obs_size = sample_obs.vector.shape[0]
-    ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
 
     model_config["input_size"] = obs_size
-    model_config["rays_input_size"] = ray_size
     model_config["discrete"] = is_discrete_action
     model_config["num_actions"] = action_shape
 

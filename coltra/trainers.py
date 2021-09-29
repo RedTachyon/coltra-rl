@@ -141,28 +141,21 @@ class PPOCrowdTrainer(Trainer):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
 
-            full_batch, collector_metrics = collect_crowd_data(
+            full_batch, collector_metrics, shape = collect_crowd_data(
                 agent=self.agent,
                 env=self.env,
                 num_steps=self.config.steps,
                 mode=Mode.from_string(self.config.mode),
                 num_agents=self.config.num_agents,
             )
-            # breakpoint()
-            # full_batch = concat_subproc_batch(full_batch)
-
-            # full_batch, collector_metrics = collect_parallel_unity(num_workers=self.config["workers"],
-            #                                                        num_runs=self.config["workers"],
-            #                                                        agent=self.agent,
-            #                                                        env_path=self.env_path,
-            #                                                        num_steps=self.config["steps"],
-            #                                                        base_seed=step)
 
             data_time = timer.checkpoint()
 
             ############################################## Update policy ##############################################
             # Perform the PPO update
-            metrics = self.ppo.train_on_data(full_batch, step, writer=self.writer)
+            metrics = self.ppo.train_on_data(
+                full_batch, shape, step, writer=self.writer
+            )
 
             end_time = step_timer.checkpoint()
 
@@ -183,12 +176,17 @@ class PPOCrowdTrainer(Trainer):
             }
 
             for key in collector_metrics:
-                extra_metric[f"stats/{key}"] = np.mean(collector_metrics[key])
-                extra_metric[f"stats/{key}_100"] = np.mean(collector_metrics[key][:100])
-                extra_metric[f"stats/{key}_l100"] = np.mean(
-                    collector_metrics[key][-100:]
-                )
-                extra_metric[f"stats/{key}_l1"] = np.mean(collector_metrics[key][-2])
+                extra_metric[f"stats/{key}_mean"] = np.mean(collector_metrics[key])
+                extra_metric[f"stats/{key}_min"] = np.min(collector_metrics[key])
+                extra_metric[f"stats/{key}_max"] = np.max(collector_metrics[key])
+                extra_metric[f"stats/{key}_std"] = np.std(collector_metrics[key])
+                extra_metric[f"stats/{key}_median"] = np.median(collector_metrics[key])
+
+                # extra_metric[f"stats/{key}_100"] = np.mean(collector_metrics[key][:100])
+                # extra_metric[f"stats/{key}_l100"] = np.mean(
+                #     collector_metrics[key][-100:]
+                # )
+                # extra_metric[f"stats/{key}_l1"] = np.mean(collector_metrics[key][-2])
 
             write_dict(extra_metric, step, self.writer)
 

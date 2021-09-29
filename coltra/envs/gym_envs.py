@@ -1,52 +1,17 @@
-import copy
-import pickle
-from typing import Dict, Any, Union
+from typing import Dict, Any, Optional, Callable
 
-import numpy as np
 import gym
+import numpy as np
 
-from .base_env import MultiAgentEnv, VecEnvWrapper, StepReturn
-from .subproc_vec_env import VecEnv, SubprocVecEnv
 from coltra.buffers import Observation, Action
+from coltra.utils import np_float
+from .base_env import MultiAgentEnv
+from .subproc_vec_env import VecEnv, SubprocVecEnv
 
 
-# class MultiAgentWrapper(MultiAgentEnv):
-#     """
-#     A simple wrapper converting any instance of a single agent gym environment, into one compatible with my MultiAgentEnv approach.
-#     Might be useful for benchmarking.
-#     """
-#
-#     def __init__(self, env: gym.Env, name: str = "agent", *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.s_env = env
-#         self.name = name
-#
-#         self.observation_space = self.s_env.observation_space
-#         self.action_space = self.s_env.action_space
-#
-#         self.is_discrete_action = isinstance(self.s_env.action_space, gym.spaces.Discrete)
-#
-#     def reset(self, *args, **kwargs):
-#         obs = self.s_env.reset()
-#         obs = Observation(vector=obs.astype(np.float32))
-#         return self._dict(obs)
-#
-#     def step(self, action: Dict[str, Action], *args, **kwargs):
-#         action = action[self.name]
-#         if self.is_discrete_action:
-#             action = action.discrete
-#         else:
-#             action = action.continuous
-#
-#         obs, reward, done, info = self.s_env.step(action, *args, **kwargs)
-#         obs = Observation(vector=obs.astype(np.float32))
-#         return self._dict(obs), self._dict(reward), self._dict(done), info
-#
-#     def render(self, *args, **kwargs):
-#         return self.s_env.render(*args, **kwargs)
-#
-#     def _dict(self, val: Any) -> Dict[str, Any]:
-#         return {self.name: val}
+def import_bullet():
+    # noinspection PyUnresolvedReferences
+    import pybullet_envs
 
 
 class MultiGymEnv(MultiAgentEnv):
@@ -58,14 +23,14 @@ class MultiGymEnv(MultiAgentEnv):
         self,
         env_name: str,
         name: str = "agent",
-        import_bullet: bool = False,
-        *args,
+        import_fn: Callable = lambda: None,
+        seed: Optional[int] = None,
         **kwargs
     ):
-        super().__init__(*args, **kwargs)
-        if import_bullet:
-            import pybullet_envs
+        super().__init__(seed)
+        import_fn()
         self.s_env = gym.make(env_name, **kwargs)
+        self.s_env.seed(seed)
         self.name = name
 
         self.observation_space = self.s_env.observation_space
@@ -75,9 +40,13 @@ class MultiGymEnv(MultiAgentEnv):
             self.s_env.action_space, gym.spaces.Discrete
         )
 
+        self.total_reward = 0
+
     def reset(self, *args, **kwargs):
         obs = self.s_env.reset()
         obs = Observation(vector=obs.astype(np.float32))
+        self.total_reward = 0
+
         return self._dict(obs)
 
     def step(self, action_dict: Dict[str, Action], *args, **kwargs):
@@ -88,8 +57,12 @@ class MultiGymEnv(MultiAgentEnv):
             action = action.continuous
 
         obs, reward, done, info = self.s_env.step(action, *args, **kwargs)
+        self.total_reward += reward
 
         if done:
+            info["final_obs"] = Observation(vector=obs.astype(np.float32))
+            info["e_episode_reward"] = np_float(self.total_reward)
+            self.total_reward = 0
             obs = self.s_env.reset()
 
         obs = Observation(vector=obs.astype(np.float32))
@@ -102,17 +75,16 @@ class MultiGymEnv(MultiAgentEnv):
         return {self.name: val}
 
     @classmethod
-    def get_env_creator(cls, env_name: str, *args, **kwargs):
-        def _inner():
-            env = cls(env_name, **kwargs)
-            return env
+    def get_venv(
+        cls, workers: int = 8, seed: Optional[int] = None, **env_kwargs
+    ) -> VecEnv:
+        if seed is None:
+            seeds = [None] * workers
+        else:
+            seeds = [seed + i for i in range(workers)]
 
-        return _inner
-
-    @classmethod
-    def get_venv(cls, workers: int = 8, *args, **kwargs) -> VecEnv:
         venv = SubprocVecEnv(
-            [cls.get_env_creator(*args, **kwargs) for i in range(workers)]
+            [cls.get_env_creator(seed=seeds[i], **env_kwargs) for i in range(workers)]
         )
         return venv
 
