@@ -175,8 +175,7 @@ class StateActionDependentRewardEnv(MultiAgentEnv):
             self.active_agents = [f"Agent{i}" for i in range(num_agents)]
 
         self.last_obs = {
-            agent_id: np_float(self.rng.integers(2))
-            for agent_id in self.active_agents
+            agent_id: np_float(self.rng.integers(2)) for agent_id in self.active_agents
         }
         obs = {
             agent_id: Observation(vector=agent_obs)
@@ -199,8 +198,7 @@ class StateActionDependentRewardEnv(MultiAgentEnv):
         }
 
         self.last_obs = {
-            agent_id: np_float(self.rng.integers(2))
-            for agent_id in self.active_agents
+            agent_id: np_float(self.rng.integers(2)) for agent_id in self.active_agents
         }
         obs = {
             agent_id: Observation(vector=agent_obs)
