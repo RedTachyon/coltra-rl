@@ -15,35 +15,44 @@ warnings.simplefilter("ignore", category=NumbaPerformanceWarning)
 # njit = lambda x: x
 
 
-def get_episode_lens(dones: Tensor) -> List[int]:
-    """
-    Based on the recorded done values, returns the length of each episode in a batch.
-    Args:
-        dones: boolean tensor which values indicate terminal episodes
+@njit
+def get_episode_rewards(
+    rewards: np.ndarray, dones: np.ndarray, shape: Tuple[int, int]
+) -> np.ndarray:
+    rewards = rewards.reshape(shape)
+    dones = dones.reshape(shape)
+    batch_size, num_steps = shape
 
-    Returns:
-        tuple of episode lengths
-    """
-    episode_indices = dones.to(torch.int).cumsum(dim=0)[:-1]
-    episode_indices = torch.cat(
-        [torch.tensor([0]), episode_indices]
-    )  # [0, 0, 0, ..., 1, 1, ..., 2, ..., ...]
+    returns = []
+    for i in range(batch_size):
+        ep_return = np.float32(0.0)
+        for t in range(num_steps):
+            ep_return += rewards[i, t]
+            if dones[i, t]:
+                returns.append(ep_return)
+                ep_return = np.float32(0.0)
 
-    ep_ids, ep_lens_tensor = torch.unique(episode_indices, return_counts=True)
-    ep_lens = tuple(ep_lens_tensor.cpu().numpy())
+    returns = np.array(returns)
+    return returns
 
-    return ep_lens
+@njit
+def get_episode_lengths(
+    dones: np.ndarray, shape: Tuple[int, int]
+) -> np.ndarray:
+    dones = dones.reshape(shape)
+    batch_size, num_steps = shape
 
+    lengths = []
+    for i in range(batch_size):
+        ep_len = 0
+        for t in range(num_steps):
+            ep_len += 1
+            if dones[i, t]:
+                lengths.append(ep_len)
+                ep_len = 0
 
-def get_episode_rewards(rewards: Tensor, dones: Tensor) -> Tensor:
-    """Computes the total reward in each episode in a data batch"""
-    ep_lens = get_episode_lens(dones)
-
-    ep_rewards = torch.tensor(
-        [torch.sum(rewards) for rewards in torch.split(rewards, ep_lens)]
-    )
-
-    return ep_rewards
+    lengths = np.array(lengths)
+    return lengths
 
 
 def discount_experience(
@@ -100,24 +109,24 @@ def discount_experience(
 
     else:  # UGAE
         raise NotImplementedError
-        ep_lens = get_episode_lens(dones)
-        ep_len = ep_lens[0]
-        for val in ep_lens:
-            assert val == ep_len, "Episodes need to be of constant length for bGAE"
-
-        np_rewards = (
-            rewards.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
-        )
-        np_values = values.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
-        np_dones = dones.view((-1, ep_len)).detach().cpu().numpy()
-
-        # rewards = rewards.cpu().numpy()
-        # values = values.detach().cpu().numpy()
-        # dones = dones.cpu().numpy()
-
-        advantages = _discount_bgae(
-            np_rewards, np_values, np_dones, γ, η, λ, gamma=gamma, eta=eta
-        )
+        # ep_lens = get_episode_lens(dones)
+        # ep_len = ep_lens[0]
+        # for val in ep_lens:
+        #     assert val == ep_len, "Episodes need to be of constant length for bGAE"
+        #
+        # np_rewards = (
+        #     rewards.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
+        # )
+        # np_values = values.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
+        # np_dones = dones.view((-1, ep_len)).detach().cpu().numpy()
+        #
+        # # rewards = rewards.cpu().numpy()
+        # # values = values.detach().cpu().numpy()
+        # # dones = dones.cpu().numpy()
+        #
+        # advantages = _discount_bgae(
+        #     np_rewards, np_values, np_dones, γ, η, λ, gamma=gamma, eta=eta
+        # )
 
     advantages = torch.as_tensor(advantages, device=values.device).reshape((-1,))
     returns = advantages + values  # A = R - V

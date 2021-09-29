@@ -104,7 +104,7 @@ def test_ppo_step():
 
     data.cpu()
 
-    metrics = ppo.train_on_data(data)
+    metrics = ppo.train_on_data(data, shape)
     new_params = model.parameters()
 
     # Check that something has changed

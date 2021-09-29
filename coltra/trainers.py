@@ -153,7 +153,9 @@ class PPOCrowdTrainer(Trainer):
 
             ############################################## Update policy ##############################################
             # Perform the PPO update
-            metrics = self.ppo.train_on_data(full_batch, step, writer=self.writer)
+            metrics = self.ppo.train_on_data(
+                full_batch, shape, step, writer=self.writer
+            )
 
             end_time = step_timer.checkpoint()
 

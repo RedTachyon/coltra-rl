@@ -1,19 +1,16 @@
-import copy
-import pickle
-from typing import Dict, Any, Union, Optional, Callable
+from typing import Dict, Any, Optional, Callable
 
-import numpy as np
 import gym
-from gym.envs import kwargs
+import numpy as np
 
+from coltra.buffers import Observation, Action
+from coltra.utils import np_float
 from .base_env import MultiAgentEnv
 from .subproc_vec_env import VecEnv, SubprocVecEnv
-from coltra.buffers import Observation, Action
-
-from coltra.utils import np_float
 
 
 def import_bullet():
+    # noinspection PyUnresolvedReferences
     import pybullet_envs
 
 

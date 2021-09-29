@@ -1,4 +1,4 @@
-TODO: Fix handling of other custom metrics
+TODO: Fix handling of episode rewards and other custom metrics
 
 TODO: wandb integration (finish - some videos)
 

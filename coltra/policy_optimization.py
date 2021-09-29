@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 from typarse import BaseConfig
 
 from coltra.agents import Agent
-from coltra.discounting import discount_experience, get_episode_rewards
+from coltra.discounting import discount_experience, get_episode_rewards, get_episode_lengths
 from coltra.utils import (
     get_optimizer,
     Timer,
@@ -108,7 +108,11 @@ class CrowdPPOptimizer:
         self.gae_lambda: float = self.config.gae_lambda
 
     def train_on_data(
-        self, data: MemoryRecord, step: int = 0, writer: Optional[SummaryWriter] = None
+        self,
+        data: MemoryRecord,
+        shape: Tuple[int, int],
+        step: int = 0,
+        writer: Optional[SummaryWriter] = None,
     ) -> Dict[str, float]:
         """
         Performs a single update step with PPO on the given batch of data.
@@ -269,21 +273,22 @@ class CrowdPPOptimizer:
         # else:
         # ep_rewards = torch.tensor([torch.sum(rewards) for rewards in torch.split(reward_batch, ep_lens)])
 
-        # # Episode length metrics
-        # metrics[f"{agent_id}/episode_len_mean"] = np.mean(ep_lens)
-        # metrics[f"{agent_id}/episode_len_median"] = np.median(ep_lens)
-        # metrics[f"{agent_id}/episode_len_min"] = np.min(ep_lens)
-        # metrics[f"{agent_id}/episode_len_max"] = np.max(ep_lens)
-        # metrics[f"{agent_id}/episode_len_std"] = np.std(ep_lens)
+        ep_rewards = get_episode_rewards(rewards.numpy(), dones.numpy(), shape)
+        ep_lens = get_episode_lengths(dones.numpy(), shape)
 
-        ep_rewards = get_episode_rewards(rewards, dones)
+        # Episode length metrics
+        metrics[f"{agent_id}/episode_len_mean"] = np.mean(ep_lens)
+        metrics[f"{agent_id}/episode_len_median"] = np.median(ep_lens)
+        metrics[f"{agent_id}/episode_len_min"] = np.min(ep_lens, initial=0)
+        metrics[f"{agent_id}/episode_len_max"] = np.max(ep_lens, initial=0)
+        metrics[f"{agent_id}/episode_len_std"] = np.std(ep_lens)
 
         # Episode reward metrics
-        metrics[f"{agent_id}/episode_reward_mean"] = torch.mean(ep_rewards).item()
-        metrics[f"{agent_id}/episode_reward_median"] = torch.median(ep_rewards).item()
-        metrics[f"{agent_id}/episode_reward_min"] = torch.min(ep_rewards).item()
-        metrics[f"{agent_id}/episode_reward_max"] = torch.max(ep_rewards).item()
-        metrics[f"{agent_id}/episode_reward_std"] = torch.std(ep_rewards).item()
+        metrics[f"{agent_id}/episode_reward_mean"] = np.mean(ep_rewards)
+        metrics[f"{agent_id}/episode_reward_median"] = np.median(ep_rewards)
+        metrics[f"{agent_id}/episode_reward_min"] = np.min(ep_rewards, initial=0)
+        metrics[f"{agent_id}/episode_reward_max"] = np.max(ep_rewards, initial=0)
+        metrics[f"{agent_id}/episode_reward_std"] = np.std(ep_rewards)
 
         # Other metrics
         metrics[f"meta/episodes_this_iter"] = dones.sum().item()
