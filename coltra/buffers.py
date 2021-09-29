@@ -120,6 +120,14 @@ class Action(Multitype):
     discrete: Optional[TensorArray] = None
 
 
+def discrete(value: TensorArray) -> Action:
+    return Action(discrete=value)
+
+
+def continuous(value: TensorArray) -> Action:
+    return Action(continuous=value)
+
+
 Reward = TensorArray  # float32
 LogProb = TensorArray  # float32
 Value = TensorArray  # float32
