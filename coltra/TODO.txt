@@ -1,5 +1,3 @@
-TODO: Fix handling of episode rewards and other custom metrics
-
 TODO: wandb integration (finish - some videos)
 
 TODO: Fix the configs (1: model arguments, 2: more sane structure to avoid having to manually propagate the changes in typarsers)
