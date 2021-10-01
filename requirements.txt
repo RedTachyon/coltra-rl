@@ -1,4 +1,4 @@
-typarse==3.3.0
+typarse==3.4.0
 numpy>=1.18
 gym>=0.20.0
 jupyter>=1.0.0

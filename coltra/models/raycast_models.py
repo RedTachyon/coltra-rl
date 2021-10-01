@@ -1,3 +1,4 @@
+import copy
 from typing import Dict, List, Tuple
 
 from torch.distributions import Distribution, Normal
@@ -9,6 +10,7 @@ from torch.nn import functional as F
 
 from coltra.buffers import Observation
 from .base_models import FCNetwork, BaseModel
+from ..configs import LeeConfig
 
 
 class LeeNetwork(nn.Module):
@@ -63,11 +65,7 @@ class LeeModel(BaseModel):
     def __init__(self, config: Dict):
         super().__init__()
 
-        class Config(BaseConfig):
-            input_size: int = 4
-            rays_input_size: int = 126
-
-            conv_filters: int = 2
+        Config = LeeConfig.clone()
 
         Config.update(config)
         self.config = Config

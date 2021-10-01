@@ -83,7 +83,7 @@ def test_uneven_minibatches():
 
 
 def test_ppo_step():
-    model = FancyMLPModel({"input_size": 1})
+    model = FancyMLPModel({"input_size": 1, "num_actions": 2, "discrete": False})
     old_params = list([param.detach().clone() for param in model.parameters()])
     agent = CAgent(model)
     env = ConstRewardEnv(num_agents=10)

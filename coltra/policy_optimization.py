@@ -1,3 +1,4 @@
+import copy
 from typing import Dict, Any, Optional, Tuple, Union
 
 import numpy as np
@@ -18,6 +19,7 @@ from coltra.utils import (
     Timer,
     write_dict,
 )
+from coltra.configs import PPOConfig
 
 from coltra.buffers import (
     Reward,
@@ -68,37 +70,7 @@ class CrowdPPOptimizer:
 
         self.agent = agent
 
-        class Config(BaseConfig):
-            # Discounting and GAE - by default, exponential discounting at γ=0.99
-            gamma: float = 0.99
-            eta: float = 0.0
-            gae_lambda: float = 1.0
-
-            use_ugae: bool = False
-
-            # PPO optimization parameters
-            eps: float = 0.1
-            target_kl: float = 0.03
-            entropy_coeff: float = 0.001
-            entropy_decay_time: float = 100.0
-            min_entropy: float = 0.001
-            value_coeff: float = 1.0  # Technically irrelevant
-            advantage_normalization: bool = False
-
-            # Number of gradient updates = ppo_epochs * ceil(batch_size / minibatch_size)
-            ppo_epochs: int = 3
-            minibatch_size: int = 8192
-
-            use_gpu: bool = False
-
-            optimizer: str = "adam"
-
-            class OptimizerKwargs(BaseConfig):
-                lr: float = 1e-4
-                betas: Tuple[float, float] = (0.9, 0.999)
-                eps: float = 1e-7
-                weight_decay: float = 0.0
-                amsgrad: bool = False
+        Config: PPOConfig = PPOConfig.clone()
 
         Config.update(config)
         self.config = Config
@@ -123,6 +95,7 @@ class CrowdPPOptimizer:
 
         Args:
             data: DataBatch, dictionary
+            shape: pre-flattening data shape of rewards
             step: which optimization step it is (for logging)
             writer: Tensorboard SummaryWriter
 

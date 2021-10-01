@@ -1,3 +1,4 @@
+import copy
 from typing import Dict, Tuple, Callable, List
 
 import torch
@@ -8,116 +9,26 @@ from typarse import BaseConfig
 
 from coltra.buffers import Observation
 from coltra.utils import get_activation
-from .base_models import FCNetwork, BaseModel
+from coltra.models.base_models import FCNetwork, BaseModel
+from coltra.configs import MLPConfig
 
 
-# class MLPModel(BaseModel):
-#     """DEPRECATED (mostly)"""
-#
-#     def __init__(self, config: Dict):
-#         super().__init__()
-#
-#         class Config(BaseConfig):
-#             input_size: int = 94
-#             num_actions: int = 2
-#             activation: str = "leaky_relu"
-#
-#             hidden_sizes: List[int] = [64, 64]
-#             separate_value: bool = False
-#
-#             sigma0: float = 0.3
-#
-#             initializer: str = "kaiming_uniform"
-#
-#         Config.update(config)
-#         self.config = Config
-#
-#         self.activation: Callable = get_activation(self.config.activation)
-#         self.separate_value = self.config.separate_value
-#
-#         if not self.separate_value:
-#             self.policy_network = FCNetwork(
-#                 input_size=self.config.input_size,
-#                 output_sizes=[self.config.num_actions, 1],
-#                 hidden_sizes=self.config.hidden_sizes,
-#                 activation=self.config.activation,
-#                 initializer=self.config.initializer,
-#                 is_policy=[True, False],
-#             )
-#
-#             self.value_network = None
-#         else:
-#             self.policy_network = FCNetwork(
-#                 input_size=self.config.input_size,
-#                 output_sizes=[self.config.num_actions],
-#                 hidden_sizes=self.config.hidden_sizes,
-#                 activation=self.config.activation,
-#                 initializer=self.config.initializer,
-#                 is_policy=True,
-#             )
-#
-#             self.value_network = FCNetwork(
-#                 input_size=self.config.input_size,
-#                 output_sizes=[1],
-#                 hidden_sizes=self.config.hidden_sizes,
-#                 activation=self.config.activation,
-#                 initializer=self.config.initializer,
-#                 is_policy=False,
-#             )
-#
-#         self.std = nn.Parameter(
-#             torch.tensor(self.config.sigma0) * torch.ones(1, self.config.num_actions)
-#         )
-#
-#         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
-#
-#     def forward(
-#         self, x: Observation, state: Tuple = (), get_value: bool = True
-#     ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
-#         if self.separate_value:
-#             [action_mu] = self.policy_network(x.vector)
-#             value = None
-#         else:
-#             [action_mu, value] = self.policy_network(x.vector)
-#
-#         action_distribution = Normal(loc=action_mu, scale=self.std)
-#
-#         extra_outputs = {}
-#
-#         if get_value:
-#             if self.separate_value:
-#                 [value] = self.value_network(x.vector)
-#
-#             extra_outputs["value"] = value
-#
-#         return action_distribution, state, extra_outputs
-#
-#     def value(self, x: Observation, state: Tuple = ()) -> Tensor:
-#         if self.separate_value:
-#             [value] = self.value_network(x.vector)
-#         else:
-#             [_, value] = self.policy_network(x.vector)
-#
-#         return value
-
-# TODO: Make it possible to set std as a parameter
 class FancyMLPModel(BaseModel):
     def __init__(self, config: Dict):
         super().__init__()
 
-        class Config(BaseConfig):
-            input_size: int = 94
-            num_actions: int = 2
-            activation: str = "leaky_relu"
-
-            hidden_sizes: List[int] = [64, 64]
-
-            discrete: bool = False
-
-            initializer: str = "kaiming_uniform"
+        Config: MLPConfig = MLPConfig.clone()
 
         Config.update(config)
         self.config = Config
+
+        assert (
+            self.config.input_size > 0
+        ), "Model config invalid, input_size must be > 0"
+        assert (
+            self.config.num_actions > 0
+        ), "Model config invalid, num_actions must be > 0"
+
         self.discrete = self.config.discrete
 
         self.activation: Callable = get_activation(self.config.activation)
@@ -147,6 +58,9 @@ class FancyMLPModel(BaseModel):
             is_policy=False,
         )
 
+        #         self.std = nn.Parameter(
+        #             torch.tensor(self.config.sigma0) * torch.ones(1, self.config.num_actions)
+        #         )
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
     def forward(

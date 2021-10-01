@@ -42,16 +42,6 @@ model:
   hidden_sizes: [256, 256]
   separate_value: true
 
-  rays_input_size:
-
-  conv_filters:
-
   sigma0: 0.7
-
-  vec_input_size: 4
-  rel_input_size: 4
-  vec_hidden_layers: [32, 32]
-  rel_hidden_layers: [32, 32]
-  com_hidden_layers: [32, 32]
 
   initializer: xavier_uniform

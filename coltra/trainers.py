@@ -1,3 +1,4 @@
+import copy
 import os
 from datetime import datetime
 from pathlib import Path
@@ -12,6 +13,7 @@ from typarse import BaseConfig
 
 from coltra.agents import Agent
 from coltra.collectors import collect_crowd_data
+from coltra.configs import TrainerConfig
 from coltra.envs import SubprocVecEnv, MultiAgentEnv
 from coltra.policy_optimization import CrowdPPOptimizer
 from coltra.utils import Timer, write_dict
@@ -41,55 +43,15 @@ class PPOCrowdTrainer(Trainer):
     ):
         super().__init__(agent, env, config)
 
-        class Config(BaseConfig):
-            steps: int = 500
-            workers: int = 8
+        Config = TrainerConfig.clone()
 
-            mode: str = "random"
-            num_agents: int = 20
-
-            tensorboard_name: Optional[str] = None
-            save_freq: int = 10
-
-            class PPOConfig(BaseConfig):
-                # Discounting and GAE - by default, exponential discounting at γ=0.99
-                gamma: float = 0.99
-                eta: float = 0.0
-                gae_lambda: float = 1.0
-
-                use_ugae: bool = False
-
-                advantage_normalization: bool = False
-
-                # PPO optimization parameters
-                eps: float = 0.1
-                target_kl: float = 0.03
-                entropy_coeff: float = 0.001
-                entropy_decay_time: float = 100.0
-                min_entropy: float = 0.001
-                value_coeff: float = 1.0  # Technically irrelevant
-
-                # Number of gradient updates = ppo_epochs * ceil(batch_size / minibatch_size)
-                ppo_epochs: int = 3
-                minibatch_size: int = 8192
-
-                use_gpu: bool = False
-
-                optimizer: str = "adam"
-
-                class OptimizerKwargs(BaseConfig):
-                    lr: float = 1e-4
-                    betas: Tuple[float, float] = (0.9, 0.999)
-                    eps: float = 1e-7
-                    weight_decay: float = 0.0
-                    amsgrad: bool = False
-
-        Config.update(config["trainer"])
+        Config.update(config)
 
         self.agent = agent
 
         self.env = env
         self.config = Config
+
         # self.config = config
         # self.config = with_default_config(config["trainer"], default_config)
 

@@ -109,5 +109,5 @@ if __name__ == "__main__":
     #     for i in range(workers)
     # ])
 
-    trainer = PPOCrowdTrainer(agent, env, config)
+    trainer = PPOCrowdTrainer(agent, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)
