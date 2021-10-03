@@ -1,3 +1,5 @@
+TODO: Some normalizing wrappers
+
 TODO: Make hopper work
 TODO: PZ integration?
 TODO: optuna integration
