@@ -7,7 +7,8 @@ from torch.distributions import Distribution, Normal
 from typarse import BaseConfig
 
 from coltra.buffers import Observation
-from .base_models import FCNetwork, BaseModel
+from coltra.configs import RelationConfig
+from coltra.models.base_models import FCNetwork, BaseModel
 
 
 class RelationNetwork(nn.Module):
@@ -76,15 +77,7 @@ class RelationModel(BaseModel):
     def __init__(self, config: Dict):
         super().__init__()
 
-        class Config(BaseConfig):
-            vec_input_size: int = 4
-            rel_input_size: int = 4
-            vec_hidden_layers: List[int] = [32, 32]
-            rel_hidden_layers: List[int] = [32, 32]
-            com_hidden_layers: List[int] = [32, 32]
-            num_actions: int = 2
-            activation: str = "tanh"
-            initializer: str = "kaiming_uniform"
+        Config = RelationConfig.clone()
 
         Config.update(config)
         self.config = Config

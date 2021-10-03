@@ -9,7 +9,9 @@ from coltra.envs.probe_envs import ConstRewardEnv
 
 def test_const_reward():
     env = ConstRewardEnv(num_agents=10)
-    model = FancyMLPModel({"input_size": env.obs_vector_size})
+    model = FancyMLPModel(
+        {"input_size": env.obs_vector_size, "num_actions": 2, "discrete": False}
+    )
     agent = CAgent(model)
 
     data, stats, shape = collect_crowd_data(agent, env, num_steps=100)

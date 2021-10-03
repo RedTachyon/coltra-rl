@@ -84,7 +84,9 @@ def test_fancy_mlp_agent():
         buffer=np.random.randn(5, 10, 4).astype(np.float32),
     )
 
-    model = FancyMLPModel({"input_size": 81, "hidden_sizes": [32, 32]})
+    model = FancyMLPModel(
+        {"input_size": 81, "num_actions": 2, "hidden_sizes": [32, 32]}
+    )
 
     assert len(model.policy_network.hidden_layers) == 2
     assert not model.discrete
@@ -134,7 +136,7 @@ def test_discrete_fancy_mlp_agent():
     )
 
     model = FancyMLPModel(
-        {"input_size": 81, "hidden_sizes": [32, 32], "discrete": True}
+        {"input_size": 81, "hidden_sizes": [32, 32], "num_actions": 2, "discrete": True}
     )
 
     assert len(model.policy_network.hidden_layers) == 2
