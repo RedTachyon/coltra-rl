@@ -110,6 +110,6 @@ def test_ppo_step():
     # Check that something has changed
     allclose = []
     for (p1, p2) in zip(old_params, new_params):
-        allclose.append(torch.allclose(p1, p2))
+        allclose.append(torch.allclose(p1.cpu(), p2.cpu()))
 
     assert not all(allclose)
