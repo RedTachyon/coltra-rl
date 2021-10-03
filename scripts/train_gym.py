@@ -77,6 +77,7 @@ if __name__ == "__main__":
         action_shape = action_space.shape[0]
 
     model_config["input_size"] = observation_space.shape[0]
+    model_config["num_actions"] = action_shape
     model_config["discrete"] = is_discrete_action
 
     model_cls = FancyMLPModel
