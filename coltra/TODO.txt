@@ -1,7 +1,5 @@
-
-TODO: Fix the configs (1: model arguments, 2: more sane structure to avoid having to manually propagate the changes in typarsers)
-Big controversial TODO: remove all default values from configs
-
+TODO: Make hopper work
+TODO: PZ integration?
 TODO: optuna integration
 TODO: Implement ugae  that works for arbitrary episode lengths
 
