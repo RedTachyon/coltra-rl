@@ -20,7 +20,6 @@ class Parser(BaseParser):
     iters: int = 500
     env_name: str
     name: str
-    workers: int = 8
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
 
