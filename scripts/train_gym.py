@@ -29,7 +29,6 @@ class Parser(BaseParser):
         "iters": "Number of coltra iterations",
         "env_name": "Environment gym name",
         "name": "Name of the tb directory to store the logs",
-        "workers": "Number of parallel collection envs to use",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
     }
@@ -39,7 +38,6 @@ class Parser(BaseParser):
         "iters": "i",
         "env_name": "e",
         "name": "n",
-        "workers": "w",
         "start_dir": "sd",
         "start_idx": "si",
     }
@@ -63,13 +61,14 @@ if __name__ == "__main__":
         project="coltra", entity="redtachyon", sync_tensorboard=True, config=config
     )
 
-    workers = trainer_config.get("workers") or 8  # default value
+    workers = trainer_config["workers"]
 
     # Initialize the environment
     env = MultiGymEnv.get_venv(workers=workers, env_name=args.env_name)
     action_space = env.action_space
+    observation_space = env.observation_space
 
-    print(f"{env.observation_space=}")
+    print(f"{observation_space=}")
     print(f"{action_space=}")
 
     is_discrete_action = isinstance(action_space, gym.spaces.Discrete)
@@ -78,15 +77,8 @@ if __name__ == "__main__":
     else:
         action_shape = action_space.shape[0]
 
-    # Initialize the agent
-    sample_obs = next(iter(env.reset().values()))
-    obs_size = sample_obs.vector.shape[0]
-    ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
-
-    model_config["input_size"] = obs_size
-    model_config["rays_input_size"] = ray_size
+    model_config["input_size"] = observation_space.shape[0]
     model_config["discrete"] = is_discrete_action
-    model_config["num_actions"] = action_shape
 
     model_cls = FancyMLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent

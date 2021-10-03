@@ -129,6 +129,7 @@ def get_initializer(init_name: str) -> Callable[[Tensor], None]:
         "xavier_normal": nn.init.xavier_normal_,
         "xavier_uniform": nn.init.xavier_uniform_,
         "zeros": nn.init.zeros_,
+        "orthogonal": nn.init.orthogonal_
     }
 
     if init_name not in initializers.keys():

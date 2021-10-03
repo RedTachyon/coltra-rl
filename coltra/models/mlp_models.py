@@ -30,6 +30,7 @@ class FancyMLPModel(BaseModel):
         ), "Model config invalid, num_actions must be > 0"
 
         self.discrete = self.config.discrete
+        self.sigma0 = self.config.sigma0
 
         self.activation: Callable = get_activation(self.config.activation)
 
@@ -74,7 +75,7 @@ class FancyMLPModel(BaseModel):
             action_distribution = Categorical(logits=action_logits)
         else:
             [action_mu, action_std] = self.policy_network(x.vector)
-            action_std = F.softplus(action_std - 0.5)
+            action_std = F.softplus(action_std - self.sigma0)
 
             action_distribution = Normal(loc=action_mu, scale=action_std)
 

@@ -1,6 +1,6 @@
 ---
 trainer:
-  steps: 1000
+  steps: 512
   workers: 16
 
   tensorboard_name:
@@ -21,27 +21,28 @@ trainer:
 
     advantage_normalization: true
 
-    eps: 0.25
+    eps: 0.2
     target_kl: 0.03
-    entropy_coeff: 0.0
+    entropy_coeff: 0.01
     entropy_decay_time: 100
     min_entropy: 0.0
     value_coeff: 1.0
 
     ppo_epochs: 20
-    minibatch_size: 2048
+    minibatch_size: 128
 
     use_gpu:
 
 model:
   input_size:
   num_actions:
-  activation: relu
   discrete:
+
+  activation: leaky_relu
 
   hidden_sizes: [256, 256]
   separate_value: true
 
   sigma0: 0.7
 
-  initializer: xavier_uniform
+  initializer: orthogonal
