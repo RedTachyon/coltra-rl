@@ -1,5 +1,7 @@
 TODO: Some normalizing wrappers
 
+TODO: Fix episode_len_min and episode_reward_min
+
 TODO: Make hopper work
 TODO: PZ integration?
 TODO: optuna integration

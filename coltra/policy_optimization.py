@@ -256,15 +256,15 @@ class CrowdPPOptimizer:
         # Episode length metrics
         metrics[f"{agent_id}/episode_len_mean"] = np.mean(ep_lens)
         metrics[f"{agent_id}/episode_len_median"] = np.median(ep_lens)
-        metrics[f"{agent_id}/episode_len_min"] = np.min(ep_lens, initial=0)
-        metrics[f"{agent_id}/episode_len_max"] = np.max(ep_lens, initial=0)
+        metrics[f"{agent_id}/episode_len_min"] = np.min(ep_lens)
+        metrics[f"{agent_id}/episode_len_max"] = np.max(ep_lens)
         metrics[f"{agent_id}/episode_len_std"] = np.std(ep_lens)
 
         # Episode reward metrics
         metrics[f"{agent_id}/episode_reward_mean"] = np.mean(ep_rewards)
         metrics[f"{agent_id}/episode_reward_median"] = np.median(ep_rewards)
-        metrics[f"{agent_id}/episode_reward_min"] = np.min(ep_rewards, initial=0)
-        metrics[f"{agent_id}/episode_reward_max"] = np.max(ep_rewards, initial=0)
+        metrics[f"{agent_id}/episode_reward_min"] = np.min(ep_rewards)
+        metrics[f"{agent_id}/episode_reward_max"] = np.max(ep_rewards)
         metrics[f"{agent_id}/episode_reward_std"] = np.std(ep_rewards)
 
         # Other metrics

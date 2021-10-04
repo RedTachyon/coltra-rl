@@ -85,6 +85,10 @@ class Agent:
 
         return cls(model)
 
+    @property
+    def unwrapped(self):
+        return self
+
 
 class CAgent(Agent):  # Continuous Agent
     model: BaseModel
