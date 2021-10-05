@@ -6,7 +6,7 @@ import torch
 import yaml
 from typarse import BaseParser
 
-from coltra.agents import CAgent, DAgent
+from coltra.agents import CAgent, DAgent, RandomGymAgent
 from coltra.collectors import collect_renders
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
@@ -58,9 +58,11 @@ if __name__ == "__main__":
     else:
         action_shape = action_space.shape[0]
 
-    agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
-
-    agent = agent_cls.load_agent(args.path, args.idx)
+    if args.path == "RANDOM":
+        agent = RandomGymAgent(env.action_space)
+    else:
+        agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
+        agent = agent_cls.load_agent(args.path, args.idx)
     # Load wrappers?
 
     renders, returns = collect_renders(

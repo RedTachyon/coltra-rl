@@ -275,8 +275,8 @@ class RandomGymAgent(ToyAgent):
 
         if isinstance(self.action_space, gym.spaces.Box):
             _action = np.tile(self.action_space.sample(), (batch_size, 1))
-            if batch_size == 1:
-                _action = _action.ravel()
+            # if batch_size == 1:
+            #     _action = _action.ravel()
             action = Action(continuous=_action)
         else:
             action = Action(
