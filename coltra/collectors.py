@@ -122,7 +122,7 @@ def collect_renders(
     returns = []
     reward = 0
 
-    render = env.render("rgb_array")
+    render = env.render()
     renders.append(render)
 
     for step in trange(num_steps, disable=disable_tqdm):
@@ -141,7 +141,7 @@ def collect_renders(
         # Actual step in the environment
         next_obs, reward_dict, done_dict, info_dict = env.step(action_dict)
 
-        render = env.render("rgb_array")
+        render = env.render()
         renders.append(render)
 
         reward += reward_dict[agent_id]
