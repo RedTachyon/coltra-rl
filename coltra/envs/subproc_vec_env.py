@@ -30,7 +30,7 @@ def _worker(remote, parent_remote, env_fn_wrapper):
                 observation = env.reset(**data)
                 remote.send(observation)
             elif cmd == "render":
-                remote.send(env.render())
+                remote.send(env.render("rgb_array"))
             elif cmd == "close":
                 env.close()
                 remote.close()
