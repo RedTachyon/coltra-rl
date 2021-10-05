@@ -45,7 +45,7 @@ if __name__ == "__main__":
     args = Parser()
 
     # Initialize the environment
-    env = MultiGymEnv(env_name=args.env_name)
+    env = MultiGymEnv.get_venv(1, env_name=args.env_name)
     action_space = env.action_space
     observation_space = env.observation_space
 

@@ -89,7 +89,7 @@ class MultiGymEnv(MultiAgentEnv):
     @classmethod
     def get_venv(
         cls, workers: int = 8, seed: Optional[int] = None, **env_kwargs
-    ) -> VecEnv:
+    ) -> SubprocVecEnv:
         if seed is None:
             seeds = [None] * workers
         else:
