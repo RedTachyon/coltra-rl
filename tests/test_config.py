@@ -1,10 +1,10 @@
 from coltra.configs import MLPConfig
-from coltra.models import FancyMLPModel
+from coltra.models import MLPModel
 
 
 def test_configs():
 
-    model = FancyMLPModel(
+    model = MLPModel(
         {
             "input_size": 2,
             "num_actions": 1,
@@ -15,6 +15,6 @@ def test_configs():
 
     assert len(model.policy_network.hidden_layers) == 3
 
-    model = FancyMLPModel({"input_size": 5, "num_actions": 2, "discrete": True})
+    model = MLPModel({"input_size": 5, "num_actions": 2, "discrete": True})
 
     assert len(model.policy_network.hidden_layers) == 2  # Default value

@@ -66,8 +66,10 @@ class Agent:
         Loads a saved model and wraps it as an Agent.
         The input path must point to a directory holding a pytorch file passed as fname
         """
-        device = None if torch.cuda.is_available() else 'cpu'
-        model: BaseModel = torch.load(os.path.join(base_path, fname), map_location=device)
+        device = None if torch.cuda.is_available() else "cpu"
+        model: BaseModel = torch.load(
+            os.path.join(base_path, fname), map_location=device
+        )
 
         if weight_idx == -1:
             weight_idx = max(
@@ -80,8 +82,10 @@ class Agent:
 
         if weight_idx is not None:
             weights = torch.load(
-                os.path.join(base_path, "saved_weights", f"{weight_fname}_{weight_idx}"),
-                map_location=device
+                os.path.join(
+                    base_path, "saved_weights", f"{weight_fname}_{weight_idx}"
+                ),
+                map_location=device,
             )
             model.load_state_dict(weights)
 

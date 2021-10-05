@@ -3,7 +3,7 @@ import numpy as np
 
 from coltra.buffers import Observation
 from coltra.policy_optimization import minibatches, CrowdPPOptimizer
-from coltra.models.mlp_models import FancyMLPModel
+from coltra.models.mlp_models import MLPModel
 from coltra.agents import CAgent
 from coltra.envs.probe_envs import ConstRewardEnv
 from coltra.collectors import collect_crowd_data
@@ -83,7 +83,7 @@ def test_uneven_minibatches():
 
 
 def test_ppo_step():
-    model = FancyMLPModel({"input_size": 1, "num_actions": 2, "discrete": False})
+    model = MLPModel({"input_size": 1, "num_actions": 2, "discrete": False})
     old_params = list([param.detach().clone() for param in model.parameters()])
     agent = CAgent(model)
     env = ConstRewardEnv(num_agents=10)

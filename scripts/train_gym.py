@@ -6,7 +6,7 @@ import yaml
 from typarse import BaseParser
 
 from coltra.agents import CAgent, DAgent
-from coltra.models.mlp_models import FancyMLPModel
+from coltra.models.mlp_models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
 
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     model_config["num_actions"] = action_shape
     model_config["discrete"] = is_discrete_action
 
-    model_cls = FancyMLPModel
+    model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
     if args.start_dir:

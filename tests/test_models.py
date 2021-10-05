@@ -7,7 +7,7 @@ from typarse import BaseConfig
 
 from coltra.agents import CAgent
 from coltra.buffers import Observation
-from coltra.models import FCNetwork, FancyMLPModel
+from coltra.models import FCNetwork, MLPModel
 from coltra.models.raycast_models import LeeNetwork, LeeModel
 from coltra.models.relational_models import RelationNetwork, RelationModel
 
@@ -108,14 +108,14 @@ def test_relnet():
 def test_multiple_mlps():
     config1 = {"input_size": 3, "num_actions": 1, "discrete": False}
 
-    mlp1 = FancyMLPModel(config1)
+    mlp1 = MLPModel(config1)
 
     assert mlp1.discrete is False
     assert mlp1.policy_network.hidden_layers[0].in_features == 3
 
     config2 = {"input_size": 5, "num_actions": 2, "discrete": True}
 
-    mlp2 = FancyMLPModel(config2)
+    mlp2 = MLPModel(config2)
 
     assert mlp2.discrete is True
     assert mlp2.policy_network.hidden_layers[0].in_features == 5

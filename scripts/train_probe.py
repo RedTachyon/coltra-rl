@@ -8,7 +8,7 @@ from typarse import BaseParser
 from coltra.agents import CAgent, DAgent
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.envs.probe_envs import ConstRewardEnv, ObsDependentRewardEnv
-from coltra.models.mlp_models import FancyMLPModel
+from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     model_config["discrete"] = is_discrete_action
     model_config["num_actions"] = action_shape
 
-    model_cls = FancyMLPModel
+    model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
     if args.start_dir:

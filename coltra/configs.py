@@ -11,6 +11,8 @@ class MLPConfig(BaseConfig):
     activation: str = "leaky_relu"
     sigma0: float = 0.5
 
+    std_head: bool = True
+
     hidden_sizes: List[int] = [64, 64]
 
     initializer: str = "kaiming_uniform"

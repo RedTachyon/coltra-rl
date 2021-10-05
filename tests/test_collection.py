@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 
-from coltra.models.mlp_models import FancyMLPModel
+from coltra.models.mlp_models import MLPModel
 from coltra.agents import CAgent
 from coltra.collectors import collect_crowd_data
 from coltra.envs.probe_envs import ConstRewardEnv
@@ -9,7 +9,7 @@ from coltra.envs.probe_envs import ConstRewardEnv
 
 def test_const_reward():
     env = ConstRewardEnv(num_agents=10)
-    model = FancyMLPModel(
+    model = MLPModel(
         {"input_size": env.obs_vector_size, "num_actions": 2, "discrete": False}
     )
     agent = CAgent(model)
