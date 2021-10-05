@@ -9,7 +9,6 @@ from coltra.envs.base_env import VecEnv
 
 
 class AgentWrapper(Agent):
-
     def __init__(self, agent: Agent):
         super().__init__()
         self.agent = agent

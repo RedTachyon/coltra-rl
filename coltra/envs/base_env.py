@@ -247,7 +247,7 @@ class MultiAgentEnv(gym.Env):
         """
         raise NotImplementedError
 
-    def render(self, mode="human"):
+    def render(self, mode="rgb_array"):
         raise NotImplementedError
 
     @staticmethod

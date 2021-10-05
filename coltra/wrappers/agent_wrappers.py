@@ -36,7 +36,7 @@ class ObsVecNormWrapper(AgentWrapper):
             m_a = self.var * self.count
             m_b = obs_batch.vector.var(0) * batch_count
 
-            M2 = m_a + m_b + delta**2 * self.count * batch_count / tot_count
+            M2 = m_a + m_b + delta ** 2 * self.count * batch_count / tot_count
 
             self.mean = self.mean + delta * batch_count / tot_count
             self.var = M2 / tot_count
@@ -44,16 +44,18 @@ class ObsVecNormWrapper(AgentWrapper):
 
     def normalize(self, obs_batch: Observation):
         norm_obs = copy.copy(obs_batch)  # shallow copy
-        norm_obs.vector = (obs_batch.vector - self.mean) / (np.sqrt(self.var + self.eps))
+        norm_obs.vector = (obs_batch.vector - self.mean) / (
+            np.sqrt(self.var + self.eps)
+        )
         return norm_obs
 
     def act(
-            self,
-            obs_batch: Observation,
-            state_batch: Tuple = (),
-            deterministic: bool = False,
-            get_value: bool = False,
-            update: bool = True,
+        self,
+        obs_batch: Observation,
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+        update: bool = True,
     ) -> Tuple[Action, Tuple, Dict]:
 
         if update:
