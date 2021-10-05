@@ -57,7 +57,7 @@ class EnvWrapper(MultiAgentEnv):
         return self.env.reset(**kwargs)
 
     def render(self, mode="human", **kwargs):
-        return self.env.render(mode, **kwargs)
+        return self.env.render()
 
     @classmethod
     def get_venv(cls, workers: int = 8, *args, **kwargs) -> VecEnv:
