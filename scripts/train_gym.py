@@ -84,7 +84,7 @@ if __name__ == "__main__":
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
     if args.start_dir:
-        agent = agent_cls.load_agent(args.start_dir, weight_idx=args.start_idx)
+        agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
         model = model_cls(model_config)
         agent = agent_cls(model)

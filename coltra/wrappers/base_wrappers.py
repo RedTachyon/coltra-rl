@@ -34,8 +34,17 @@ class AgentWrapper(Agent):
     def unwrapped(self):
         return self.agent.unwrapped
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
+        print(f"Accessing attribute {name}")
         return getattr(self.agent, name)
+
+    def __setstate__(self, state: Dict):
+        # setattr(self, "agent", state["agent"])
+        for key in state:
+            setattr(self, key, state[key])
+
+    def __getstate__(self) -> Dict:
+        return self.__dict__
 
 
 class EnvWrapper(MultiAgentEnv):

@@ -1,8 +1,12 @@
+import os
+import shutil
+
 import numpy as np
 import torch
 from torch import Tensor
 
-from coltra.agents import ConstantAgent, CAgent, DAgent
+from coltra.agents import ConstantAgent, CAgent, DAgent, Agent
+from coltra.wrappers import ObsVecNormWrapper
 from coltra.models.mlp_models import MLPModel
 from coltra.buffers import Observation
 
@@ -176,3 +180,60 @@ def test_discrete_fancy_mlp_agent():
         assert model.device == "cuda"
     model.cpu()
     assert model.device == "cpu"
+
+
+def test_saving():
+    obs = Observation(
+        vector=np.random.randn(5, 81).astype(np.float32),
+    )
+
+    model = MLPModel({"input_size": 81, "num_actions": 2, "hidden_sizes": [32, 32]})
+
+    assert len(model.policy_network.hidden_layers) == 2
+    assert not model.discrete
+    assert len(model.value_network.hidden_layers) == 2
+
+    agent = CAgent(model)
+    actions, _, extra = agent.act(obs_batch=obs, get_value=True)
+
+    os.mkdir("temp")
+    agent.save("temp")
+    loaded_agent = CAgent.load("temp")
+
+    for param, l_param in zip(
+        agent.model.parameters(), loaded_agent.model.parameters()
+    ):
+        assert torch.allclose(param, l_param)
+
+    shutil.rmtree("temp")
+
+
+def test_saving_wrapper():
+    obs = Observation(
+        vector=np.random.randn(5, 81).astype(np.float32),
+    )
+
+    model = MLPModel({"input_size": 81, "num_actions": 2, "hidden_sizes": [32, 32]})
+
+    assert len(model.policy_network.hidden_layers) == 2
+    assert not model.discrete
+    assert len(model.value_network.hidden_layers) == 2
+
+    agent = CAgent(model)
+    agent = ObsVecNormWrapper(agent)
+
+    actions, _, extra = agent.act(obs_batch=obs, get_value=True)
+
+    os.mkdir("temp")
+    agent.save("temp")
+    loaded_agent: ObsVecNormWrapper = Agent.load("temp")
+
+    for param, l_param in zip(
+        agent.model.parameters(), loaded_agent.model.parameters()
+    ):
+        assert torch.allclose(param, l_param)
+
+    assert np.allclose(agent.mean, loaded_agent.mean)
+    assert np.allclose(agent.var, loaded_agent.var)
+
+    shutil.rmtree("temp")

@@ -54,22 +54,65 @@ class Agent:
             requires_grad=requires_grad
         )
 
-    @classmethod
-    def load_agent(
-        cls,
+    # @classmethod
+    # def load_agent(
+    #         cls,
+    #         base_path: str,
+    #         weight_idx: Optional[int] = None,
+    #         fname: str = "base_agent.pt",
+    #         weight_fname: str = "weights",
+    # ) -> "Agent":
+    #     """DEPRECATED
+    #     Loads a saved model and wraps it as an Agent.
+    #     The input path must point to a directory holding a pytorch file passed as fname
+    #     """
+    #     device = None if torch.cuda.is_available() else "cpu"
+    #     model: BaseModel = torch.load(
+    #         os.path.join(base_path, fname), map_location=device
+    #     )
+    #
+    #     if weight_idx == -1:
+    #         weight_idx = max(
+    #             [
+    #                 int(fname.split("_")[-1])  # Get the last agent
+    #                 for fname in os.listdir(os.path.join(base_path, "saved_weights"))
+    #                 if fname.startswith(weight_fname)
+    #             ]
+    #         )
+    #
+    #     if weight_idx is not None:
+    #         weights = torch.load(
+    #             os.path.join(
+    #                 base_path, "saved_weights", f"{weight_fname}_{weight_idx}"
+    #             ),
+    #             map_location=device,
+    #         )
+    #         model.load_state_dict(weights)
+    #
+    #     agent = cls(model)
+    #     if not torch.cuda.is_available():
+    #         agent.cpu()
+    #
+    #     return agent
+
+    def save(
+        self,
+        base_path: str,
+        agent_fname: str = "agent.pt",
+        model_fname: str = "model.pt",
+    ):
+        torch.save(self, os.path.join(base_path, agent_fname))
+        torch.save(self.model, os.path.join(base_path, model_fname))
+
+    @staticmethod
+    def load(
         base_path: str,
         weight_idx: Optional[int] = None,
-        fname: str = "base_agent.pt",
+        agent_fname: str = "agent.pt",
         weight_fname: str = "weights",
-    ) -> "Agent":
-        """
-        Loads a saved model and wraps it as an Agent.
-        The input path must point to a directory holding a pytorch file passed as fname
-        """
+    ):
         device = None if torch.cuda.is_available() else "cpu"
-        model: BaseModel = torch.load(
-            os.path.join(base_path, fname), map_location=device
-        )
+        agent = torch.load(os.path.join(base_path, agent_fname), map_location=device)
 
         if weight_idx == -1:
             weight_idx = max(
@@ -87,17 +130,24 @@ class Agent:
                 ),
                 map_location=device,
             )
-            model.load_state_dict(weights)
 
-        agent = cls(model)
+            agent.model.load_state_dict(weights)
+
         if not torch.cuda.is_available():
             agent.cpu()
 
-        return cls(model)
+        return agent
 
     @property
     def unwrapped(self):
         return self
+
+    def __setstate__(self, state):
+        for key in state:
+            setattr(self, key, state[key])
+
+    def __getstate__(self):
+        return self.__dict__
 
 
 class CAgent(Agent):  # Continuous Agent
@@ -248,6 +298,8 @@ class DAgent(Agent):
 
 
 class ToyAgent(Agent):
+    model = None
+
     def act(
         self,
         obs_batch: Observation,

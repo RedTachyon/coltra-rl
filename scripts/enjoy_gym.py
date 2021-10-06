@@ -62,7 +62,7 @@ if __name__ == "__main__":
         agent = RandomGymAgent(env.action_space)
     else:
         agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
-        agent = agent_cls.load_agent(args.path, args.idx)
+        agent = agent_cls.load(args.path, args.idx)
     # Load wrappers?
 
     renders, returns = collect_renders(

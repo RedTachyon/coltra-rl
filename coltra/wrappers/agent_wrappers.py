@@ -71,3 +71,9 @@ class ObsVecNormWrapper(AgentWrapper):
         self, obs_batch: Observation, action_batch: Action
     ) -> Tuple[Tensor, Tensor, Tensor]:
         return self.agent.evaluate(self.normalize(obs_batch), action_batch)
+
+    # def __setstate__(self, state):
+    #
+    #
+    # def __getstate__(self):
+    #     state = {"agent_state": self.agent.__getstate__()}
