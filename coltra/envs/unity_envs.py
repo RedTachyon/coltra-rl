@@ -2,6 +2,7 @@ import numpy as np
 from typing import Tuple, List, Union, Dict, Optional
 from enum import Enum
 
+from gym.spaces import Box
 from mlagents_envs.base_env import (
     ActionTuple,
     DecisionStep,
@@ -119,13 +120,29 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.behaviors = {}
         # self.manager = ""
 
+        self.unity.reset()
+
+        # All behavior names, except for Manager agents which do not take actions but manage the environment
+        behaviors = dict(self.unity.behavior_specs)
+        self.behaviors = {
+            key: value
+            for key, value in behaviors.items()
+            if not key.startswith("Manager")
+        }
         # semi-hardcoded computation of obs/action spaces, slightly different api than gym
-        self.obs_vector_size = next(iter(self.reset().values())).vector.shape[0]
-        self.action_vector_size = 2
+        behavior_spec = next(iter(self.behaviors.values()))
+        obs_shape = behavior_spec[0][0].shape  # I know, ouch
+        action_shape = behavior_spec[1].continuous_size
+        self.obs_vector_size = obs_shape[0]
+        self.action_vector_size = action_shape
+
+        self.observation_space = Box(low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32)
+        self.action_space = Box(low=-1, high=1, shape=(action_shape,), dtype=np.float32)
 
     def _get_step_info(
         self, step: bool = False
     ) -> Tuple[ObsDict, RewardDict, DoneDict, InfoDict]:
+
         names = self.behaviors.keys()
         obs_dict: ObsDict = {}
         reward_dict: RewardDict = {}
@@ -134,7 +151,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         ter_obs_dict = {}
         ter_reward_dict = {}
-        # has_decision = False
+
         for name in names:
             decisions, terminals = self.unity.get_steps(name)
 
@@ -212,13 +229,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         return obs_dict, reward_dict, done_dict, info_dict
 
-    def reset(
-        self, mode: Optional[Mode] = None, num_agents: Optional[int] = None, **kwargs
-    ) -> ObsDict:
-        if mode:
-            self.param_channel.set_float_parameter("mode", mode.value)
-        if num_agents:
-            self.param_channel.set_float_parameter("agents", num_agents)
+    def reset(self, **kwargs) -> ObsDict:
 
         for (name, value) in kwargs.items():
             self.param_channel.set_float_parameter(name, value)
