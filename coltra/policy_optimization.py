@@ -156,6 +156,7 @@ class CrowdPPOptimizer:
         batch_size = self.config.minibatch_size
 
         for ppo_step in range(self.config.ppo_epochs):
+            # TODO: returns is value target, add value normalization here somehow?
             returns, advantages = discount_experience(
                 rewards,
                 old_values,

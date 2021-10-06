@@ -1,13 +1,13 @@
-TODO: Some normalizing wrappers
+TODO: Value normalization wrapper (policy_optimization.py#159)
 
-TODO: Fix episode_len_min and episode_reward_min
+TODO: Fix episode_len_min and episode_reward_min to output total reward in absence of finished episodes
 
-TODO: Make hopper work
+TODO: wandb integration (record videos)
+
 TODO: PZ integration?
 TODO: optuna integration
 TODO: Implement ugae  that works for arbitrary episode lengths
 
-TODO: wandb integration (finish - some videos)
 
 TODO: Integrate Action/Observation abstractions with gym.spaces
 
