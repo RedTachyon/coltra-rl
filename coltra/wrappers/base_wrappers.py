@@ -29,7 +29,9 @@ class AgentWrapper(Agent):
         return self.agent.evaluate(obs_batch, action_batch)
 
     def value(self, obs_batch: Observation, **kwargs) -> Tensor:
-        return self.value(obs_batch, )
+        return self.value(
+            obs_batch,
+        )
 
     @property
     def unwrapped(self):

@@ -10,6 +10,7 @@ from coltra.envs.base_env import VecEnv, ActionDict, StepReturn, ObsDict
 
 class PettingZooEnv(MultiAgentEnv):
     """WIP"""
+
     def __init__(self, env_creator: Callable[[Any], ParallelEnv], **kwargs):
         super().__init__(**kwargs)
         self.s_env = env_creator(**kwargs)

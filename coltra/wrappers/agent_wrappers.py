@@ -112,7 +112,9 @@ class RetNormWrapper(AgentWrapper):
     def unnormalize_value(self, value: Tensor):
         return self._ret_var * value + self._ret_mean
 
-    def value(self, obs_batch: Observation, real_value: bool = False, **kwargs) -> Tensor:
+    def value(
+        self, obs_batch: Observation, real_value: bool = False, **kwargs
+    ) -> Tensor:
         value = self.agent.value(obs_batch)
         if real_value:
             value = self.unnormalize_value(value)
