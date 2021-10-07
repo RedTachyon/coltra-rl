@@ -3,6 +3,7 @@ import copy
 from typing import Tuple, Dict
 
 import numpy as np
+import torch
 from torch import Tensor
 
 from coltra.agents import Agent
@@ -14,38 +15,38 @@ class ObsVecNormWrapper(AgentWrapper):
     def __init__(self, agent: Agent, eps: float = 1e-8):
         super().__init__(agent)
 
-        self.mean = None
-        self.var = None
-        self.eps = eps
+        self._obs_mean = None
+        self._obs_var = None
+        self._obs_eps = eps
 
-        self.count = 0
+        self._obs_count = 0
         self._initialized = False
 
-    def update(self, obs_batch: Observation):
+    def update_obs_norm(self, obs_batch: Observation):
         batch_count = obs_batch.batch_size
         vec_batch = obs_batch.vector
         if not self._initialized:
-            self.mean = obs_batch.vector.mean(axis=0)
-            self.var = obs_batch.vector.var(axis=0)
+            self._obs_mean = vec_batch.mean(axis=0)
+            self._obs_var = vec_batch.var(axis=0)
             self._initialized = True
-            self.count = batch_count
+            self._obs_count = batch_count
         else:
-            delta = vec_batch - self.mean
-            tot_count = self.count + batch_count
+            delta = vec_batch.mean(axis=0) - self._obs_mean
+            tot_count = self._obs_count + batch_count
 
-            m_a = self.var * self.count
-            m_b = obs_batch.vector.var(0) * batch_count
+            m_a = self._obs_var * self._obs_count
+            m_b = vec_batch.var(0) * batch_count
 
-            M2 = m_a + m_b + delta ** 2 * self.count * batch_count / tot_count
+            M2 = m_a + m_b + delta ** 2 * self._obs_count * batch_count / tot_count
 
-            self.mean = self.mean + delta * batch_count / tot_count
-            self.var = M2 / tot_count
-            self.count = tot_count
+            self._obs_mean = self._obs_mean + delta * batch_count / tot_count
+            self._obs_var = M2 / tot_count
+            self._obs_count = tot_count
 
-    def normalize(self, obs_batch: Observation):
+    def normalize_obs(self, obs_batch: Observation):
         norm_obs = copy.copy(obs_batch)  # shallow copy
-        norm_obs.vector = (obs_batch.vector - self.mean) / (
-            np.sqrt(self.var + self.eps)
+        norm_obs.vector = (obs_batch.vector - self._obs_mean) / (
+            np.sqrt(self._obs_var + self._obs_eps)
         )
         return norm_obs
 
@@ -55,25 +56,64 @@ class ObsVecNormWrapper(AgentWrapper):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
-        update: bool = True,
+        update_obs_norm: bool = True,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
 
-        if update:
-            self.update(obs_batch)
+        if update_obs_norm:
+            self.update_obs_norm(obs_batch)
 
-        norm_obs = self.normalize(obs_batch)
-        return self.agent.act(norm_obs, state_batch, deterministic, get_value)
+        norm_obs = self.normalize_obs(obs_batch)
+        return self.agent.act(norm_obs, state_batch, deterministic, get_value, **kwargs)
 
-    def value(self, obs_batch: Observation) -> Tensor:
-        return self.agent.value(self.normalize(obs_batch))
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+        return self.agent.value(self.normalize_obs(obs_batch))
 
     def evaluate(
         self, obs_batch: Observation, action_batch: Action
     ) -> Tuple[Tensor, Tensor, Tensor]:
-        return self.agent.evaluate(self.normalize(obs_batch), action_batch)
+        return self.agent.evaluate(self.normalize_obs(obs_batch), action_batch)
 
-    # def __setstate__(self, state):
-    #
-    #
-    # def __getstate__(self):
-    #     state = {"agent_state": self.agent.__getstate__()}
+
+class RetNormWrapper(AgentWrapper):
+    def __init__(self, agent: Agent, eps: float = 1e-8):
+        super().__init__(agent)
+
+        self._ret_mean = torch.tensor(0)
+        self._ret_var = torch.tensor(1)
+        self._ret_eps = eps
+
+        self._ret_count = 0
+        self._initialized = False
+
+    def update_ret_norm(self, returns: Tensor):
+        batch_count = len(returns)
+        if not self._initialized:
+            self._ret_mean = torch.mean(returns)
+            self._ret_var = torch.var(returns)
+            self._initialized = True
+            self._ret_count = batch_count
+        else:
+            delta = torch.mean(returns) - self._ret_mean
+            tot_count = self._ret_count + batch_count
+
+            m_a = self._ret_var * self._ret_count
+            m_b = returns.var() * batch_count
+
+            M2 = m_a + m_b + delta ** 2 * self._ret_count * batch_count / tot_count
+
+            self._ret_mean = self._ret_mean + delta * batch_count / tot_count
+            self._ret_var = M2 / tot_count
+            self._ret_count = tot_count
+
+    def normalize_ret(self, returns: Tensor):
+        return (returns - self._ret_mean) / np.sqrt(self._ret_var + self._ret_eps)
+
+    def unnormalize_value(self, value: Tensor):
+        return self._ret_var * value + self._ret_mean
+
+    def value(self, obs_batch: Observation, real_value: bool = False, **kwargs) -> Tensor:
+        value = self.agent.value(obs_batch)
+        if real_value:
+            value = self.unnormalize_value(value)
+        return value

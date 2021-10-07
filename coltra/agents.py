@@ -25,6 +25,7 @@ class Agent:
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         """Return: Action, State, Extras"""
         raise NotImplementedError
@@ -35,7 +36,7 @@ class Agent:
         """Return: logprobs, values, entropies"""
         raise NotImplementedError
 
-    def value(self, obs_batch: Observation) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         raise NotImplementedError
 
     def cuda(self):
@@ -53,47 +54,6 @@ class Agent:
         return getattr(self.model, "get_initial_state", lambda *x, **xx: ())(
             requires_grad=requires_grad
         )
-
-    # @classmethod
-    # def load_agent(
-    #         cls,
-    #         base_path: str,
-    #         weight_idx: Optional[int] = None,
-    #         fname: str = "base_agent.pt",
-    #         weight_fname: str = "weights",
-    # ) -> "Agent":
-    #     """DEPRECATED
-    #     Loads a saved model and wraps it as an Agent.
-    #     The input path must point to a directory holding a pytorch file passed as fname
-    #     """
-    #     device = None if torch.cuda.is_available() else "cpu"
-    #     model: BaseModel = torch.load(
-    #         os.path.join(base_path, fname), map_location=device
-    #     )
-    #
-    #     if weight_idx == -1:
-    #         weight_idx = max(
-    #             [
-    #                 int(fname.split("_")[-1])  # Get the last agent
-    #                 for fname in os.listdir(os.path.join(base_path, "saved_weights"))
-    #                 if fname.startswith(weight_fname)
-    #             ]
-    #         )
-    #
-    #     if weight_idx is not None:
-    #         weights = torch.load(
-    #             os.path.join(
-    #                 base_path, "saved_weights", f"{weight_fname}_{weight_idx}"
-    #             ),
-    #             map_location=device,
-    #         )
-    #         model.load_state_dict(weights)
-    #
-    #     agent = cls(model)
-    #     if not torch.cuda.is_available():
-    #         agent.cpu()
-    #
-    #     return agent
 
     def save(
         self,
@@ -164,6 +124,7 @@ class CAgent(Agent):  # Continuous Agent
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         """Computes the action for an observation,
         passes along the state for recurrent models, and optionally the value"""
@@ -219,7 +180,7 @@ class CAgent(Agent):  # Continuous Agent
 
         return action_logprobs, values, entropies
 
-    def value(self, obs_batch: Observation) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         values = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
 
@@ -238,6 +199,7 @@ class DAgent(Agent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
 
         obs_batch = obs_batch.tensor(self.model.device)
@@ -292,7 +254,7 @@ class DAgent(Agent):
 
         return action_logprobs, values, entropies
 
-    def value(self, obs_batch: Observation) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         values = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
 
@@ -306,6 +268,7 @@ class ToyAgent(Agent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         """Return: Action, State, Extras"""
         raise NotImplementedError
@@ -316,7 +279,7 @@ class ToyAgent(Agent):
         zero = torch.zeros((obs_batch.batch_size,))
         return zero, zero, zero
 
-    def value(self, obs_batch: Observation) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         zero = torch.zeros((obs_batch.batch_size, 1))
         return zero
 
@@ -332,6 +295,7 @@ class RandomGymAgent(ToyAgent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         batch_size = obs_batch.batch_size
 
@@ -365,6 +329,7 @@ class ConstantAgent(ToyAgent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         batch_size = obs_batch.batch_size
 
@@ -386,6 +351,7 @@ class RandomDAgent(ToyAgent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         batch_size = obs_batch.batch_size
 

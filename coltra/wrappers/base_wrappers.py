@@ -19,6 +19,7 @@ class AgentWrapper(Agent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs
     ) -> Tuple[Action, Tuple, Dict]:
         return self.agent.act(obs_batch, state_batch, deterministic, get_value)
 
@@ -27,15 +28,14 @@ class AgentWrapper(Agent):
     ) -> Tuple[Tensor, Tensor, Tensor]:
         return self.agent.evaluate(obs_batch, action_batch)
 
-    def value(self, obs_batch: Observation) -> Tensor:
-        return self.value(obs_batch)
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+        return self.value(obs_batch, )
 
     @property
     def unwrapped(self):
         return self.agent.unwrapped
 
     def __getattr__(self, name: str):
-        print(f"Accessing attribute {name}")
         return getattr(self.agent, name)
 
     def __setstate__(self, state: Dict):

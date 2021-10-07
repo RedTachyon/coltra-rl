@@ -168,6 +168,11 @@ class CrowdPPOptimizer:
                 λ=self.config.gae_lambda,
             )
 
+            if hasattr(agent, "update_ret_norm"):
+                agent.update_ret_norm(returns)
+            if hasattr(agent, "normalize_ret"):
+                returns = agent.normalize_ret(returns)
+
             if self.config.advantage_normalization:
                 advantages = advantages - advantages.mean()
                 advantages = advantages / (advantages.std() + 1e-8)

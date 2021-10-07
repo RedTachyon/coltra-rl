@@ -224,6 +224,9 @@ def test_saving_wrapper():
 
     actions, _, extra = agent.act(obs_batch=obs, get_value=True)
 
+    if os.path.exists("temp"):
+        shutil.rmtree("temp")
+
     os.mkdir("temp")
     agent.save("temp")
     loaded_agent: ObsVecNormWrapper = Agent.load("temp")
@@ -233,7 +236,7 @@ def test_saving_wrapper():
     ):
         assert torch.allclose(param, l_param)
 
-    assert np.allclose(agent.mean, loaded_agent.mean)
-    assert np.allclose(agent.var, loaded_agent.var)
+    assert np.allclose(agent._obs_mean, loaded_agent._obs_mean)
+    assert np.allclose(agent._obs_var, loaded_agent._obs_var)
 
     shutil.rmtree("temp")

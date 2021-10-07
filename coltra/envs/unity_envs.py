@@ -136,7 +136,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.obs_vector_size = obs_shape[0]
         self.action_vector_size = action_shape
 
-        self.observation_space = Box(low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32)
+        self.observation_space = Box(
+            low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32
+        )
         self.action_space = Box(low=-1, high=1, shape=(action_shape,), dtype=np.float32)
 
     def _get_step_info(
