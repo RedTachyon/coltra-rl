@@ -1,4 +1,4 @@
-TODO: Value normalization wrapper (policy_optimization.py#159)
+TODO: Look into device management with wrappers
 
 TODO: Fix episode_len_min and episode_reward_min to output total reward in absence of finished episodes
 

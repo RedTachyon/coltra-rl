@@ -242,7 +242,7 @@ class CrowdPPOptimizer:
         metrics[f"meta/ppo_steps_made"] = ppo_step + 1
         metrics[f"meta/gradient_updates"] = gradient_updates + 1
         metrics[f"meta/policy_loss"] = policy_loss.mean().cpu().item()
-        metrics[f"meta/value_loss"] = value_loss.mean().cpu().item()
+        metrics[f"meta/value_loss"] = torch.sqrt(value_loss.mean()).cpu().item()
         metrics[f"meta/mean_value"] = old_values.mean().cpu().item()
         # metrics[f"{agent_id}/total_loss"] = loss.detach().cpu().item()
         metrics[f"meta/total_steps"] = rewards.numel()

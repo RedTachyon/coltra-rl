@@ -14,6 +14,9 @@ import wandb
 
 import pybullet_envs
 
+from coltra.wrappers import ObsVecNormWrapper
+from coltra.wrappers.agent_wrappers import RetNormWrapper
+
 
 class Parser(BaseParser):
     config: str = "configs/base_config.yaml"
@@ -22,6 +25,7 @@ class Parser(BaseParser):
     name: str
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
+    normalize: bool = False
 
     _help = {
         "config": "Config file for the coltra",
@@ -30,6 +34,7 @@ class Parser(BaseParser):
         "name": "Name of the tb directory to store the logs",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
+        "normalize": "Whether to use the obs and return normalizing wrappers",
     }
 
     _abbrev = {
@@ -39,6 +44,7 @@ class Parser(BaseParser):
         "name": "n",
         "start_dir": "sd",
         "start_idx": "si",
+        "normalize": "norm",
     }
 
 
@@ -88,6 +94,10 @@ if __name__ == "__main__":
     else:
         model = model_cls(model_config)
         agent = agent_cls(model)
+
+    if args.normalize:
+        agent = ObsVecNormWrapper(agent)
+        agent = RetNormWrapper(agent)
 
     if CUDA:
         agent.cuda()
