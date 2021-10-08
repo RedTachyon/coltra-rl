@@ -23,7 +23,7 @@ from coltra.envs.base_env import ActionDict, VecEnv
 
 class SmartNavEnv(MultiAgentEnv):
     def __init__(
-        self, path: str = None, seed: int = None, metrics: list[str] = None, **kwargs
+        self, path: Optional[str] = None, seed: Optional[int] = None, metrics: Optional[list[str]] = None, **kwargs
     ):
         super().__init__(seed, **kwargs)
         if metrics is None:
