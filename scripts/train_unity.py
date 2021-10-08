@@ -6,7 +6,7 @@ from typarse import BaseParser
 
 from coltra.agents import CAgent
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
-from coltra.models.mlp_models import FancyMLPModel
+from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
@@ -93,10 +93,10 @@ if __name__ == "__main__":
     elif args.model_type == "relation":
         model_cls = RelationModel
     else:
-        model_cls = FancyMLPModel
+        model_cls = MLPModel
 
     if args.start_dir:
-        agent = CAgent.load_agent(args.start_dir, weight_idx=args.start_idx)
+        agent = CAgent.load(args.start_dir, weight_idx=args.start_idx)
     else:
         model = model_cls(model_config)
         agent = CAgent(model)

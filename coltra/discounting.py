@@ -22,7 +22,7 @@ def get_episode_rewards(
     rewards = rewards.reshape(shape)
     dones = dones.reshape(shape)
     batch_size, num_steps = shape
-
+    # TODO: FIX THIS SHIT
     returns = []
     for i in range(batch_size):
         ep_return = np.float32(0.0)

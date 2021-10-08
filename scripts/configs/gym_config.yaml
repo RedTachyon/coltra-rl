@@ -41,8 +41,8 @@ model:
   activation: leaky_relu
 
   hidden_sizes: [256, 256]
-  separate_value: true
 
-  sigma0: 0.7
+  sigma0: 1.0
+  std_head: false
 
   initializer: orthogonal

@@ -30,7 +30,7 @@ def _worker(remote, parent_remote, env_fn_wrapper):
                 observation = env.reset(**data)
                 remote.send(observation)
             elif cmd == "render":
-                remote.send(env.render(data))
+                remote.send(env.render("rgb_array"))
             elif cmd == "close":
                 env.close()
                 remote.close()
@@ -171,6 +171,12 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
             pipe.send(("render", "rgb_array"))
         imgs = [pipe.recv() for pipe in self.remotes]
         return imgs
+
+    def render(self, **kwargs) -> np.ndarray:
+        pipe = self.remotes[0]
+        pipe.send(("render", "rgb_array"))
+        img = pipe.recv()
+        return img
 
     def get_attr(self, attr_name, indices=None):
         """Return attribute from vectorized environment (see base class)."""

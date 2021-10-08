@@ -1,12 +1,13 @@
-from typing import Dict, Any, Optional, Callable
+from typing import Dict, Any, Optional, Callable, List, Type
 
 import gym
+from gym import Wrapper
 import numpy as np
 
 from coltra.buffers import Observation, Action
 from coltra.utils import np_float
-from .base_env import MultiAgentEnv
-from .subproc_vec_env import VecEnv, SubprocVecEnv
+from coltra.envs.base_env import MultiAgentEnv
+from coltra.envs.subproc_vec_env import VecEnv, SubprocVecEnv
 
 
 def import_bullet():
@@ -25,13 +26,24 @@ class MultiGymEnv(MultiAgentEnv):
         name: str = "agent",
         import_fn: Callable = lambda: None,
         seed: Optional[int] = None,
+        wrappers: Optional[list[Type[Wrapper]]] = None,
         **kwargs
     ):
         super().__init__(seed)
+        if wrappers is None:
+            wrappers = []
+        if "Bullet" in env_name:
+            import_fn = import_bullet
+
         import_fn()
+
         self.s_env = gym.make(env_name, **kwargs)
         self.s_env.seed(seed)
         self.name = name
+        self.wrappers = wrappers
+
+        for wrapper in self.wrappers:
+            self.s_env = wrapper(self.s_env)
 
         self.observation_space = self.s_env.observation_space
         self.action_space = self.s_env.action_space
@@ -49,14 +61,14 @@ class MultiGymEnv(MultiAgentEnv):
 
         return self._dict(obs)
 
-    def step(self, action_dict: Dict[str, Action], *args, **kwargs):
+    def step(self, action_dict: Dict[str, Action]):
         action = action_dict[self.name]
         if self.is_discrete_action:
             action = action.discrete
         else:
             action = action.continuous
 
-        obs, reward, done, info = self.s_env.step(action, *args, **kwargs)
+        obs, reward, done, info = self.s_env.step(action)
         self.total_reward += reward
 
         if done:
@@ -77,7 +89,7 @@ class MultiGymEnv(MultiAgentEnv):
     @classmethod
     def get_venv(
         cls, workers: int = 8, seed: Optional[int] = None, **env_kwargs
-    ) -> VecEnv:
+    ) -> SubprocVecEnv:
         if seed is None:
             seeds = [None] * workers
         else:

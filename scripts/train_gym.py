@@ -6,13 +6,16 @@ import yaml
 from typarse import BaseParser
 
 from coltra.agents import CAgent, DAgent
-from coltra.models.mlp_models import FancyMLPModel
+from coltra.models.mlp_models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
 
 import wandb
 
 import pybullet_envs
+
+from coltra.wrappers import ObsVecNormWrapper
+from coltra.wrappers.agent_wrappers import RetNormWrapper
 
 
 class Parser(BaseParser):
@@ -22,6 +25,7 @@ class Parser(BaseParser):
     name: str
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
+    normalize: bool = False
 
     _help = {
         "config": "Config file for the coltra",
@@ -30,6 +34,7 @@ class Parser(BaseParser):
         "name": "Name of the tb directory to store the logs",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
+        "normalize": "Whether to use the obs and return normalizing wrappers",
     }
 
     _abbrev = {
@@ -39,6 +44,7 @@ class Parser(BaseParser):
         "name": "n",
         "start_dir": "sd",
         "start_idx": "si",
+        "normalize": "norm",
     }
 
 
@@ -80,14 +86,18 @@ if __name__ == "__main__":
     model_config["num_actions"] = action_shape
     model_config["discrete"] = is_discrete_action
 
-    model_cls = FancyMLPModel
+    model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
     if args.start_dir:
-        agent = agent_cls.load_agent(args.start_dir, weight_idx=args.start_idx)
+        agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
         model = model_cls(model_config)
         agent = agent_cls(model)
+
+    if args.normalize:
+        agent = ObsVecNormWrapper(agent)
+        agent = RetNormWrapper(agent)
 
     if CUDA:
         agent.cuda()

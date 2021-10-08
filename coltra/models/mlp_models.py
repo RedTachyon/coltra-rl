@@ -13,7 +13,7 @@ from coltra.models.base_models import FCNetwork, BaseModel
 from coltra.configs import MLPConfig
 
 
-class FancyMLPModel(BaseModel):
+class MLPModel(BaseModel):
     def __init__(self, config: Dict):
         super().__init__()
 
@@ -30,15 +30,22 @@ class FancyMLPModel(BaseModel):
         ), "Model config invalid, num_actions must be > 0"
 
         self.discrete = self.config.discrete
+        self.std_head = self.config.std_head
         self.sigma0 = self.config.sigma0
 
         self.activation: Callable = get_activation(self.config.activation)
 
-        heads = (
-            [self.config.num_actions]
-            if self.discrete
-            else [self.config.num_actions, self.config.num_actions]
-        )
+        heads: List[int]
+        is_policy: List[bool]
+        if self.discrete:
+            heads = [self.config.num_actions]
+            is_policy = [True]
+        elif self.std_head:
+            heads = [self.config.num_actions, self.config.num_actions]
+            is_policy = [True, False]
+        else:  # not discrete, not std_head
+            heads = [self.config.num_actions]
+            is_policy = [True]
 
         # Create the policy network
         self.policy_network = FCNetwork(
@@ -47,7 +54,7 @@ class FancyMLPModel(BaseModel):
             hidden_sizes=self.config.hidden_sizes,
             activation=self.config.activation,
             initializer=self.config.initializer,
-            is_policy=[True, False],
+            is_policy=is_policy,
         )
 
         self.value_network = FCNetwork(
@@ -56,12 +63,16 @@ class FancyMLPModel(BaseModel):
             hidden_sizes=self.config.hidden_sizes,
             activation=self.config.activation,
             initializer=self.config.initializer,
-            is_policy=False,
+            is_policy=is_policy,
         )
 
-        #         self.std = nn.Parameter(
-        #             torch.tensor(self.config.sigma0) * torch.ones(1, self.config.num_actions)
-        #         )
+        if self.std_head:
+            self.logstd = None
+        else:
+            self.logstd = nn.Parameter(
+                torch.tensor(self.config.sigma0)
+                * torch.ones(1, self.config.num_actions)
+            )
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
     def forward(
@@ -73,10 +84,15 @@ class FancyMLPModel(BaseModel):
         if self.discrete:
             [action_logits] = self.policy_network(x.vector)
             action_distribution = Categorical(logits=action_logits)
-        else:
+        elif self.std_head:
             [action_mu, action_std] = self.policy_network(x.vector)
             action_std = F.softplus(action_std - self.sigma0)
 
+            action_distribution = Normal(loc=action_mu, scale=action_std)
+        else:
+            [action_mu] = self.policy_network(x.vector)
+
+            action_std = torch.exp(self.logstd)
             action_distribution = Normal(loc=action_mu, scale=action_std)
 
         extra_outputs = {}

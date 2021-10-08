@@ -156,6 +156,7 @@ class CrowdPPOptimizer:
         batch_size = self.config.minibatch_size
 
         for ppo_step in range(self.config.ppo_epochs):
+            # TODO: returns is value target, add value normalization here somehow?
             returns, advantages = discount_experience(
                 rewards,
                 old_values,
@@ -166,6 +167,11 @@ class CrowdPPOptimizer:
                 η=self.config.eta,
                 λ=self.config.gae_lambda,
             )
+
+            if hasattr(agent, "update_ret_norm"):
+                agent.update_ret_norm(returns)
+            if hasattr(agent, "normalize_ret"):
+                returns = agent.normalize_ret(returns)
 
             if self.config.advantage_normalization:
                 advantages = advantages - advantages.mean()
@@ -236,7 +242,7 @@ class CrowdPPOptimizer:
         metrics[f"meta/ppo_steps_made"] = ppo_step + 1
         metrics[f"meta/gradient_updates"] = gradient_updates + 1
         metrics[f"meta/policy_loss"] = policy_loss.mean().cpu().item()
-        metrics[f"meta/value_loss"] = value_loss.mean().cpu().item()
+        metrics[f"meta/value_loss"] = torch.sqrt(value_loss.mean()).cpu().item()
         metrics[f"meta/mean_value"] = old_values.mean().cpu().item()
         # metrics[f"{agent_id}/total_loss"] = loss.detach().cpu().item()
         metrics[f"meta/total_steps"] = rewards.numel()
@@ -256,15 +262,15 @@ class CrowdPPOptimizer:
         # Episode length metrics
         metrics[f"{agent_id}/episode_len_mean"] = np.mean(ep_lens)
         metrics[f"{agent_id}/episode_len_median"] = np.median(ep_lens)
-        metrics[f"{agent_id}/episode_len_min"] = np.min(ep_lens, initial=0)
-        metrics[f"{agent_id}/episode_len_max"] = np.max(ep_lens, initial=0)
+        metrics[f"{agent_id}/episode_len_min"] = np.min(ep_lens)
+        metrics[f"{agent_id}/episode_len_max"] = np.max(ep_lens)
         metrics[f"{agent_id}/episode_len_std"] = np.std(ep_lens)
 
         # Episode reward metrics
         metrics[f"{agent_id}/episode_reward_mean"] = np.mean(ep_rewards)
         metrics[f"{agent_id}/episode_reward_median"] = np.median(ep_rewards)
-        metrics[f"{agent_id}/episode_reward_min"] = np.min(ep_rewards, initial=0)
-        metrics[f"{agent_id}/episode_reward_max"] = np.max(ep_rewards, initial=0)
+        metrics[f"{agent_id}/episode_reward_min"] = np.min(ep_rewards)
+        metrics[f"{agent_id}/episode_reward_max"] = np.max(ep_rewards)
         metrics[f"{agent_id}/episode_reward_std"] = np.std(ep_rewards)
 
         # Other metrics

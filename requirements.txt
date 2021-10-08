@@ -19,3 +19,5 @@ pytest>=6.2.2
 coverage>=5.5.0
 wandb>=0.12.2
 pybullet>=3.1.9
+opencv-python>=4.5.3
+PettingZoo==1.11.2

@@ -97,7 +97,8 @@ class PPOCrowdTrainer(Trainer):
         step_timer = Timer()
 
         if save_path:
-            torch.save(self.agent.model, os.path.join(save_path, "base_agent.pt"))
+            self.agent.save(save_path)
+            # torch.save(self.agent.model, os.path.join(save_path, "base_agent.pt"))
 
         for step in trange(1, num_iterations + 1, disable=disable_tqdm):
             ########################################### Collect the data ###############################################

@@ -25,6 +25,7 @@ class Agent:
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         """Return: Action, State, Extras"""
         raise NotImplementedError
@@ -35,7 +36,7 @@ class Agent:
         """Return: logprobs, values, entropies"""
         raise NotImplementedError
 
-    def value(self, obs_batch: Observation) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         raise NotImplementedError
 
     def cuda(self):
@@ -54,19 +55,24 @@ class Agent:
             requires_grad=requires_grad
         )
 
-    @classmethod
-    def load_agent(
-        cls,
+    def save(
+        self,
+        base_path: str,
+        agent_fname: str = "agent.pt",
+        model_fname: str = "model.pt",
+    ):
+        torch.save(self, os.path.join(base_path, agent_fname))
+        torch.save(self.model, os.path.join(base_path, model_fname))
+
+    @staticmethod
+    def load(
         base_path: str,
         weight_idx: Optional[int] = None,
-        fname: str = "base_agent.pt",
+        agent_fname: str = "agent.pt",
         weight_fname: str = "weights",
-    ) -> "Agent":
-        """
-        Loads a saved model and wraps it as an Agent.
-        The input path must point to a directory holding a pytorch file passed as fname
-        """
-        model: BaseModel = torch.load(os.path.join(base_path, fname))
+    ):
+        device = None if torch.cuda.is_available() else "cpu"
+        agent = torch.load(os.path.join(base_path, agent_fname), map_location=device)
 
         if weight_idx == -1:
             weight_idx = max(
@@ -79,11 +85,29 @@ class Agent:
 
         if weight_idx is not None:
             weights = torch.load(
-                os.path.join(base_path, "saved_weights", f"{weight_fname}_{weight_idx}")
+                os.path.join(
+                    base_path, "saved_weights", f"{weight_fname}_{weight_idx}"
+                ),
+                map_location=device,
             )
-            model.load_state_dict(weights)
 
-        return cls(model)
+            agent.model.load_state_dict(weights)
+
+        if not torch.cuda.is_available():
+            agent.cpu()
+
+        return agent
+
+    @property
+    def unwrapped(self):
+        return self
+
+    def __setstate__(self, state):
+        for key in state:
+            setattr(self, key, state[key])
+
+    def __getstate__(self):
+        return self.__dict__
 
 
 class CAgent(Agent):  # Continuous Agent
@@ -100,6 +124,7 @@ class CAgent(Agent):  # Continuous Agent
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         """Computes the action for an observation,
         passes along the state for recurrent models, and optionally the value"""
@@ -155,7 +180,7 @@ class CAgent(Agent):  # Continuous Agent
 
         return action_logprobs, values, entropies
 
-    def value(self, obs_batch: Observation) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         values = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
 
@@ -174,6 +199,7 @@ class DAgent(Agent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
 
         obs_batch = obs_batch.tensor(self.model.device)
@@ -228,18 +254,21 @@ class DAgent(Agent):
 
         return action_logprobs, values, entropies
 
-    def value(self, obs_batch: Observation) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         values = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
 
 
 class ToyAgent(Agent):
+    model = None
+
     def act(
         self,
         obs_batch: Observation,
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         """Return: Action, State, Extras"""
         raise NotImplementedError
@@ -250,7 +279,7 @@ class ToyAgent(Agent):
         zero = torch.zeros((obs_batch.batch_size,))
         return zero, zero, zero
 
-    def value(self, obs_batch: Observation) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         zero = torch.zeros((obs_batch.batch_size, 1))
         return zero
 
@@ -266,13 +295,14 @@ class RandomGymAgent(ToyAgent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         batch_size = obs_batch.batch_size
 
         if isinstance(self.action_space, gym.spaces.Box):
             _action = np.tile(self.action_space.sample(), (batch_size, 1))
-            if batch_size == 1:
-                _action = _action.ravel()
+            # if batch_size == 1:
+            #     _action = _action.ravel()
             action = Action(continuous=_action)
         else:
             action = Action(
@@ -299,6 +329,7 @@ class ConstantAgent(ToyAgent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         batch_size = obs_batch.batch_size
 
@@ -320,6 +351,7 @@ class RandomDAgent(ToyAgent):
         state_batch: Tuple = (),
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ) -> Tuple[Action, Tuple, Dict]:
         batch_size = obs_batch.batch_size
 
