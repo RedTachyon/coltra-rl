@@ -216,9 +216,6 @@ class MultiAgentEnv(gym.Env):
     and most interactions are communicated through that API (actions, states, etc)
     """
 
-    obs_vector_size: int
-    action_vector_size: int
-
     def __init__(self, seed: Optional[int] = None, **kwargs):
         self.config = {}
         self.active_agents: List = []
