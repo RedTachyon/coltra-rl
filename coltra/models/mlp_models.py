@@ -106,3 +106,27 @@ class MLPModel(BaseModel):
     def value(self, x: Observation, state: Tuple = ()) -> Tensor:
         [value] = self.value_network(x.vector)
         return value
+
+
+class ImageMLPModel(MLPModel):
+    def __init__(self, config: Dict):
+        super().__init__(config)
+
+    def _flatten(self, obs: Observation):
+        image: torch.Tensor = obs.image
+        if image.shape == 3:  # no batch
+            vector = torch.flatten(image)
+        else:  # image.shape == 4, batch
+            vector = torch.flatten(image, start_dim=1)
+
+        return Observation(vector=vector)
+
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = True
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
+        return super().forward(self._flatten(x), state, get_value)
+
+    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
+        if x.image is not None and x.vector is None:
+            x = self._flatten(x)
+        return super().value(x, state)
