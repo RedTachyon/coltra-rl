@@ -23,7 +23,11 @@ from coltra.envs.base_env import ActionDict, VecEnv
 
 class SmartNavEnv(MultiAgentEnv):
     def __init__(
-        self, path: Optional[str] = None, seed: Optional[int] = None, metrics: Optional[list[str]] = None, **kwargs
+        self,
+        path: Optional[str] = None,
+        seed: Optional[int] = None,
+        metrics: Optional[list[str]] = None,
+        **kwargs
     ):
         super().__init__(seed, **kwargs)
         if metrics is None:
@@ -51,9 +55,7 @@ class SmartNavEnv(MultiAgentEnv):
         return self.process_obs(obs)
 
     def step(self, action_dict: ActionDict):
-        obs, reward, done, info = self.env.step(
-            self.process_action(action_dict)
-        )
+        obs, reward, done, info = self.env.step(self.process_action(action_dict))
         if all(done.values()):
             done["__all__"] = True
         else:
@@ -71,9 +73,9 @@ class SmartNavEnv(MultiAgentEnv):
 
     def process_single_obs(self, obs: np.ndarray) -> Tuple[Observation, dict]:
         # TODO: finish this
-        n_obs = Observation(vector=obs[:-self.num_metrics])
+        n_obs = Observation(vector=obs[: -self.num_metrics])
         info = {
-            self.metrics[i]: obs[-self.num_metrics+i] for i in range(self.num_metrics)
+            self.metrics[i]: obs[-self.num_metrics + i] for i in range(self.num_metrics)
         }
         return n_obs, info
 
