@@ -25,7 +25,7 @@ from coltra.utils import np_float
 class SmartNavEnv(MultiAgentEnv):
     def __init__(
         self,
-        path: Optional[str] = None,
+        file_name: Optional[str] = None,
         seed: Optional[int] = None,
         metrics: Optional[list[str]] = None,
         **kwargs
@@ -36,14 +36,14 @@ class SmartNavEnv(MultiAgentEnv):
 
         self.metrics = metrics
         self.num_metrics = len(self.metrics)
-        self.path = path
+        self.path = file_name
 
         self.engine_channel = EngineConfigurationChannel()
         self.param_channel = EnvironmentParametersChannel()
 
         channels = [self.engine_channel, self.param_channel]
 
-        self.unity = UnityEnvironment(path, side_channels=channels, **kwargs)
+        self.unity = UnityEnvironment(self.path, side_channels=channels, **kwargs)
         self.env = UnityToGymWrapper(self.unity)
 
         self.engine_channel.set_configuration_parameters(time_scale=100)

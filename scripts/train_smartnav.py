@@ -58,7 +58,8 @@ if __name__ == "__main__":
     workers = trainer_config.get("workers")
 
     # Initialize the environment
-    env = SmartNavEnv.get_venv(workers, path=args.env)
+    # env = SmartNavEnv.get_venv(workers, file_name=args.env)
+    env = SmartNavEnv(file_name=args.env)
     action_space = env.action_space
     observation_space = env.observation_space
 
