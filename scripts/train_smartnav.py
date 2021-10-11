@@ -59,7 +59,10 @@ if __name__ == "__main__":
 
     # Initialize the environment
     # env = SmartNavEnv.get_venv(workers, file_name=args.env)
-    env = SmartNavEnv(file_name=args.env)
+
+    METRICS = ["success_rate", "num_steps_not_progressing", "current_map", "goal_distance"]
+
+    env = SmartNavEnv(file_name=args.env, metrics=METRICS)
     action_space = env.action_space
     observation_space = env.observation_space
 
@@ -72,7 +75,7 @@ if __name__ == "__main__":
     else:
         action_shape = action_space.shape[0]
 
-    model_config["input_size"] = np.product(observation_space.shape)
+    model_config["input_size"] = np.product(observation_space.shape) - len(METRICS)
     model_config["num_actions"] = action_shape
     model_config["discrete"] = is_discrete_action
 
