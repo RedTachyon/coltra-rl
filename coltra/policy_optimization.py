@@ -177,6 +177,8 @@ class CrowdPPOptimizer:
                 advantages = advantages - advantages.mean()
                 advantages = advantages / (advantages.std() + 1e-8)
 
+            broken = False
+
             for m_obs, m_action, m_old_logprob, m_return, m_advantage in minibatches(
                 obs,
                 actions,
@@ -193,6 +195,7 @@ class CrowdPPOptimizer:
                 if np.isnan(kl_divergence):
                     raise ValueError("NaN detected in KL Divergence!")
                 if kl_divergence > self.config.target_kl:
+                    broken = True
                     break
 
                 ######################################### Compute the loss #############################################
@@ -223,6 +226,9 @@ class CrowdPPOptimizer:
 
                 self.policy_optimizer.step()
                 gradient_updates += 1
+
+            if broken:
+                break
 
         # for value_step in range(self.config.value_steps):
         #     _, value_batch, _ = agent.evaluate(obs_batch, action_batch)
