@@ -79,7 +79,7 @@ class SmartNavEnv(MultiAgentEnv):
             for key in info:
                 all_info.setdefault(key, []).append(info[key])
 
-        all_info = {key: np.mean(all_info[key]) for key in all_info}
+        all_info = {f"m_{key}": np.mean(all_info[key]) for key in all_info}
 
         return all_obs, all_info
 
