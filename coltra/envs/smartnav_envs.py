@@ -19,6 +19,7 @@ from mlagents_envs.side_channel.environment_parameters_channel import (
 from coltra.buffers import Action, Observation
 from coltra.envs import MultiAgentEnv, SubprocVecEnv
 from coltra.envs.base_env import ActionDict, VecEnv
+from coltra.utils import np_float
 
 
 class SmartNavEnv(MultiAgentEnv):
@@ -52,35 +53,47 @@ class SmartNavEnv(MultiAgentEnv):
 
     def reset(self, **kwargs):
         obs = self.env.reset()
-        return self.process_obs(obs)
+        obs, _ = self.process_obs(obs)
+        return obs
 
     def step(self, action_dict: ActionDict):
-        obs, reward, done, info = self.env.step(self.process_action(action_dict))
+        obs, reward, done, _ = self.env.step(self.process_action(action_dict))
         if all(done.values()):
             done["__all__"] = True
         else:
             done["__all__"] = False
 
-        obs = self.process_obs(obs)
+        obs, info = self.process_obs(obs)
 
         return obs, reward, done, info
 
     def process_action(self, action_dict: dict[str, Action]):
         return {agent_id: action_dict[agent_id].continuous for agent_id in action_dict}
 
-    def process_obs(self, obs: dict[str, np.ndarray]):
-        return {agent_id: Observation(vector=obs[agent_id]) for agent_id in obs}
+    def process_obs(self, obs_dict: dict[str, np.ndarray]) -> Tuple[dict[str, Observation], dict]:
+        all_obs = {}
+        all_info = {}
+        for agent_id in obs_dict:
+            obs, info = self.process_single_obs(obs_dict[agent_id])
+            all_obs[agent_id] = obs
+            for key in info:
+                all_info.setdefault(key, []).append(info[key])
+
+        all_info = {key: np.mean(all_info[key]) for key in all_info}
+
+        return all_obs, all_info
 
     def process_single_obs(self, obs: np.ndarray) -> Tuple[Observation, dict]:
-        # TODO: finish this
-        n_obs = Observation(vector=obs[: -self.num_metrics])
+        if self.num_metrics == 0:
+            return Observation(obs), {}
+        n_obs = Observation(vector=obs[:-self.num_metrics])
         info = {
-            self.metrics[i]: obs[-self.num_metrics + i] for i in range(self.num_metrics)
+            self.metrics[i]: np_float(obs[-self.num_metrics + i]) for i in range(self.num_metrics)
         }
         return n_obs, info
 
-    def __getattr__(self, item):
-        return getattr(self.env, item)
+    # def __getattr__(self, item):
+    #     return getattr(self.env, item)
 
     def render(self, mode="rgb_array"):
         raise NotImplementedError
