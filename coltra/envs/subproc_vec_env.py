@@ -48,6 +48,8 @@ def _worker(remote, parent_remote, env_fn_wrapper):
                 remote.send(env.observation_space)
             elif cmd == "action_space":
                 remote.send(env.action_space)
+            elif cmd == "envs":
+                remote.send(env)
             else:
                 raise NotImplementedError(
                     "`{}` is not implemented in the worker".format(cmd)
@@ -199,6 +201,11 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
         for remote in target_remotes:
             remote.send(("env_method", (method_name, method_args, method_kwargs)))
         return [remote.recv() for remote in target_remotes]
+
+    def get_envs(self):
+        for idx, remote in enumerate(self.remotes):
+            remote.send(("envs", None))
+        return [remote.recv() for remote in self.remotes]
 
     def _get_target_remotes(self, indices):
         """
