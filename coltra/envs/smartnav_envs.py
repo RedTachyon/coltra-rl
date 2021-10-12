@@ -28,7 +28,7 @@ class SmartNavEnv(MultiAgentEnv):
         file_name: Optional[str] = None,
         seed: Optional[int] = None,
         metrics: Optional[list[str]] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(seed, **kwargs)
         if metrics is None:
@@ -70,7 +70,9 @@ class SmartNavEnv(MultiAgentEnv):
     def process_action(self, action_dict: dict[str, Action]):
         return {agent_id: action_dict[agent_id].continuous for agent_id in action_dict}
 
-    def process_obs(self, obs_dict: dict[str, np.ndarray]) -> Tuple[dict[str, Observation], dict]:
+    def process_obs(
+        self, obs_dict: dict[str, np.ndarray]
+    ) -> Tuple[dict[str, Observation], dict]:
         all_obs = {}
         all_info = {}
         for agent_id in obs_dict:
@@ -79,16 +81,19 @@ class SmartNavEnv(MultiAgentEnv):
             for key in info:
                 all_info.setdefault(key, []).append(info[key])
 
-        all_info = {f"m_{key}": np.mean(all_info[key], keepdims=True) for key in all_info}
+        all_info = {
+            f"m_{key}": np.mean(all_info[key], keepdims=True) for key in all_info
+        }
 
         return all_obs, all_info
 
     def process_single_obs(self, obs: np.ndarray) -> Tuple[Observation, dict]:
         if self.num_metrics == 0:
             return Observation(obs), {}
-        n_obs = Observation(vector=obs[:-self.num_metrics])
+        n_obs = Observation(vector=obs[: -self.num_metrics])
         info = {
-            self.metrics[i]: np_float(obs[-self.num_metrics + i]) for i in range(self.num_metrics)
+            self.metrics[i]: np_float(obs[-self.num_metrics + i])
+            for i in range(self.num_metrics)
         }
         return n_obs, info
 

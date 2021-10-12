@@ -60,7 +60,12 @@ if __name__ == "__main__":
     # Initialize the environment
     # env = SmartNavEnv.get_venv(workers, file_name=args.env)
 
-    METRICS = ["success_rate", "num_steps_not_progressing", "current_map", "goal_distance"]
+    METRICS = [
+        "success_rate",
+        "num_steps_not_progressing",
+        "current_map",
+        "goal_distance",
+    ]
 
     env = SmartNavEnv(file_name=args.env, metrics=METRICS)
     action_space = env.action_space
