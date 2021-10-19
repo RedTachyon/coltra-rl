@@ -1,6 +1,6 @@
 ---
 trainer:
-  steps: 600
+  steps: 400
   workers: 1
 
   tensorboard_name:
@@ -9,7 +9,7 @@ trainer:
   PPOConfig:
     optimizer: adam
     OptimizerKwargs:
-      lr: 0.00003
+      lr: 0.00005
       betas: !!python/tuple [0.9, 0.999]
       eps: 1.0e-07
       weight_decay: 0
@@ -29,7 +29,7 @@ trainer:
     value_coeff: 1.0
 
     ppo_epochs: 20
-    minibatch_size: 128
+    minibatch_size: 6400
 
     use_gpu:
 
@@ -40,7 +40,7 @@ model:
 
   activation: leaky_relu
 
-  hidden_sizes: [256, 256]
+  hidden_sizes: [1024, 1024]
 
   sigma0: 1.0
   std_head: false
