@@ -143,4 +143,5 @@ cython_debug/
 
 coltra/notebooks/
 models/
-notebooks
+notebooks/
+builds/
