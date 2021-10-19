@@ -28,9 +28,13 @@ class SmartNavEnv(MultiAgentEnv):
         file_name: Optional[str] = None,
         seed: Optional[int] = None,
         metrics: Optional[list[str]] = None,
+        env_params: Optional[dict[str, Any]] = None,
+        time_scale: float = 100.,
         **kwargs,
     ):
         super().__init__(seed, **kwargs)
+        if env_params is None:
+            env_params = {}
         if metrics is None:
             metrics = []
 
@@ -46,12 +50,17 @@ class SmartNavEnv(MultiAgentEnv):
         self.unity = UnityEnvironment(self.path, side_channels=channels, **kwargs)
         self.env = UnityToGymWrapper(self.unity)
 
-        self.engine_channel.set_configuration_parameters(time_scale=100)
+        self.engine_channel.set_configuration_parameters(time_scale=time_scale)
+
+        for key in env_params:
+            self.param_channel.set_float_parameter(key, env_params[key])
 
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
 
     def reset(self, **kwargs):
+        for key in kwargs:
+            self.param_channel.set_float_parameter(key, kwargs[key])
         obs = self.env.reset()
         obs, _ = self.process_obs(obs)
         return obs
@@ -101,7 +110,7 @@ class SmartNavEnv(MultiAgentEnv):
     #     return getattr(self.env, item)
 
     def render(self, mode="rgb_array"):
-        raise NotImplementedError
+        return np.array([[]])
 
     @classmethod
     def get_venv(
@@ -119,6 +128,9 @@ class SmartNavEnv(MultiAgentEnv):
             ]
         )
         return venv
+
+    def close(self):
+        self.env.close()
 
 
 class UnityGymException(error.Error):

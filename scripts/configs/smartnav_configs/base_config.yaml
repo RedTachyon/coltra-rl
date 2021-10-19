@@ -46,3 +46,11 @@ model:
   std_head: false
 
   initializer: orthogonal
+
+environment:
+  win_reward: 1.0
+  lose_reward: -1.0
+  timestep_reward: -0.0005
+  closer_reward: 1.0
+  visible_reward: -0.005
+  win_threshold: 1.5
