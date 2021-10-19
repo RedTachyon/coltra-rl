@@ -29,7 +29,7 @@ class SmartNavEnv(MultiAgentEnv):
         seed: Optional[int] = None,
         metrics: Optional[list[str]] = None,
         env_params: Optional[dict[str, Any]] = None,
-        time_scale: float = 100.,
+        time_scale: float = 100.0,
         **kwargs,
     ):
         super().__init__(seed, **kwargs)
