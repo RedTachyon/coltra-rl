@@ -108,7 +108,7 @@ class PPOCrowdTrainer(Trainer):
                 agent=self.agent,
                 env=self.env,
                 num_steps=self.config.steps,
-                **collect_kwargs
+                **collect_kwargs,
             )
 
             data_time = timer.checkpoint()

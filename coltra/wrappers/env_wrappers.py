@@ -4,6 +4,56 @@ import numpy as np
 import gym
 
 
+class LastRewardWrapper(gym.Wrapper):
+    """
+    Add the last received reward to the observation space.
+    """
+    def __init__(self, env: gym.Env, max_steps: int = 1000, test_mode: bool = False):
+        assert isinstance(
+            env.observation_space, (gym.spaces.Box, gym.spaces.Dict)
+        ), "`TimeFeatureWrapper` only supports `gym.spaces.Box` and `gym.spaces.Dict` (`gym.GoalEnv`) observation spaces."
+
+        # Add a time feature to the observation
+        if isinstance(env.observation_space, gym.spaces.Dict):
+            assert (
+                "observation" in env.observation_space.spaces
+            ), "No `observation` key in the observation space"
+            obs_space = env.observation_space.spaces["observation"]
+            assert isinstance(
+                obs_space, gym.spaces.Box
+            ), "`TimeFeatureWrapper` only supports `gym.spaces.Box` observation space."
+            obs_space = env.observation_space.spaces["observation"]
+        else:
+            obs_space = env.observation_space
+
+        assert len(obs_space.shape) == 1, "Only 1D observation spaces are supported"
+
+        low, high = obs_space.low, obs_space.high
+        low, high = np.concatenate((low, [0.0])), np.concatenate((high, [1.0]))
+
+        if isinstance(env.observation_space, gym.spaces.Dict):
+            env.observation_space.spaces["observation"] = gym.spaces.Box(
+                low=low, high=high, dtype=np.float32
+            )
+        else:
+            env.observation_space = gym.spaces.Box(low=low, high=high, dtype=np.float32)
+
+        super(LastRewardWrapper, self).__init__(env)
+
+        # Try to infer the max number of steps per episode
+        try:
+            self._max_steps = env.spec.max_episode_steps
+        except AttributeError:
+            self._max_steps = None
+
+        # Fallback to provided value
+        if self._max_steps is None:
+            self._max_steps = max_steps
+
+        self._current_step = 0
+        self._test_mode = test_mode
+
+
 class TimeFeatureWrapper(gym.Wrapper):
     """
     Add remaining, normalized time to observation space for fixed length episodes.

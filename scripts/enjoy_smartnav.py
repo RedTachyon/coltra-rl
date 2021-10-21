@@ -83,7 +83,10 @@ if __name__ == "__main__":
     )
 
     ep_rewards = get_episode_rewards(data.reward.numpy(), data.done.numpy(), shape)
-    print(ep_rewards)
+    print(
+        f"Mean episode reward: {ep_rewards.mean()} ± {ep_rewards.std()}; "
+        f"[{ep_rewards.min()}, {ep_rewards.max()}]. n={len(ep_rewards)}"
+    )
     env.close()
     # if CUDA:
     #     agent.cuda()
