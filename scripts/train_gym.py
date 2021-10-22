@@ -36,7 +36,7 @@ class Parser(BaseParser):
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
         "normalize": "Whether to use the obs and return normalizing wrappers",
-        "reward_wrapper": "Whether env should use the reward wrapper"
+        "reward_wrapper": "Whether env should use the reward wrapper",
     }
 
     _abbrev = {
@@ -75,7 +75,9 @@ if __name__ == "__main__":
     if args.reward_wrapper:
         wrappers.append(LastRewardWrapper)
     # Initialize the environment
-    env = MultiGymEnv.get_venv(workers=workers, env_name=args.env_name, wrappers=wrappers)
+    env = MultiGymEnv.get_venv(
+        workers=workers, env_name=args.env_name, wrappers=wrappers
+    )
     action_space = env.action_space
     observation_space = env.observation_space
 

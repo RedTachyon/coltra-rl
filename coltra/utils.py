@@ -155,31 +155,6 @@ class Timer:
         return diff
 
 
-# def transpose_batch(
-#     data_batch: Union[DataBatch, DataBatchT]
-# ) -> Union[DataBatchT, DataBatch]:
-#     """
-#     In a 2-nested dictionary, swap the key levels. So it turns
-#     {
-#         "observations": {"Agent0": ..., "Agent1": ...},
-#         "actions": {"Agent0": ..., "Agent1": ...},
-#         ...
-#     }
-#     into
-#     {
-#         "Agent0": {"observations": ..., "actions": ..., ...},
-#         "Agent1": {"observations": ..., "actions": ..., ...},
-#     }
-#     Also works the other way around.
-#     Doesn't copy the underlying data, so it's very efficient (~30μs)
-#     """
-#     d = defaultdict(dict)
-#     for key1, inner in data_batch.items():
-#         for key2, value in inner.items():
-#             d[key2][key1] = value
-#     return dict(d)
-
-
 class Masked:
     @staticmethod
     def mean(input_: Tensor, mask: Tensor) -> Tensor:
@@ -202,25 +177,6 @@ class Masked:
         return Masked.mean(logloss.mean(-1), mask)
 
 
-# def concat_subproc_batch(
-#     batches: DataBatch, exclude: List[str] = None
-# ) -> AgentDataBatch:
-#     """Concatenate multiple sets of data in a single batch"""
-#     if exclude is None:
-#         exclude = ["__all__"]
-#
-#     batches = transpose_batch(batches)
-#
-#     batches = {key: value for key, value in batches.items() if key not in exclude}
-#     agents = list(batches.keys())
-#
-#     merged = {}
-#     for key in batches[agents[0]]:
-#         merged[key] = torch.cat([batch[key] for batch in batches.values()], dim=1)
-#
-#     return merged
-
-
 def get_episode_lens(done_batch: Tensor) -> Tuple[int]:
     """
     Based on the recorded done values, returns the length of each episode in a batch.
@@ -239,28 +195,6 @@ def get_episode_lens(done_batch: Tensor) -> Tuple[int]:
     ep_lens = tuple(ep_lens_tensor.cpu().numpy())
 
     return ep_lens
-
-
-# def get_episode_rewards(batch: DataBatch) -> np.ndarray:
-#     """Computes the total reward in each episode in a data batch"""
-#     batch = transpose_batch(batch)["Agent0"]
-#     ep_lens = get_episode_lens(batch["dones"])
-#
-#     ep_rewards = np.array(
-#         [torch.sum(rewards) for rewards in torch.split(batch["rewards"], ep_lens)]
-#     )
-#
-#     return ep_rewards
-
-
-# def batch_to_gpu(data_batch: AgentDataBatch) -> AgentDataBatch:
-#     new_batch = {}
-#     for key in data_batch:
-#         if key == "states":
-#             new_batch[key] = tuple(state_.cuda() for state_ in data_batch[key])
-#         else:
-#             new_batch[key] = data_batch[key].cuda()
-#     return new_batch
 
 
 def minibatches(
