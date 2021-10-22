@@ -192,6 +192,9 @@ class CrowdPPOptimizer:
                 m_logprob, m_value, m_entropy = agent.evaluate(m_obs, m_action)
                 # Compute the KL divergence for early stopping
                 kl_divergence = torch.mean(m_old_logprob - m_logprob).item()
+                # log_ratio = m_logprob - m_old_logprob
+                # kl_divergence = torch.mean((torch.exp(log_ratio) - 1) - log_ratio).item()
+
                 if np.isnan(kl_divergence):
                     raise ValueError("NaN detected in KL Divergence!")
                 if kl_divergence > self.config.target_kl:
