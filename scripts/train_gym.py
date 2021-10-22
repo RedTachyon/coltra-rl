@@ -14,7 +14,7 @@ import wandb
 
 import pybullet_envs
 
-from coltra.wrappers import ObsVecNormWrapper
+from coltra.wrappers import ObsVecNormWrapper, LastRewardWrapper
 from coltra.wrappers.agent_wrappers import RetNormWrapper
 
 
@@ -26,6 +26,7 @@ class Parser(BaseParser):
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
     normalize: bool = False
+    reward_wrapper: bool = False
 
     _help = {
         "config": "Config file for the coltra",
@@ -35,6 +36,7 @@ class Parser(BaseParser):
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
         "normalize": "Whether to use the obs and return normalizing wrappers",
+        "reward_wrapper": "Whether env should use the reward wrapper"
     }
 
     _abbrev = {
@@ -45,6 +47,7 @@ class Parser(BaseParser):
         "start_dir": "sd",
         "start_idx": "si",
         "normalize": "norm",
+        "reward_wrapper": "rw",
     }
 
 
@@ -68,8 +71,11 @@ if __name__ == "__main__":
 
     workers = trainer_config["workers"]
 
+    wrappers = []
+    if args.reward_wrapper:
+        wrappers.append(LastRewardWrapper)
     # Initialize the environment
-    env = MultiGymEnv.get_venv(workers=workers, env_name=args.env_name)
+    env = MultiGymEnv.get_venv(workers=workers, env_name=args.env_name, wrappers=wrappers)
     action_space = env.action_space
     observation_space = env.observation_space
 
