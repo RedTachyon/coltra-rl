@@ -101,7 +101,7 @@ if __name__ == "__main__":
     agents = HomogeneousGroup(agent)
 
     if CUDA:
-        agent.cuda()
+        agents.cuda()
 
-    trainer = PPOCrowdTrainer(agent, env, trainer_config)
+    trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)
