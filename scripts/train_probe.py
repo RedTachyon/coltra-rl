@@ -5,9 +5,10 @@ import torch
 import yaml
 from typarse import BaseParser
 
-from coltra.agents import CAgent, DAgent
+from coltra.agents import CAgent, DAgent, Agent
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.envs.probe_envs import ConstRewardEnv, ObsDependentRewardEnv
+from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
@@ -88,14 +89,17 @@ if __name__ == "__main__":
     model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
+    agent: Agent
     if args.start_dir:
         agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
         model = model_cls(model_config)
         agent = agent_cls(model)
 
-    if CUDA:
-        agent.cuda()
+    agents = HomogeneousGroup(agent)
 
-    trainer = PPOCrowdTrainer(agent, env, trainer_config)
+    if CUDA:
+        agents.cuda()
+
+    trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)

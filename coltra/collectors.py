@@ -94,7 +94,7 @@ def collect_crowd_data(
 
 
 def collect_renders(
-    agent: Agent,
+    agents: HomogeneousGroup,
     env: MultiAgentEnv,
     num_steps: int,
     deterministic: bool = True,
@@ -105,7 +105,7 @@ def collect_renders(
     Performs a rollout of the agent in the environment, recording the renders
 
     Args:
-        agent: Agent with which to collect the data
+        agents: Agent group with which to collect the data
         env: Environment in which the agent will act
         num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
         deterministic: whether each agent should use the greedy policy; False by default
@@ -129,16 +129,8 @@ def collect_renders(
 
     for step in trange(num_steps, disable=disable_tqdm):
         # Converts a dict to a compact array which will be fed to the network - needs rethinking
-        obs_array, agent_keys = pack(obs_dict)
 
-        # Centralize the action computation for better parallelization
-        actions, states, extra = agent.act(
-            obs_array, (), deterministic, get_value=False
-        )
-
-        action_dict = unpack(
-            actions, agent_keys
-        )  # Convert an array to a agent-indexed dictionary
+        action_dict, states, extra = agents.act(obs_dict, deterministic, get_value=False)
 
         # Actual step in the environment
         next_obs, reward_dict, done_dict, info_dict = env.step(action_dict)

@@ -8,6 +8,7 @@ from typarse import BaseParser
 
 from coltra.agents import CAgent, DAgent, RandomGymAgent
 from coltra.collectors import collect_renders
+from coltra.groups import HomogeneousGroup
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
 
@@ -64,9 +65,10 @@ if __name__ == "__main__":
         agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
         agent = agent_cls.load(args.path, args.idx)
     # Load wrappers?
+    agents = HomogeneousGroup(agent)
 
     renders, returns = collect_renders(
-        agent=agent, env=env, num_steps=args.num_steps, deterministic=args.deterministic
+        agents=agents, env=env, num_steps=args.num_steps, deterministic=args.deterministic
     )
 
     print(

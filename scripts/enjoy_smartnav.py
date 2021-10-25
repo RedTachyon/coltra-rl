@@ -10,6 +10,7 @@ from coltra.agents import CAgent, DAgent, RandomGymAgent
 from coltra.collectors import collect_crowd_data
 from coltra.discounting import get_episode_rewards
 from coltra.envs.smartnav_envs import SmartNavEnv
+from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
@@ -78,9 +79,12 @@ if __name__ == "__main__":
         agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
         agent = agent_cls.load(args.start_dir, args.start_idx)
 
+    agents = HomogeneousGroup(agent)
+
     data, metrics, shape = collect_crowd_data(
-        agent, env, args.steps, deterministic=args.deterministic, disable_tqdm=False
+        agents, env, args.steps, deterministic=args.deterministic, disable_tqdm=False
     )
+    data = data[agents.policy_name]
 
     ep_rewards = get_episode_rewards(data.reward.numpy(), data.done.numpy(), shape)
     print(

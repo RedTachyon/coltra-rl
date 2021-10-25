@@ -1,4 +1,5 @@
 import abc
+import os
 from typing import Dict, Callable, Tuple, Iterable, Any, Optional
 import numpy as np
 from typing import List, TypeVar
@@ -64,10 +65,9 @@ class MacroAgent(abc.ABC):
     def value(self, obs_batch: Dict[str, Observation], **kwargs) -> Dict[str, Tensor]:
         pass
 
-    # TODO: add save
-    # @abc.abstractmethod
-    # def save(self, *args, **kwargs):
-    #     pass
+    @abc.abstractmethod
+    def save(self, *args, **kwargs):
+        pass
 
 
 class HomogeneousGroup(MacroAgent):
@@ -133,6 +133,17 @@ class HomogeneousGroup(MacroAgent):
         self, obs: Observation, action: Action
     ) -> Tuple[Tensor, Tensor, Tensor]:
         return self.evaluate(self.embed(obs), self.embed(action))[self.policy_name]
+
+    def save(
+        self,
+        base_path: str,
+        agent_fname: str = "agent.pt",
+        model_fname: str = "model.pt",
+        mapping_fname: str = "policy_mapping.pt"
+    ):
+        torch.save(self.agent, os.path.join(base_path, agent_fname))
+        torch.save(self.agent.model, os.path.join(base_path, model_fname))
+        torch.save(self.policy_mapping, os.path.join(base_path, model_fname))
 
 
 # class HeterogeneousGroup(MacroAgent):

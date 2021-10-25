@@ -8,6 +8,7 @@ from typarse import BaseParser
 
 from coltra.agents import CAgent, DAgent
 from coltra.envs.pettingzoo_envs import PettingZooEnv
+from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel, ImageMLPModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
@@ -96,6 +97,8 @@ if __name__ == "__main__":
     if args.normalize:
         agent = ObsVecNormWrapper(agent)
         agent = RetNormWrapper(agent)
+
+    agents = HomogeneousGroup(agent)
 
     if CUDA:
         agent.cuda()
