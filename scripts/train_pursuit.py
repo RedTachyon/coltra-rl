@@ -8,6 +8,7 @@ from typarse import BaseParser
 
 from coltra.agents import CAgent, DAgent
 from coltra.envs.pettingzoo_envs import PettingZooEnv
+from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel, ImageMLPModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
@@ -97,8 +98,10 @@ if __name__ == "__main__":
         agent = ObsVecNormWrapper(agent)
         agent = RetNormWrapper(agent)
 
-    if CUDA:
-        agent.cuda()
+    agents = HomogeneousGroup(agent)
 
-    trainer = PPOCrowdTrainer(agent, env, trainer_config)
+    if CUDA:
+        agents.cuda()
+
+    trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)

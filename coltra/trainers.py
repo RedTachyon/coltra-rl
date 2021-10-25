@@ -15,6 +15,7 @@ from coltra.agents import Agent
 from coltra.collectors import collect_crowd_data
 from coltra.configs import TrainerConfig
 from coltra.envs import SubprocVecEnv, MultiAgentEnv
+from coltra.groups import HomogeneousGroup
 from coltra.policy_optimization import CrowdPPOptimizer
 from coltra.utils import Timer, write_dict
 from coltra.envs.unity_envs import Mode
@@ -39,15 +40,18 @@ class PPOCrowdTrainer(Trainer):
     """This performs coltra in a basic paradigm, with homogeneous agents"""
 
     def __init__(
-        self, agent: Agent, env: Union[MultiAgentEnv, VecEnv], config: Dict[str, Any]
+        self,
+        agents: HomogeneousGroup,
+        env: Union[MultiAgentEnv, VecEnv],
+        config: Dict[str, Any],
     ):
-        super().__init__(agent, env, config)
+        super().__init__(agents, env, config)
 
         Config = TrainerConfig.clone()
 
         Config.update(config)
 
-        self.agent = agent
+        self.agents = agents
 
         self.env = env
         self.config = Config
@@ -57,7 +61,7 @@ class PPOCrowdTrainer(Trainer):
 
         self.path: Optional[str]
 
-        self.ppo = CrowdPPOptimizer(self.agent, config=self.config.PPOConfig.to_dict())
+        self.ppo = CrowdPPOptimizer(self.agents, config=self.config.PPOConfig.to_dict())
 
         # Setup tensorboard
         self.writer: Optional[SummaryWriter]
@@ -97,7 +101,7 @@ class PPOCrowdTrainer(Trainer):
         step_timer = Timer()
 
         if save_path:
-            self.agent.save(save_path)
+            self.agents.save(save_path)
             # torch.save(self.agent.model, os.path.join(save_path, "base_agent.pt"))
 
         for step in trange(1, num_iterations + 1, disable=disable_tqdm):
@@ -105,7 +109,7 @@ class PPOCrowdTrainer(Trainer):
             timer.checkpoint()
 
             full_batch, collector_metrics, shape = collect_crowd_data(
-                agent=self.agent,
+                agents=self.agents,
                 env=self.env,
                 num_steps=self.config.steps,
                 **collect_kwargs,
@@ -127,7 +131,7 @@ class PPOCrowdTrainer(Trainer):
             if save_path and (step % self.config.save_freq == 0):
                 # torch.save(old_returns, os.path.join(save_path, "returns.pt"))
                 torch.save(
-                    self.agent.model.state_dict(),
+                    self.agents.agent.model.state_dict(),
                     os.path.join(save_path, "saved_weights", f"weights_{step}"),
                 )
 

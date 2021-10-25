@@ -106,6 +106,8 @@ class Multitype:
         return self.apply(lambda x: x.cpu())
 
 
+# TODO: Make those into generics?
+# TODO: More convenience functions (here and agents)
 @dataclass
 class Observation(Multitype):
     vector: Optional[TensorArray] = None
@@ -158,6 +160,24 @@ class MemoryRecord:
 
     def cpu(self):
         return self.apply(lambda x: x.cpu())
+
+    @classmethod
+    def crowdify(cls, memory_dict: Dict[str, MemoryRecord]) -> MemoryRecord:
+        tensor_data = memory_dict.values()
+        return MemoryRecord(
+            obs=Observation.cat_tensor(
+                [agent_buffer.obs for agent_buffer in tensor_data]
+            ),
+            action=Action.cat_tensor(
+                [agent_buffer.action for agent_buffer in tensor_data]
+            ),
+            reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
+            value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
+            done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
+            last_value=torch.cat(
+                [agent_buffer.last_value for agent_buffer in tensor_data]
+            ),
+        )
 
 
 @dataclass

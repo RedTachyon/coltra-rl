@@ -1,6 +1,7 @@
 import torch
 from torch import Tensor
 
+from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.agents import CAgent
 from coltra.collectors import collect_crowd_data
@@ -12,9 +13,10 @@ def test_const_reward():
     model = MLPModel(
         {"input_size": env.obs_vector_size, "num_actions": 2, "discrete": False}
     )
-    agent = CAgent(model)
+    agents = HomogeneousGroup(CAgent(model))
 
-    data, stats, shape = collect_crowd_data(agent, env, num_steps=100)
+    data_dict, stats, shape = collect_crowd_data(agents, env, num_steps=100)
+    data = data_dict[agents.policy_name]
 
     assert data.obs.vector.shape == (1000, 1)
     assert torch.allclose(data.obs.vector, torch.ones(1000, 1))

@@ -4,8 +4,9 @@ import torch
 import yaml
 from typarse import BaseParser
 
-from coltra.agents import CAgent
+from coltra.agents import CAgent, Agent
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
+from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
@@ -95,19 +96,22 @@ if __name__ == "__main__":
     else:
         model_cls = MLPModel
 
+    agent: Agent
     if args.start_dir:
         agent = CAgent.load(args.start_dir, weight_idx=args.start_idx)
     else:
         model = model_cls(model_config)
         agent = CAgent(model)
 
+    agents = HomogeneousGroup(agent)
+
     if CUDA:
-        agent.cuda()
+        agents.cuda()
 
     # env = SubprocVecEnv([
     #     get_env_creator(file_name=args.env, no_graphics=True, worker_id=i, seed=i)
     #     for i in range(workers)
     # ])
 
-    trainer = PPOCrowdTrainer(agent, env, trainer_config)
+    trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)

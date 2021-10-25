@@ -1,11 +1,12 @@
-from typing import Optional
+from typing import Optional, Type
 
 import gym
 import torch
 import yaml
 from typarse import BaseParser
 
-from coltra.agents import CAgent, DAgent
+from coltra.agents import CAgent, DAgent, Agent
+from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
@@ -97,6 +98,7 @@ if __name__ == "__main__":
     model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
+    agent: Agent
     if args.start_dir:
         agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
@@ -107,8 +109,10 @@ if __name__ == "__main__":
         agent = ObsVecNormWrapper(agent)
         agent = RetNormWrapper(agent)
 
-    if CUDA:
-        agent.cuda()
+    agents = HomogeneousGroup(agent)
 
-    trainer = PPOCrowdTrainer(agent, env, trainer_config)
+    if CUDA:
+        agents.cuda()
+
+    trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)

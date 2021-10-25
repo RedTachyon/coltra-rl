@@ -6,8 +6,9 @@ import yaml
 from typarse import BaseParser
 import gym
 
-from coltra.agents import CAgent, DAgent
+from coltra.agents import CAgent, DAgent, Agent
 from coltra.envs.smartnav_envs import SmartNavEnv
+from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
@@ -88,11 +89,14 @@ if __name__ == "__main__":
     model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
+    agent: Agent
     if args.start_dir:
         agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
         model = model_cls(model_config)
         agent = agent_cls(model)
+
+    agents = HomogeneousGroup(agent)
 
     if CUDA:
         agent.cuda()
@@ -102,7 +106,7 @@ if __name__ == "__main__":
     #     for i in range(workers)
     # ])
 
-    trainer = PPOCrowdTrainer(agent, env, trainer_config)
+    trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)
 
     env.close()

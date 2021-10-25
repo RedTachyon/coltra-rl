@@ -2,6 +2,7 @@ import torch
 import numpy as np
 
 from coltra.buffers import Observation
+from coltra.groups import HomogeneousGroup
 from coltra.policy_optimization import minibatches, CrowdPPOptimizer
 from coltra.models.mlp_models import MLPModel
 from coltra.agents import CAgent
@@ -86,14 +87,15 @@ def test_ppo_step():
     model = MLPModel({"input_size": 1, "num_actions": 2, "discrete": False})
     old_params = list([param.detach().clone() for param in model.parameters()])
     agent = CAgent(model)
+    agents = HomogeneousGroup(agent)
     env = ConstRewardEnv(num_agents=10)
 
     data, metrics, shape = collect_crowd_data(
-        agent, env, num_steps=100
+        agents, env, num_steps=100
     )  # 1000 steps total
 
     ppo = CrowdPPOptimizer(
-        agent=agent,
+        agents=agents,
         config={
             # 30 updates total
             "minibatch_size": 100,
@@ -101,8 +103,6 @@ def test_ppo_step():
             "use_gpu": torch.cuda.is_available(),
         },
     )
-
-    data.cpu()
 
     metrics = ppo.train_on_data(data, shape)
     new_params = model.parameters()

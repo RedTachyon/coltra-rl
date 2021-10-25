@@ -3,6 +3,7 @@ import numpy as np
 from coltra.envs import probe_env_classes
 from coltra.collectors import collect_crowd_data
 from coltra.agents import ConstantAgent
+from coltra.groups import HomogeneousGroup
 
 
 def test_venv():
@@ -29,8 +30,10 @@ def test_venv():
 def test_collect():
     venv = probe_env_classes[0].get_venv(workers=8, num_agents=10)
     agent = ConstantAgent(np.array([1.0]))
+    agents = HomogeneousGroup(agent)
 
-    data, stats, shape = collect_crowd_data(agent, venv, 500)
+    data, stats, shape = collect_crowd_data(agents, venv, 500)
+    data = data[agents.policy_name]
 
     assert data.obs.vector.shape == (8 * 10 * 500, 1)
     assert stats["stat"].shape == (500 * 8,)

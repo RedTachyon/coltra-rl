@@ -24,6 +24,7 @@ from coltra.buffers import Observation, Action
 #
 #     assert isinstance(done, dict)
 #     assert isinstance(done[env.name], bool)
+from coltra.groups import HomogeneousGroup
 from coltra.models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
 
@@ -144,5 +145,7 @@ model:
     model = model_cls(model_config)
     agent = agent_cls(model)
 
-    trainer = PPOCrowdTrainer(agent, env, config)
+    group = HomogeneousGroup(agent)
+
+    trainer = PPOCrowdTrainer(group, env, config)
     trainer.train(2, disable_tqdm=False, save_path=None)

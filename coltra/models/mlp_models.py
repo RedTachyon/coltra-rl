@@ -28,6 +28,7 @@ class MLPModel(BaseModel):
         assert (
             self.config.num_actions > 0
         ), "Model config invalid, num_actions must be > 0"
+        assert self.config.discrete in (True, False), "Model config invalid, discrete must be True or False"
 
         self.discrete = self.config.discrete
         self.std_head = self.config.std_head
