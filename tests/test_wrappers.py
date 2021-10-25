@@ -25,5 +25,5 @@ def test_reward_wrapper():
         )
 
         for agent_id in obs:
-            assert obs[agent_id].vector[-1] == reward[agent_id] * (1-done[agent_id])
+            assert obs[agent_id].vector[-1] == reward[agent_id] * (1 - done[agent_id])
             assert obs[agent_id].vector.shape == env.observation_space.shape

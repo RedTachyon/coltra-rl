@@ -138,7 +138,9 @@ class CrowdPPOptimizer:
 
         # Evaluate actions to have values that require gradients
         with torch.no_grad():
-            old_logprobs, old_values, old_entropies = agents.embed_evaluate(obs, actions)
+            old_logprobs, old_values, old_entropies = agents.embed_evaluate(
+                obs, actions
+            )
 
         # breakpoint()
         # Compute the normalized advantage
