@@ -130,7 +130,9 @@ def collect_renders(
     for step in trange(num_steps, disable=disable_tqdm):
         # Converts a dict to a compact array which will be fed to the network - needs rethinking
 
-        action_dict, states, extra = agents.act(obs_dict, deterministic, get_value=False)
+        action_dict, states, extra = agents.act(
+            obs_dict, deterministic, get_value=False
+        )
 
         # Actual step in the environment
         next_obs, reward_dict, done_dict, info_dict = env.step(action_dict)

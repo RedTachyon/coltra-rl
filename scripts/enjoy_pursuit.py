@@ -71,7 +71,10 @@ if __name__ == "__main__":
     agents = HomogeneousGroup(agent)
 
     renders, returns = collect_renders(
-        agents=agents, env=env, num_steps=args.num_steps, deterministic=args.deterministic
+        agents=agents,
+        env=env,
+        num_steps=args.num_steps,
+        deterministic=args.deterministic,
     )
 
     print(

@@ -197,7 +197,6 @@ class HomogeneousGroup(MacroAgent):
         self.agent.model.load_state_dict(weights)
 
 
-
 # class HeterogeneousGroup(MacroAgent):
 #     """
 #     A "macroagent" combining several individual agents
