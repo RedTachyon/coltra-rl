@@ -196,6 +196,9 @@ def test_saving():
     agent = CAgent(model)
     actions, _, extra = agent.act(obs_batch=obs, get_value=True)
 
+    if os.path.exists("temp"):
+        shutil.rmtree("temp")
+
     os.mkdir("temp")
     agent.save("temp")
     loaded_agent = CAgent.load("temp")

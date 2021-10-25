@@ -6,7 +6,7 @@ import torch
 import torch.multiprocessing as mp
 from tqdm import trange
 
-from coltra.groups import MacroAgent
+from coltra.groups import MacroAgent, HomogeneousGroup
 from coltra.utils import pack, unpack
 from coltra.agents import Agent
 from coltra.envs import SubprocVecEnv
@@ -18,18 +18,18 @@ from coltra.buffers import MemoryRecord, MemoryBuffer, AgentMemoryBuffer
 
 
 def collect_crowd_data(
-    agent: Agent,
+    agents: HomogeneousGroup,
     env: MultiAgentEnv,
     num_steps: int,
     deterministic: bool = False,
     disable_tqdm: bool = True,
     **kwargs
-) -> Tuple[MemoryRecord, Dict, Tuple]:
+) -> Tuple[Dict[str, MemoryRecord], Dict, Tuple]:
     """
     Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
 
     Args:
-        agent: Agent with which to collect the data
+        agents: Agent with which to collect the data
         env: Environment in which the agent will act
         num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
         deterministic: whether each agent should use the greedy policy; False by default
@@ -51,16 +51,16 @@ def collect_crowd_data(
 
     for step in trange(num_steps, disable=disable_tqdm):
         # Converts a dict to a compact array which will be fed to the network - needs rethinking
-        obs_array, agent_keys = pack(obs_dict)
+        # obs_array, agent_keys = pack(obs_dict)
 
         # Centralize the action computation for better parallelization
-        actions, states, extra = agent.act(obs_array, (), deterministic, get_value=True)
-        values = extra["value"]
+        action_dict, states, extra = agents.act(obs_dict, deterministic, get_value=True)
+        values_dict = extra["value"]
 
-        action_dict = unpack(
-            actions, agent_keys
-        )  # Convert an array to a agent-indexed dictionary
-        values_dict = unpack(values, agent_keys)
+        # action_dict = unpack(
+        #     actions, agent_keys
+        # )  # Convert an array to a agent-indexed dictionary
+        # values_dict = unpack(values, agent_keys)
 
         # Actual step in the environment
         next_obs, reward_dict, done_dict, info_dict = env.step(action_dict)
@@ -80,15 +80,17 @@ def collect_crowd_data(
 
     metrics = {key: np.concatenate(value) for key, value in metrics.items()}
 
-    # Get the last values
-    obs_array, agent_keys = pack(obs_dict)
+    last_values = agents.value_pack(obs_dict).detach().view(-1)
 
-    last_values = agent.value(obs_array).detach().view(-1)
+    # Get the last values
+    # obs_array, agent_keys = pack(obs_dict)
+
+    # last_values = agents.value(obs_array).detach().view(-1)
 
     data = memory.crowd_tensorify(last_value=last_values)
 
     data_shape = tuple(last_values.shape) + (num_steps,)
-    return data, metrics, data_shape
+    return agents.embed(data), metrics, data_shape
 
 
 def collect_renders(

@@ -2,6 +2,7 @@ import copy
 from typing import Dict, Any, Optional, Tuple, Union
 
 import numpy as np
+from coltra.groups import HomogeneousGroup
 from numpy.random import Generator
 import torch
 from torch import Tensor
@@ -66,9 +67,9 @@ class CrowdPPOptimizer:
     An optimizer for a single homogeneous crowd agent. Estimates the gradient from the whole batch (no SGD).
     """
 
-    def __init__(self, agent: Agent, config: Dict[str, Any]):
+    def __init__(self, agents: HomogeneousGroup, config: Dict[str, Any]):
 
-        self.agent = agent
+        self.agents = agents
 
         Config: PPOConfig = PPOConfig.clone()
 
@@ -76,7 +77,7 @@ class CrowdPPOptimizer:
         self.config = Config
 
         self.policy_optimizer = get_optimizer(self.config.optimizer)(
-            agent.model.parameters(), **self.config.OptimizerKwargs.to_dict()
+            agents.parameters(), **self.config.OptimizerKwargs.to_dict()
         )
 
         self.gamma: float = self.config.gamma
@@ -85,7 +86,7 @@ class CrowdPPOptimizer:
 
     def train_on_data(
         self,
-        data: MemoryRecord,
+        data_dict: Dict[str, MemoryRecord],
         shape: Tuple[int, int],
         step: int = 0,
         writer: Optional[SummaryWriter] = None,
@@ -94,7 +95,7 @@ class CrowdPPOptimizer:
         Performs a single update step with PPO on the given batch of data.
 
         Args:
-            data: DataBatch, dictionary
+            data_dict: DataBatch, dictionary
             shape: pre-flattening data shape of rewards
             step: which optimization step it is (for logging)
             writer: Tensorboard SummaryWriter
@@ -111,14 +112,17 @@ class CrowdPPOptimizer:
             self.config.min_entropy,
         )
 
-        agent_id = "crowd"
-        agent = self.agent
-
+        agents = self.agents
+        agent_id = self.agents.policy_name
         ####################################### Unpack and prepare the data #######################################
+        data = MemoryRecord.crowdify(data_dict)
 
         if self.config.use_gpu:
             data.cuda()
-            agent.cuda()
+            agents.cuda()
+        else:
+            data.cpu()
+            agents.cpu()
 
         # Unpacking the data for convenience
 
@@ -134,7 +138,7 @@ class CrowdPPOptimizer:
 
         # Evaluate actions to have values that require gradients
         with torch.no_grad():
-            old_logprobs, old_values, old_entropies = agent.evaluate(obs, actions)
+            old_logprobs, old_values, old_entropies = agents.embed_evaluate(obs, actions)
 
         # breakpoint()
         # Compute the normalized advantage
@@ -156,7 +160,6 @@ class CrowdPPOptimizer:
         batch_size = self.config.minibatch_size
 
         for ppo_step in range(self.config.ppo_epochs):
-            # TODO: returns is value target, add value normalization here somehow?
             returns, advantages = discount_experience(
                 rewards,
                 old_values,
@@ -168,10 +171,10 @@ class CrowdPPOptimizer:
                 λ=self.config.gae_lambda,
             )
 
-            if hasattr(agent, "update_ret_norm"):
-                agent.update_ret_norm(returns)
-            if hasattr(agent, "normalize_ret"):
-                returns = agent.normalize_ret(returns)
+            if hasattr(agents.agent, "update_ret_norm"):
+                agents.agent.update_ret_norm(returns)
+            if hasattr(agents.agent, "normalize_ret"):
+                returns = agents.agent.normalize_ret(returns)
 
             if self.config.advantage_normalization:
                 advantages = advantages - advantages.mean()
@@ -189,7 +192,7 @@ class CrowdPPOptimizer:
                 shuffle=True,
             ):
                 # Evaluate again after the PPO step, for new values and gradients, aka forward pass
-                m_logprob, m_value, m_entropy = agent.evaluate(m_obs, m_action)
+                m_logprob, m_value, m_entropy = agents.embed_evaluate(m_obs, m_action)
                 # Compute the KL divergence for early stopping
                 kl_divergence = torch.mean(m_old_logprob - m_logprob).item()
                 # log_ratio = m_logprob - m_old_logprob
