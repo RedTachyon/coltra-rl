@@ -25,7 +25,7 @@ class MacroAgent(abc.ABC):
                 self.policy_mapping.items(), key=lambda x: len(x[1]), reverse=True
             )
         }
-        for key, value in policy_mapping:
+        for key, value in policy_mapping.items():
             if agent_name.startswith(key):
                 return value
 
@@ -137,13 +137,65 @@ class HomogeneousGroup(MacroAgent):
     def save(
         self,
         base_path: str,
-        agent_fname: str = "agent.pt",
-        model_fname: str = "model.pt",
-        mapping_fname: str = "policy_mapping.pt"
     ):
+        agent_fname: str = "agent.pt"
+        model_fname: str = "model.pt"
+        mapping_fname: str = "policy_mapping.pt"
+
         torch.save(self.agent, os.path.join(base_path, agent_fname))
         torch.save(self.agent.model, os.path.join(base_path, model_fname))
-        torch.save(self.policy_mapping, os.path.join(base_path, model_fname))
+        torch.save(self.policy_mapping, os.path.join(base_path, mapping_fname))
+
+    @classmethod
+    def load(cls, base_path: str, weight_idx: Optional[int] = None):
+        agent_fname: str = "agent.pt"
+        mapping_fname: str = "policy_mapping.pt"
+
+        weight_fname: str = "weights"
+
+        device = None if torch.cuda.is_available() else "cpu"
+        agent = torch.load(os.path.join(base_path, agent_fname), map_location=device)
+        group = cls(agent)
+
+        if weight_idx == -1:
+            weight_idx = max(
+                [
+                    int(fname.split("_")[-1])  # Get the last agent
+                    for fname in os.listdir(os.path.join(base_path, "saved_weights"))
+                    if fname.startswith(weight_fname)
+                ]
+            )
+
+        if weight_idx is not None:
+            weights = torch.load(
+                os.path.join(
+                    base_path, "saved_weights", f"{weight_fname}_{weight_idx}"
+                ),
+                map_location=device,
+            )
+
+            group.agent.model.load_state_dict(weights)
+
+        if not torch.cuda.is_available():
+            group.cpu()
+
+        return group
+
+    def save_state(self, base_path: str, idx: int):
+        weights_dir = os.path.join(base_path, "saved_weights")
+        if not os.path.exists(weights_dir):
+            os.mkdir(weights_dir)
+
+        torch.save(
+            self.agent.model.state_dict(),
+            os.path.join(weights_dir, f"weights_{idx}"),
+        )
+
+    def load_state(self, base_path: str, idx: int = -1):
+        weights_path = os.path.join(base_path, "saved_weights", f"weights_{idx}")
+        weights = torch.load(weights_path, map_location=self.agent.model.device)
+        self.agent.model.load_state_dict(weights)
+
 
 
 # class HeterogeneousGroup(MacroAgent):
