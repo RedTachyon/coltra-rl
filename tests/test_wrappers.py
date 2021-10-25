@@ -1,8 +1,15 @@
+import os
+import shutil
+
 import gym
+import torch
 
 from coltra.buffers import discrete
 from coltra.envs import MultiGymEnv
 from coltra.wrappers.env_wrappers import LastRewardWrapper
+from coltra.models import MLPModel
+from coltra.agents import CAgent
+from coltra.wrappers.agent_wrappers import RetNormWrapper
 
 
 def test_reward_wrapper():
@@ -27,3 +34,17 @@ def test_reward_wrapper():
         for agent_id in obs:
             assert obs[agent_id].vector[-1] == reward[agent_id] * (1 - done[agent_id])
             assert obs[agent_id].vector.shape == env.observation_space.shape
+
+def test_agent_wrapper_save():
+    if os.path.exists("temp"):
+        shutil.rmtree("temp")
+
+    os.mkdir("temp")
+    agent = RetNormWrapper(CAgent(MLPModel({"input_size": 5, "num_actions": 2, "discrete": False})))
+    agent.save("temp")
+
+    loaded = CAgent.load("temp")
+    assert loaded._ret_mean == agent._ret_mean
+    assert isinstance(loaded._ret_mean, torch.Tensor)
+
+    shutil.rmtree("temp")

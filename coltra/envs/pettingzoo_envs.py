@@ -47,6 +47,10 @@ class PettingZooEnv(MultiAgentEnv):
             }
 
         obs, reward, done, info = self.pz_env.step(action)
+
+        if all(done.values()):
+            obs = self.pz_env.reset()
+
         obs = {key: self._embed_observation(obs[key]) for key in obs}
         return obs, reward, done, info
 

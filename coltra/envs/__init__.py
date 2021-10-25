@@ -5,3 +5,4 @@ from .probe_envs import probe_env_classes
 from .gym_envs import MultiGymEnv, import_bullet
 from .base_env import Observation, Action
 from .smartnav_envs import SmartNavEnv
+from .pettingzoo_envs import PettingZooEnv
