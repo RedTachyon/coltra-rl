@@ -105,7 +105,8 @@ class Multitype:
     def cpu(self):
         return self.apply(lambda x: x.cpu())
 
-
+# TODO: Make those into generics?
+# TODO: More convenience functions (here and agents)
 @dataclass
 class Observation(Multitype):
     vector: Optional[TensorArray] = None
