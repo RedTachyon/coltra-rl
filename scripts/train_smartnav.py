@@ -65,7 +65,7 @@ if __name__ == "__main__":
     METRICS = [
         "success_rate",
         "num_steps_not_progressing",
-        "current_map",
+        "visibility_rate",
         "goal_distance",
     ]
 
