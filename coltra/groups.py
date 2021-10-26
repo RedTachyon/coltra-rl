@@ -10,15 +10,18 @@ from coltra.utils import pack, unpack
 from coltra.agents import Agent
 from coltra.buffers import Observation, Action
 
+AgentName = str
+PolicyName = str
+
 
 class PolicyNameError(Exception):
     pass
 
 
 class MacroAgent(abc.ABC):
-    policy_mapping: Dict[str, str]
+    policy_mapping: Dict[AgentName, PolicyName]
 
-    def get_policy_name(self, agent_name: str) -> str:
+    def get_policy_name(self, agent_name: AgentName) -> PolicyName:
         policy_mapping = {
             key: value
             for key, value in sorted(
@@ -36,17 +39,16 @@ class MacroAgent(abc.ABC):
     @abc.abstractmethod
     def act(
         self,
-        obs_dict: Dict[str, Observation],
+        obs_dict: Dict[AgentName, Observation],
         deterministic: bool = False,
         get_value: bool = False,
-    ) -> Tuple[Dict[str, Action], Tuple, Dict]:
+    ) -> Tuple[Dict[AgentName, Action], Tuple, Dict]:
         pass
 
     @abc.abstractmethod
     def evaluate(
-        self, obs_batch: Observation, action_batch: Action
-    ) -> Tuple[Tensor, Tensor, Tensor]:
-        """Return: logprobs, values, entropies"""
+        self, obs_batch: Dict[PolicyName, Observation], action_batch: Dict[PolicyName, Action]
+    ) -> Dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
         pass
 
     @abc.abstractmethod
@@ -62,7 +64,7 @@ class MacroAgent(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def value(self, obs_batch: Dict[str, Observation], **kwargs) -> Dict[str, Tensor]:
+    def value(self, obs_batch: Dict[AgentName, Observation], **kwargs) -> Dict[AgentName, Tensor]:
         pass
 
     @abc.abstractmethod
@@ -82,7 +84,7 @@ class HomogeneousGroup(MacroAgent):
 
     def act(
         self,
-        obs_dict: Dict[str, Observation],
+        obs_dict: Dict[AgentName, Observation],
         deterministic: bool = False,
         get_value: bool = False,
     ):
@@ -106,24 +108,24 @@ class HomogeneousGroup(MacroAgent):
     def cpu(self):
         self.agent.cpu()
 
-    def value(self, obs_batch: Dict[str, Observation], **kwargs) -> Dict[str, Tensor]:
+    def value(self, obs_batch: Dict[AgentName, Observation], **kwargs) -> Dict[str, Tensor]:
         obs, keys = pack(obs_batch)
         values = self.agent.value(obs)
         return unpack(values, keys)
 
-    def value_pack(self, obs_batch: Dict[str, Observation], **kwargs) -> Tensor:
+    def value_pack(self, obs_batch: Dict[AgentName, Observation], **kwargs) -> Tensor:
         obs, _ = pack(obs_batch)
         values = self.agent.value(obs)
         return values
 
     T = TypeVar("T")
 
-    def embed(self, value: T) -> Dict[str, T]:
+    def embed(self, value: T) -> Dict[PolicyName, T]:
         return {self.policy_name: value}
 
     def evaluate(
-        self, obs_batch: Dict[str, Observation], action_batch: Dict[str, Action]
-    ) -> Dict[str, Tuple[Tensor, Tensor, Tensor]]:
+        self, obs_batch: Dict[PolicyName, Observation], action_batch: Dict[PolicyName, Action]
+    ) -> Dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
 
         obs = obs_batch[self.policy_name]
         action = action_batch[self.policy_name]
