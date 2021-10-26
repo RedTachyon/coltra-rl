@@ -14,6 +14,8 @@ from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
 
+import wandb
+
 
 class Parser(BaseParser):
     config: str = "configs/base_config.yaml"
@@ -45,6 +47,7 @@ class Parser(BaseParser):
 if __name__ == "__main__":
     CUDA = torch.cuda.is_available()
 
+
     args = Parser()
 
     with open(args.config, "r") as f:
@@ -53,6 +56,9 @@ if __name__ == "__main__":
     trainer_config = config["trainer"]
     model_config = config["model"]
     env_config = config["environment"]
+
+    wandb.init(project="smartnav", sync_tensorboard=True, config=config)
+
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
