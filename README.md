@@ -11,6 +11,14 @@ For that reason, I expect that many potential users would even create their own 
 General note about terminology: the context of this project is crowd simulation, so the word "crowd" will pop up sometimes.
 You can assume it basically just refers to "homogeneous multiagent something with parameter sharing"
 
+## Another RL framework? Why?
+
+Simple answer - because I wasn't able to use any of the existing ones. Stable Baselines 3 only barely supports multiagent scenarios,
+and is only barely hackable. RLlib is super fast, but a nightmare to modify in any way that deviates from the norm. 
+CleanRL is very simple, but components are not reusable at all.
+
+Coltra can be thought of as a linear interpolation between CleanRL and SB3, with a focus on multiagent environments.
+
 ## Quickstart
 
 Proper docs are yet to be written, but here's an outline of how to use this library.
@@ -34,6 +42,8 @@ We particularly invite people to make their forks of the library to implement wh
 ### At a glance
 
 ```python
+from tqdm import trange
+
 from coltra.models import MLPModel
 from coltra.agents import DAgent
 from coltra.groups import HomogeneousGroup
@@ -42,31 +52,36 @@ from coltra.envs import MultiGymEnv
 from coltra.policy_optimization import CrowdPPOptimizer
 from coltra.collectors import collect_crowd_data
 
-env = MultiGymEnv.get_venv(8, env_name="CartPole-v1")
+if __name__ == '__main__':
+    env = MultiGymEnv.get_venv(8, env_name="CartPole-v1")
 
-agents = HomogeneousGroup(  # Parameter-shared group agent
-    DAgent(                 # Individual Discrete Agent
-        MLPModel(           # Policy and Value neural network
-            {
-                "input_size": env.observation_space.shape[0],
-                "num_actions": env.action_space.shape[0],
-                "discrete": True
-            }
+    agents = HomogeneousGroup(  # Parameter-shared group agent
+        DAgent(  # Individual Discrete Agent
+            MLPModel(  # Policy and Value neural network
+                {
+                    "input_size": env.observation_space.shape[0],
+                    "num_actions": env.action_space.n,
+                    "discrete": True
+                }
+            )
         )
     )
-)
 
-ppo = CrowdPPOptimizer(   # PPO optimizer with full parameter sharing
-    agents=agents,        # We're optimizing the agents in the group
-    config={}             # Default config
-)
+    ppo = CrowdPPOptimizer(  # PPO optimizer with full parameter sharing
+        agents=agents,  # We're optimizing the agents in the group
+        config={}  # Default config
+    )
 
-for _ in range(10):
-    # Collect a batch of data using the current policy
-    data_batch, collector_metrics, data_shape = collect_crowd_data(agents=agents, env=env, num_steps=100)
-    
-    # Train the current policy on the data, using PPO 
-    metrics = ppo.train_on_data(data_dict=data_batch, shape=data_shape)
+    for _ in trange(10):
+        # Collect a batch of data using the current policy
+        data_batch, collector_metrics, data_shape = collect_crowd_data(agents=agents, env=env, num_steps=100)
+
+        # Train the current policy on the data, using PPO
+        metrics = ppo.train_on_data(data_dict=data_batch, shape=data_shape)
+
+    print(metrics)
+    env.close()
+
 
 ```
 
@@ -130,7 +145,7 @@ A simple interface is using either `MultiGymEnv` for multiagentified Gym environ
 ```python
 from pettingzoo.sisl import pursuit_v3 
 
-from coltra.buffers import Observation, Action
+from coltra.buffers import Action
 from coltra.envs import PettingZooEnv, MultiGymEnv
 
 # env = MultiGymEnv.get_venv(workers=8, env_name="CartPole-v1")  # Creates 8 copies of CartPole
