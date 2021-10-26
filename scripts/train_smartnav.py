@@ -59,6 +59,10 @@ if __name__ == "__main__":
 
     wandb.init(project="smartnav", sync_tensorboard=True, config=config)
 
+    wandb_config = wandb.config
+
+    env_config['visible_reward'] = wandb_config['visible_reward']
+
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
