@@ -6,7 +6,7 @@ from typarse import BaseConfig
 class MLPConfig(BaseConfig):
     input_size: int = 0  # Must be set
     num_actions: int = 0  # Must be set
-    discrete: bool = False  # Must be set
+    discrete: bool = None  # Must be set
 
     activation: str = "leaky_relu"
     sigma0: float = 0.5
