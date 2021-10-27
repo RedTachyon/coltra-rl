@@ -17,7 +17,7 @@ from coltra.wrappers.agent_wrappers import RetNormWrapper
 
 import wandb
 
-from pettingzoo.sisl import pursuit_v3
+from pettingzoo.sisl import multiwalker_v7
 
 
 class Parser(BaseParser):
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     workers = trainer_config["workers"]
 
     # Initialize the environment
-    env = PettingZooEnv.get_venv(8, env_creator=pursuit_v3.parallel_env)
+    env = PettingZooEnv.get_venv(8, env_creator=multiwalker_v7.parallel_env)
     action_space = env.action_space
     observation_space = env.observation_space
 
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     model_config["num_actions"] = action_shape
     model_config["discrete"] = is_discrete_action
 
-    model_cls = ImageMLPModel
+    model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
     if args.start_dir:
