@@ -19,6 +19,9 @@ class BaseModel(nn.Module):
     """
     input_size: int
     latent_size: int
+    num_actions: int
+    discrete: bool
+    activation: Callable
 
     def __init__(self):
         super().__init__()

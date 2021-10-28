@@ -9,9 +9,9 @@ class MLPConfig(BaseConfig):
     discrete: bool = None  # Must be set
 
     activation: str = "leaky_relu"
-    sigma0: float = 0.5
+    sigma0: float = 1.0
 
-    std_head: bool = True
+    std_head: bool = False
 
     hidden_sizes: List[int] = [64, 64]
 

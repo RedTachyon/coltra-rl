@@ -35,6 +35,7 @@ class MLPModel(BaseModel):
         self.sigma0 = self.config.sigma0
         self.input_size = self.config.input_size
         self.latent_size = self.config.hidden_sizes[-1]
+        self.num_actions = self.config.num_actions
 
         self.activation: Callable = get_activation(self.config.activation)
 

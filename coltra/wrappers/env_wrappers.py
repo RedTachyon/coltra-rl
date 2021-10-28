@@ -36,12 +36,12 @@ class LastRewardWrapper(gym.Wrapper):
         )
 
         if isinstance(env.observation_space, gym.spaces.Dict):
-            self._observation_space = env.observation_space
-            self._observation_space.spaces["observation"] = gym.spaces.Box(
+            self.observation_space = env.observation_space
+            self.observation_space.spaces["observation"] = gym.spaces.Box(
                 low=low, high=high, dtype=np.float32
             )
         else:
-            self._observation_space = gym.spaces.Box(
+            self.observation_space = gym.spaces.Box(
                 low=low, high=high, dtype=np.float32
             )
 
