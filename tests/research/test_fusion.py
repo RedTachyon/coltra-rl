@@ -10,9 +10,11 @@ import pytest
 
 from coltra.research.policy_fusion import JointModel
 
+
 def assert_models_equal(model1: nn.Module, model2: nn.Module):
     for (p1, p2) in zip(model1.parameters(), model2.parameters()):
         assert torch.allclose(p1, p2)
+
 
 @pytest.mark.parametrize(
     "input_size,num_actions,discrete,hidden_sizes1,hidden_sizes2",
@@ -79,7 +81,6 @@ def test_constructor(
         assert torch.allclose(state_dict2[k], j_state_dict[f"models.1.{k}"])
 
 
-
 @pytest.mark.parametrize(
     "input_size,num_actions,discrete,hidden_sizes",
     [
@@ -89,7 +90,7 @@ def test_constructor(
         (3, 1, True, [64, 64]),
         (3, 1, True, [64, 64, 15]),
         (3, 1, True, [13]),
-        (5, 2, False, [10, 10, 10, 10])
+        (5, 2, False, [10, 10, 10, 10]),
     ],
 )
 def test_clone(

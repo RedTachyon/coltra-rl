@@ -45,7 +45,9 @@ class FusionTrainer(Trainer):
 
         self.agents = agents
 
-        assert isinstance(self.agents.agent.model, JointModel), "FusionTrainer can only work with a JointModel"
+        assert isinstance(
+            self.agents.agent.model, JointModel
+        ), "FusionTrainer can only work with a JointModel"
         self.model: JointModel = self.agents.agent.model
 
         self.env = env
@@ -80,7 +82,13 @@ class FusionTrainer(Trainer):
             self.path = None
             self.writer = None
 
-    def train(self, num_iterations: int, disable_tqdm: bool = False, save_path: Optional[str] = None, **collect_kwargs):
+    def train(
+        self,
+        num_iterations: int,
+        disable_tqdm: bool = False,
+        save_path: Optional[str] = None,
+        **collect_kwargs,
+    ):
         if save_path is None:
             save_path = self.path  # Can still be None
 
