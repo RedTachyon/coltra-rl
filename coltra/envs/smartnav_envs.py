@@ -1,4 +1,6 @@
 import itertools
+
+from PIL.Image import Image
 import numpy as np
 from typing import Any, Dict, List, Tuple, Union, Optional
 import time
@@ -15,6 +17,7 @@ from mlagents_envs.side_channel.engine_configuration_channel import (
 from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
+from pyvirtualdisplay.smartdisplay import SmartDisplay
 
 from coltra.buffers import Action, Observation
 from coltra.envs import MultiAgentEnv, SubprocVecEnv
@@ -23,6 +26,8 @@ from coltra.utils import np_float
 
 
 class SmartNavEnv(MultiAgentEnv):
+    virtual_display: Optional[SmartDisplay]
+
     def __init__(
         self,
         file_name: Optional[str] = None,
@@ -30,6 +35,7 @@ class SmartNavEnv(MultiAgentEnv):
         metrics: Optional[list[str]] = None,
         env_params: Optional[dict[str, Any]] = None,
         time_scale: float = 100.0,
+        virtual_display: Optional[tuple[int, int]] = None,
         **kwargs,
     ):
         super().__init__(seed, **kwargs)
@@ -37,6 +43,12 @@ class SmartNavEnv(MultiAgentEnv):
             env_params = {}
         if metrics is None:
             metrics = []
+
+        if virtual_display:
+            self.virtual_display = SmartDisplay(size=virtual_display)
+            self.virtual_display.start()
+        else:
+            self.virtual_display = None
 
         self.metrics = metrics
         self.num_metrics = len(self.metrics)
@@ -106,11 +118,15 @@ class SmartNavEnv(MultiAgentEnv):
         }
         return n_obs, info
 
-    # def __getattr__(self, item):
-    #     return getattr(self.env, item)
-
-    def render(self, mode="rgb_array"):
-        return np.array([[]])
+    def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
+        if self.virtual_display:
+            img = self.virtual_display.grab()
+            if mode == "rgb_array":
+                return np.array(img)
+            else:
+                return img
+        else:
+            return None
 
     @classmethod
     def get_venv(
