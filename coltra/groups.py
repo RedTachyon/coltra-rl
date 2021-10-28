@@ -47,7 +47,9 @@ class MacroAgent(abc.ABC):
 
     @abc.abstractmethod
     def evaluate(
-        self, obs_batch: Dict[PolicyName, Observation], action_batch: Dict[PolicyName, Action]
+        self,
+        obs_batch: Dict[PolicyName, Observation],
+        action_batch: Dict[PolicyName, Action],
     ) -> Dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
         pass
 
@@ -64,7 +66,9 @@ class MacroAgent(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def value(self, obs_batch: Dict[AgentName, Observation], **kwargs) -> Dict[AgentName, Tensor]:
+    def value(
+        self, obs_batch: Dict[AgentName, Observation], **kwargs
+    ) -> Dict[AgentName, Tensor]:
         pass
 
     @abc.abstractmethod
@@ -108,7 +112,9 @@ class HomogeneousGroup(MacroAgent):
     def cpu(self):
         self.agent.cpu()
 
-    def value(self, obs_batch: Dict[AgentName, Observation], **kwargs) -> Dict[str, Tensor]:
+    def value(
+        self, obs_batch: Dict[AgentName, Observation], **kwargs
+    ) -> Dict[str, Tensor]:
         obs, keys = pack(obs_batch)
         values = self.agent.value(obs)
         return unpack(values, keys)
@@ -124,7 +130,9 @@ class HomogeneousGroup(MacroAgent):
         return {self.policy_name: value}
 
     def evaluate(
-        self, obs_batch: Dict[PolicyName, Observation], action_batch: Dict[PolicyName, Action]
+        self,
+        obs_batch: Dict[PolicyName, Observation],
+        action_batch: Dict[PolicyName, Action],
     ) -> Dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
 
         obs = obs_batch[self.policy_name]

@@ -10,7 +10,13 @@ from coltra.utils import get_activation
 
 
 class JointModel(BaseModel):
-    def __init__(self, models: list[MLPModel], num_actions: int, discrete: bool, activation: str = "leaky_relu"):
+    def __init__(
+        self,
+        models: list[MLPModel],
+        num_actions: int,
+        discrete: bool,
+        activation: str = "leaky_relu",
+    ):
         super().__init__()
         assert len(models) > 0, "JointModel needs at least 1 model"
         self.models = models

@@ -47,7 +47,6 @@ class Parser(BaseParser):
 if __name__ == "__main__":
     CUDA = torch.cuda.is_available()
 
-
     args = Parser()
 
     with open(args.config, "r") as f:
@@ -61,8 +60,7 @@ if __name__ == "__main__":
 
     wandb_config = wandb.config
 
-    env_config['visible_reward'] = wandb_config['visible_reward']
-
+    env_config["visible_reward"] = wandb_config["visible_reward"]
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
