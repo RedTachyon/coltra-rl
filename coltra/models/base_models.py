@@ -17,6 +17,8 @@ class BaseModel(nn.Module):
     The output of each model is an action distribution, the next recurrent state,
     and a dictionary with any extra outputs like the value
     """
+    input_size: int
+    latent_size: int
 
     def __init__(self):
         super().__init__()
@@ -32,6 +34,12 @@ class BaseModel(nn.Module):
         raise NotImplementedError
 
     def value(self, x: Observation, state: Tuple) -> Tensor:
+        raise NotImplementedError
+
+    def latent(self, x: Observation, state: Tuple) -> Tensor:
+        raise NotImplementedError
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
         raise NotImplementedError
 
     # Built-ins
@@ -101,3 +109,11 @@ class FCNetwork(nn.Module):
             x = self.activation(x)
 
         return [head(x) for head in self.heads]
+
+    def latent(self, x: Tensor) -> Tensor:
+        for i, layer in enumerate(self.hidden_layers):
+            x = layer(x)
+            if i < len(self.hidden_layers) - 1:
+                x = self.activation(x)
+
+        return x

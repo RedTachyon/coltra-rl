@@ -33,6 +33,8 @@ class MLPModel(BaseModel):
         self.discrete = self.config.discrete
         self.std_head = self.config.std_head
         self.sigma0 = self.config.sigma0
+        self.input_size = self.config.input_size
+        self.latent_size = self.config.hidden_sizes[-1]
 
         self.activation: Callable = get_activation(self.config.activation)
 
@@ -104,9 +106,15 @@ class MLPModel(BaseModel):
 
         return action_distribution, state, extra_outputs
 
+    def latent(self, x: Observation, state: Tuple) -> Tensor:
+        return self.policy_network.latent(x.vector)
+
     def value(self, x: Observation, state: Tuple = ()) -> Tensor:
         [value] = self.value_network(x.vector)
         return value
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
+        return self.value_network.latent(x.vector)
 
 
 class ImageMLPModel(MLPModel):
@@ -127,7 +135,13 @@ class ImageMLPModel(MLPModel):
     ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
         return super().forward(self._flatten(x), state, get_value)
 
+    def latent(self, x: Observation, state: Tuple) -> Tensor:
+        return super().latent(self._flatten(x), state)
+
     def value(self, x: Observation, state: Tuple = ()) -> Tensor:
         if x.image is not None and x.vector is None:
             x = self._flatten(x)
         return super().value(x, state)
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
+        return super().latent_value(self._flatten(x), state)
