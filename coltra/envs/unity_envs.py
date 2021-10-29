@@ -103,9 +103,12 @@ def process_decisions(
 
 
 class UnitySimpleCrowdEnv(MultiAgentEnv):
-    def __init__(self, file_name: Optional[str] = None, **kwargs):
-
+    def __init__(self, file_name: Optional[str] = None, virtual_display: Optional[tuple[int, int]] = None, **kwargs):
         super().__init__()
+        if virtual_display:
+            from pyvirtualdisplay.smartdisplay import SmartDisplay
+            self.virtual_display = SmartDisplay(size=virtual_display)
+            self.virtual_display.start()
         self.engine_channel = EngineConfigurationChannel()
         self.stats_channel = StatsChannel()
         self.param_channel = EnvironmentParametersChannel()
@@ -131,9 +134,11 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         }
         # semi-hardcoded computation of obs/action spaces, slightly different api than gym
         behavior_spec = next(iter(self.behaviors.values()))
-        obs_shape = behavior_spec[0][0].shape  # I know, ouch
+        obs_shape = behavior_spec[0][1].shape  # I know, ouch
         action_shape = behavior_spec[1].continuous_size
+
         self.obs_vector_size = obs_shape[0]
+        self.obs_buffer_size = behavior_spec[0][0].shape[-1]  # TODO: WTF???
         self.action_vector_size = action_shape
 
         self.observation_space = Box(

@@ -1,6 +1,7 @@
 from typing import Optional
 
 import torch
+import wandb
 import yaml
 from typarse import BaseParser
 
@@ -19,7 +20,7 @@ class Parser(BaseParser):
     env: str
     name: str
     workers: int = 8
-    model_type: str = "blind"
+    model_type: str = "relation"
     mode: Optional[str]
     num_agents: Optional[int]
     start_dir: Optional[str]
@@ -74,7 +75,10 @@ if __name__ == "__main__":
     if args.num_agents:
         trainer_config["num_agents"] = args.num_agents
 
-    workers = trainer_config.get("workers") or 8  # default value
+    wandb.init(
+        project="crowdai", entity="redtachyon", sync_tensorboard=True, config=config
+    )
+
 
     # Initialize the environment
     env = UnitySimpleCrowdEnv.get_venv(args.workers, file_name=args.env)
@@ -82,16 +86,20 @@ if __name__ == "__main__":
     # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
     # Initialize the agent
-    sample_obs = next(iter(env.reset().values()))
-    obs_size = sample_obs.vector.shape[0]
-    ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
+    obs_size = env.observation_space.shape[0]
+    buffer_size = 4  # TODO: Hardcoded, fix
 
-    model_config["input_size"] = obs_size
-    model_config["rays_input_size"] = ray_size
+    # sample_obs = next(iter(env.reset().values()))
+    # obs_size = sample_obs.vector.shape[0]
+    # ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
 
-    if args.model_type == "rays":
-        model_cls = LeeModel
-    elif args.model_type == "relation":
+    # model_config["input_size"] = obs_size
+    # model_config["buffer_input_size"] = buffer_size
+    # model_config["rays_input_size"] = ray_size
+
+    # if args.model_type == "rays":
+    #     model_cls = LeeModel
+    if args.model_type == "relation":
         model_cls = RelationModel
     else:
         model_cls = MLPModel
@@ -107,11 +115,6 @@ if __name__ == "__main__":
 
     if CUDA:
         agents.cuda()
-
-    # env = SubprocVecEnv([
-    #     get_env_creator(file_name=args.env, no_graphics=True, worker_id=i, seed=i)
-    #     for i in range(workers)
-    # ])
 
     trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)

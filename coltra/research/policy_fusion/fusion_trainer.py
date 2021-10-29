@@ -45,10 +45,10 @@ class FusionTrainer(Trainer):
 
         self.agents = agents
 
-        assert isinstance(
-            self.agents.agent.model, JointModel
-        ), "FusionTrainer can only work with a JointModel"
-        self.model: JointModel = self.agents.agent.model
+        # assert isinstance(
+        #     self.agents.agent.model, JointModel
+        # ), "FusionTrainer can only work with a JointModel"
+        # self.model = self.agents.agent.model
 
         self.env = env
         self.config = Config
@@ -82,6 +82,15 @@ class FusionTrainer(Trainer):
             self.path = None
             self.writer = None
 
+    def clone_model(self):
+        self.agents.agent.model = JointModel.clone_model(self.agents.agent.model)
+        # self.model = self.agents.agent.model
+        self.agents.agent.model.freeze_models([True, False])
+        self.reinitialize_ppo()
+
+    def reinitialize_ppo(self):
+        self.ppo = CrowdPPOptimizer(self.agents, config=self.config.PPOConfig.to_dict())
+
     def train(
         self,
         num_iterations: int,
@@ -99,15 +108,28 @@ class FusionTrainer(Trainer):
         if save_path:
             self.agents.save(save_path)
 
+        params = {
+            "visible_reward": 0.0,
+        }
+
         for step in trange(1, num_iterations + 1, disable=disable_tqdm):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
+
+            if step == num_iterations // 3:
+                params["visible_reward"] = -0.05
+                self.clone_model()
+
+            if step == 2 * num_iterations // 3:
+                assert isinstance(self.agents.agent.model, JointModel)
+                self.agents.agent.model.freeze_models([False, False])
 
             full_batch, collector_metrics, shape = collect_crowd_data(
                 agents=self.agents,
                 env=self.env,
                 num_steps=self.config.steps,
                 **collect_kwargs,
+                **params
             )
 
             data_time = timer.checkpoint()

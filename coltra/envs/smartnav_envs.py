@@ -17,7 +17,6 @@ from mlagents_envs.side_channel.engine_configuration_channel import (
 from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
-from pyvirtualdisplay.smartdisplay import SmartDisplay
 
 from coltra.buffers import Action, Observation
 from coltra.envs import MultiAgentEnv, SubprocVecEnv
@@ -26,7 +25,6 @@ from coltra.utils import np_float
 
 
 class SmartNavEnv(MultiAgentEnv):
-    virtual_display: Optional[SmartDisplay]
 
     def __init__(
         self,
@@ -45,6 +43,8 @@ class SmartNavEnv(MultiAgentEnv):
             metrics = []
 
         if virtual_display:
+            from pyvirtualdisplay.smartdisplay import SmartDisplay
+
             self.virtual_display = SmartDisplay(size=virtual_display)
             self.virtual_display.start()
         else:

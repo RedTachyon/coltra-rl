@@ -75,11 +75,13 @@ class LeeConfig(BaseConfig):
 
 
 class RelationConfig(BaseConfig):
-    vec_input_size: int = 4
+    input_size: int = 7
+    num_actions: int = 2
     rel_input_size: int = 4
+
     vec_hidden_layers: List[int] = [32, 32]
     rel_hidden_layers: List[int] = [32, 32]
     com_hidden_layers: List[int] = [32, 32]
-    num_actions: int = 2
+
     activation: str = "tanh"
-    initializer: str = "kaiming_uniform"
+    initializer: str = "orthogonal"
