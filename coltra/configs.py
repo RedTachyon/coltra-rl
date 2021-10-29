@@ -79,6 +79,8 @@ class RelationConfig(BaseConfig):
     num_actions: int = 2
     rel_input_size: int = 4
 
+    sigma0: float = 0.0
+
     vec_hidden_layers: List[int] = [32, 32]
     rel_hidden_layers: List[int] = [32, 32]
     com_hidden_layers: List[int] = [32, 32]
