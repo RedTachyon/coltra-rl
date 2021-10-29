@@ -111,7 +111,7 @@ class RelationModel(BaseModel):
         )
 
         self.value_network = RelationNetwork(
-            vec_input_size=self.config.vec_input_size,
+            vec_input_size=self.config.input_size,
             rel_input_size=self.config.rel_input_size,
             vec_hidden_layers=self.config.vec_hidden_layers,
             rel_hidden_layers=self.config.rel_hidden_layers,
