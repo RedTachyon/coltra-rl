@@ -1,6 +1,11 @@
-# Coltra RL
+<!-- # Coltra RL -->
+
+![coltra logo](https://user-images.githubusercontent.com/19414946/139559727-d71caab7-1467-47a5-ac82-acdb9062e85f.png)
+
 Figured I can finally open-source this. 
 Coltra, a portmanteau of **Col**lect and **tra**in is the RL framework I've been developing for my PhD work due to a frustration with all the other existing libraries.
+
+
 
 At the time of writing, it only contains an implementation of PPO, although I intend to change that soon. 
 And if my initial designs were correct, that should prove to be quite easy.
