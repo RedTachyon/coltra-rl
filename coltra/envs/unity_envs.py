@@ -103,10 +103,16 @@ def process_decisions(
 
 
 class UnitySimpleCrowdEnv(MultiAgentEnv):
-    def __init__(self, file_name: Optional[str] = None, virtual_display: Optional[tuple[int, int]] = None, **kwargs):
+    def __init__(
+        self,
+        file_name: Optional[str] = None,
+        virtual_display: Optional[tuple[int, int]] = None,
+        **kwargs,
+    ):
         super().__init__()
         if virtual_display:
             from pyvirtualdisplay.smartdisplay import SmartDisplay
+
             self.virtual_display = SmartDisplay(size=virtual_display)
             self.virtual_display.start()
         self.engine_channel = EngineConfigurationChannel()

@@ -129,7 +129,7 @@ class FusionTrainer(Trainer):
                 env=self.env,
                 num_steps=self.config.steps,
                 **collect_kwargs,
-                **params
+                **params,
             )
 
             data_time = timer.checkpoint()

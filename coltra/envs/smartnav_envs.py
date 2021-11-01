@@ -25,7 +25,6 @@ from coltra.utils import np_float
 
 
 class SmartNavEnv(MultiAgentEnv):
-
     def __init__(
         self,
         file_name: Optional[str] = None,
