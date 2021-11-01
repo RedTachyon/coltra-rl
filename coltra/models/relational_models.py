@@ -98,7 +98,7 @@ class RelationModel(BaseModel):
         Config.update(config)
         self.config = Config
 
-        # self.discrete = self.config.discrete
+        self.discrete = False  # TODO: add support for discrete heads
         # self.std_head = self.config.std_head
         self.sigma0 = self.config.sigma0
         self.input_size = self.config.input_size
