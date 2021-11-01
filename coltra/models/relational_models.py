@@ -95,15 +95,15 @@ class RelationModel(BaseModel):
 
         Config = RelationConfig.clone()
 
+        Config.update(config)
+        self.config = Config
+
         # self.discrete = self.config.discrete
         # self.std_head = self.config.std_head
         self.sigma0 = self.config.sigma0
         self.input_size = self.config.input_size
         self.latent_size = self.config.com_hidden_layers[-1]
         self.num_actions = self.config.num_actions
-
-        Config.update(config)
-        self.config = Config
 
         self.policy_network = RelationNetwork(
             vec_input_size=self.config.input_size,
