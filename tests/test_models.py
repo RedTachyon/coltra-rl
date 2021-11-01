@@ -82,14 +82,18 @@ def test_lee():
 
 def test_relnet():
     class Config(BaseConfig):
-        vec_input_size: int = 4
+        input_size: int = 4
+        num_actions: int = 2
         rel_input_size: int = 5
+
+        sigma0: float = 0.0
+
         vec_hidden_layers: List[int] = [32, 32]
         rel_hidden_layers: List[int] = [32, 32]
         com_hidden_layers: List[int] = [32, 32]
-        num_action: int = 2
+
         activation: str = "tanh"
-        initializer: str = "kaiming_uniform"
+        initializer: str = "orthogonal"
 
     config = Config.to_dict()
     model = RelationModel(config)
