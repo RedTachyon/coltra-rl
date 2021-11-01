@@ -19,7 +19,6 @@ class Parser(BaseParser):
     iters: int = 500
     env: str
     name: str
-    workers: int = 8
     model_type: str = "relation"
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
@@ -64,12 +63,14 @@ if __name__ == "__main__":
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
+    workers = trainer_config.get("workers") or 4  # default value
+
     wandb.init(
-        project="crowdai", entity="redtachyon", sync_tensorboard=True, config=config
+        project="crowdai", entity="redtachyon", sync_tensorboard=True, config=config, name=args.name
     )
 
     # Initialize the environment
-    env = UnitySimpleCrowdEnv.get_venv(args.workers, file_name=args.env)
+    env = UnitySimpleCrowdEnv.get_venv(trainer_config["workers"], file_name=args.env)
 
     # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
