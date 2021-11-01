@@ -23,7 +23,7 @@ def collect_crowd_data(
     num_steps: int,
     deterministic: bool = False,
     disable_tqdm: bool = True,
-    **kwargs
+    **env_kwargs
 ) -> Tuple[Dict[str, MemoryRecord], Dict, Tuple]:
     """
     Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
@@ -42,7 +42,7 @@ def collect_crowd_data(
     memory = MemoryBuffer()
 
     # reset_start: change here in case I ever need to not reset
-    obs_dict = env.reset(**kwargs)
+    obs_dict = env.reset(**env_kwargs)
 
     # state = {
     #     agent_id: self.agents[agent_id].get_initial_state(requires_grad=False) for agent_id in self.agent_ids

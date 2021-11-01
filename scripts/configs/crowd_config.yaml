@@ -56,3 +56,20 @@ model:
   com_hidden_layers: [32, 32]
 
   initializer: orthogonal
+
+environment:
+  agents: 20
+  mode: hallway
+
+  # Reward coefficients
+  potential: 0.4
+  goal: 1.0
+  collision: -0.3
+  sight_radius: 5.0
+  sight_agents: 10.0
+
+  comfort_speed: 1.4
+  comfort_speed_weight: 1.5
+
+  comfort_distance: 1.5
+  comfort_distance_weight: 1.0

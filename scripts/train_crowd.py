@@ -66,6 +66,7 @@ if __name__ == "__main__":
 
     trainer_config = config["trainer"]
     model_config = config["model"]
+    env_config = config["environment"]
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
@@ -117,4 +118,4 @@ if __name__ == "__main__":
         agents.cuda()
 
     trainer = PPOCrowdTrainer(agents, env, trainer_config)
-    trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)
+    trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path, **env_config)
