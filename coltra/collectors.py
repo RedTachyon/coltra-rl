@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Callable, List, Tuple, Optional, TypeVar, Union
+from typing import Dict, Callable, List, Tuple, Optional, TypeVar, Union, Any
 
 import numpy as np
 import torch
@@ -23,7 +23,7 @@ def collect_crowd_data(
     num_steps: int,
     deterministic: bool = False,
     disable_tqdm: bool = True,
-    **env_kwargs
+    env_kwargs: Optional[dict[str, Any]] = None,
 ) -> Tuple[Dict[str, MemoryRecord], Dict, Tuple]:
     """
     Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
@@ -34,11 +34,14 @@ def collect_crowd_data(
         num_steps: number of steps to take; either this or num_episodes has to be passed (not both)
         deterministic: whether each agent should use the greedy policy; False by default
         disable_tqdm: whether a live progress bar should be (not) displayed
+        env_kwargs: arguments to pass to the environment
 
     Returns:
         data: a nested dictionary with the data
         metrics: a dictionary of metrics passed by the environment
     """
+    if env_kwargs is None:
+        env_kwargs = {}
     memory = MemoryBuffer()
 
     # reset_start: change here in case I ever need to not reset
