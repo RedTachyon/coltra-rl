@@ -245,6 +245,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def reset(self, **kwargs) -> ObsDict:
 
         for (name, value) in kwargs.items():
+            if name == "mode":
+                value = Mode.from_string(value)
             self.param_channel.set_float_parameter(name, value)
 
         self.unity.reset()
