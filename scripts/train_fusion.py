@@ -10,8 +10,9 @@ from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
+from coltra.research import JointModel
+from coltra.research.policy_fusion.fusion_trainer import FusionTrainer
 from coltra.trainers import PPOCrowdTrainer
-from coltra.models.raycast_models import LeeModel
 
 
 class Parser(BaseParser):
@@ -77,16 +78,6 @@ if __name__ == "__main__":
     obs_size = env.observation_space.shape[0]
     buffer_size = 4  # TODO: Hardcoded, fix
 
-    # sample_obs = next(iter(env.reset().values()))
-    # obs_size = sample_obs.vector.shape[0]
-    # ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
-
-    # model_config["input_size"] = obs_size
-    # model_config["buffer_input_size"] = buffer_size
-    # model_config["rays_input_size"] = ray_size
-
-    # if args.model_type == "rays":
-    #     model_cls = LeeModel
     if args.model_type == "relation":
         model_cls = RelationModel
     else:
@@ -97,6 +88,7 @@ if __name__ == "__main__":
         agent = CAgent.load(args.start_dir, weight_idx=args.start_idx)
     else:
         model = model_cls(model_config)
+        joint_model = JointModel(models=[model], num_actions=2, discrete=False)
         agent = CAgent(model)
 
     agents = HomogeneousGroup(agent)
@@ -104,6 +96,7 @@ if __name__ == "__main__":
     if CUDA:
         agents.cuda()
 
+    trainer = FusionTrainer(agents, env, trainer_config)
     trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(
         args.iters,

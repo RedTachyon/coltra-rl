@@ -58,9 +58,6 @@ class TrainerConfig(BaseConfig):
     steps: int = 500
     workers: int = 8
 
-    mode: str = "random"
-    num_agents: int = 20
-
     tensorboard_name: Optional[str] = None
     save_freq: int = 10
 

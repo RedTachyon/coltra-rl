@@ -109,7 +109,7 @@ class FusionTrainer(Trainer):
             self.agents.save(save_path)
 
         params = {
-            "visible_reward": 0.0,
+            "collision": 0.0,
         }
 
         for step in trange(1, num_iterations + 1, disable=disable_tqdm):
@@ -117,7 +117,7 @@ class FusionTrainer(Trainer):
             timer.checkpoint()
 
             if step == num_iterations // 3:
-                params["visible_reward"] = -0.05
+                params["collision"] = -0.3
                 self.clone_model()
 
             if step == 2 * num_iterations // 3:
