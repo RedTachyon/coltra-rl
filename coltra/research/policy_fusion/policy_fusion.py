@@ -37,7 +37,7 @@ class JointModel(BaseModel):
         if self.discrete:
             self.logstd = None
         else:
-            self.logstd = nn.Parameter(torch.ones(1, self.num_actions))
+            self.logstd = nn.Parameter(torch.ones(1, self.num_actions, device=self.device))
 
         self.policy_head = nn.Linear(self.latent_size, num_actions).to(self.device)
         self.value_head = nn.Linear(self.latent_size, 1).to(self.device)
