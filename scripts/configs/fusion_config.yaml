@@ -61,7 +61,7 @@ environment:
   # Reward coefficients
   potential: 0.4
   goal: 1.0
-  collision: -0.3
+  collision:
   sight_radius: 5.0
   sight_agents: 10.0
 
