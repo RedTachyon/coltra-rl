@@ -31,7 +31,7 @@ class Trainer:
         num_iterations: int,
         disable_tqdm: bool = False,
         save_path: Optional[str] = None,
-        **collect_kwargs,
+        **kwargs,
     ):
         raise NotImplementedError
 
@@ -90,7 +90,7 @@ class PPOCrowdTrainer(Trainer):
         num_iterations: int,
         disable_tqdm: bool = False,
         save_path: Optional[str] = None,
-        **collect_kwargs,
+        collect_kwargs: Optional[dict[str, Any]] = None,
     ):
 
         if save_path is None:
