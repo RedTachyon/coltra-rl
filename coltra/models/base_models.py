@@ -22,6 +22,7 @@ class BaseModel(nn.Module):
     num_actions: int
     discrete: bool
     activation: Callable
+    device: str
 
     def __init__(self):
         super().__init__()

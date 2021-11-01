@@ -25,6 +25,8 @@ class JointModel(BaseModel):
             len(set([model.input_size for model in models])) == 1
         ), "Constituent models must have the same input size"
 
+        self.device = models[0].device
+
         self.models = nn.ModuleList(models)
         self.input_size = self.models[0].input_size
         self.num_actions = num_actions
@@ -87,7 +89,8 @@ class JointModel(BaseModel):
     def clone_model(
         cls, model: BaseModel, num_clones: int = 1, activation: str = "leaky_relu"
     ) -> "JointModel":
-        model_list = [model] + [copy.deepcopy(model) for _ in range(num_clones)]
+        device = model.device
+        model_list = [model] + [copy.deepcopy(model).to(device) for _ in range(num_clones)]
         return cls(
             models=model_list,
             num_actions=model.num_actions,
