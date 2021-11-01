@@ -96,7 +96,7 @@ class FusionTrainer(Trainer):
         num_iterations: int,
         disable_tqdm: bool = False,
         save_path: Optional[str] = None,
-        **collect_kwargs,
+        collect_kwargs: Optional[dict[str, Any]] = None,
     ):
         if save_path is None:
             save_path = self.path  # Can still be None
@@ -128,8 +128,7 @@ class FusionTrainer(Trainer):
                 agents=self.agents,
                 env=self.env,
                 num_steps=self.config.steps,
-                **collect_kwargs,
-                **params,
+                env_kwargs=params,
             )
 
             data_time = timer.checkpoint()
