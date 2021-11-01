@@ -39,8 +39,8 @@ class JointModel(BaseModel):
         else:
             self.logstd = nn.Parameter(torch.ones(1, self.num_actions))
 
-        self.policy_head = nn.Linear(self.latent_size, num_actions)
-        self.value_head = nn.Linear(self.latent_size, 1)
+        self.policy_head = nn.Linear(self.latent_size, num_actions).to(self.device)
+        self.value_head = nn.Linear(self.latent_size, 1).to(self.device)
 
     def forward(
         self, x: Observation, state: tuple = (), get_value: bool = True
