@@ -123,21 +123,21 @@ class FusionTrainer(Trainer):
         # ]
 
         params = {
-            "collision": 0.0,
+            "collision": -0.3,
         }
 
         for step in trange(1, num_iterations + 1, disable=disable_tqdm):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
 
-            if step == num_iterations // 10:
-                params["collision"] = -0.6
-                self.clone_model(copy_logstd=True)
-
-            if step == num_iterations // 2:
-                params["colision"] = -0.3
-                assert isinstance(self.agents.agent.model, JointModel)
-                self.agents.agent.model.freeze_models([False, False])
+            # if step == num_iterations // 10:
+            #     params["collision"] = -0.6
+            #     self.clone_model(copy_logstd=True)
+            #
+            # if step == num_iterations // 2:
+            #     params["colision"] = -0.3
+            #     assert isinstance(self.agents.agent.model, JointModel)
+            #     self.agents.agent.model.freeze_models([False, False])
 
             full_batch, collector_metrics, shape = collect_crowd_data(
                 agents=self.agents,
