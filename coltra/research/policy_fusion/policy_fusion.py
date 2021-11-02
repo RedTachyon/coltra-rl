@@ -38,7 +38,7 @@ class JointModel(BaseModel):
         if self.discrete:
             self.logstd = None
         elif copy_logstd:
-            self.logstd = models[0].logstd.to(self.device)
+            self.logstd = nn.Parameter(models[0].logstd)
         else:
             self.logstd = nn.Parameter(
                 torch.ones(1, self.num_actions, device=self.device)
