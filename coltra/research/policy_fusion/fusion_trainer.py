@@ -82,8 +82,10 @@ class FusionTrainer(Trainer):
             self.path = None
             self.writer = None
 
-    def clone_model(self):
-        self.agents.agent.model = JointModel.clone_model(self.agents.agent.model)
+    def clone_model(self, copy_logstd: bool = False):
+        self.agents.agent.model = JointModel.clone_model(
+            self.agents.agent.model, copy_logstd=copy_logstd
+        )
         # self.model = self.agents.agent.model
         self.agents.agent.model.freeze_models([True, False])
         self.reinitialize_ppo()
@@ -108,6 +110,18 @@ class FusionTrainer(Trainer):
         if save_path:
             self.agents.save(save_path)
 
+        # TODO WIP: more flexible setting of thresholds
+        # thresholds = [
+        #     ("collision", 100, -0.6),
+        #     ("collision", 500, -0.3),
+        # ]
+        #
+        # clone_steps = [100]
+        #
+        # freeze_steps = [
+        #     (500, [False, False])
+        # ]
+
         params = {
             "collision": 0.0,
         }
@@ -116,11 +130,11 @@ class FusionTrainer(Trainer):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
 
-            if step == num_iterations // 3:
+            if step == num_iterations // 10:
                 params["collision"] = -0.3
-                self.clone_model()
+                self.clone_model(copy_logstd=True)
 
-            if step == 2 * num_iterations // 3:
+            if step == num_iterations // 2:
                 assert isinstance(self.agents.agent.model, JointModel)
                 self.agents.agent.model.freeze_models([False, False])
 

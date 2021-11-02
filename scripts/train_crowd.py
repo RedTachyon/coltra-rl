@@ -66,7 +66,11 @@ if __name__ == "__main__":
     workers = trainer_config.get("workers") or 4  # default value
 
     wandb.init(
-        project="crowdai", entity="redtachyon", sync_tensorboard=True, config=config, name=args.name
+        project="crowdai",
+        entity="redtachyon",
+        sync_tensorboard=True,
+        config=config,
+        name=args.name,
     )
 
     # Initialize the environment

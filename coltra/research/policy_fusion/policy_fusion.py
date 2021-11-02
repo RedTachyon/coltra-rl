@@ -18,6 +18,7 @@ class JointModel(BaseModel):
         num_actions: int,
         discrete: bool,
         activation: str = "leaky_relu",
+        copy_logstd: bool = False,
     ):
         super().__init__()
         assert len(models) > 0, "JointModel needs at least 1 model"
@@ -36,8 +37,12 @@ class JointModel(BaseModel):
 
         if self.discrete:
             self.logstd = None
+        elif copy_logstd:
+            self.logstd = models[0].logstd.to(self.device)
         else:
-            self.logstd = nn.Parameter(torch.ones(1, self.num_actions, device=self.device))
+            self.logstd = nn.Parameter(
+                torch.ones(1, self.num_actions, device=self.device)
+            )
 
         self.policy_head = nn.Linear(self.latent_size, num_actions).to(self.device)
         self.value_head = nn.Linear(self.latent_size, 1).to(self.device)
@@ -87,13 +92,20 @@ class JointModel(BaseModel):
 
     @classmethod
     def clone_model(
-        cls, model: BaseModel, num_clones: int = 1, activation: str = "leaky_relu"
+        cls,
+        model: BaseModel,
+        num_clones: int = 1,
+        activation: str = "leaky_relu",
+        copy_logstd: bool = False,
     ) -> "JointModel":
         device = model.device
-        model_list = [model] + [copy.deepcopy(model).to(device) for _ in range(num_clones)]
+        model_list = [model] + [
+            copy.deepcopy(model).to(device) for _ in range(num_clones)
+        ]
         return cls(
             models=model_list,
             num_actions=model.num_actions,
             discrete=model.discrete,
             activation=activation,
+            copy_logstd=copy_logstd,
         )
