@@ -8,6 +8,8 @@ class MLPConfig(BaseConfig):
     num_actions: int = 0  # Must be set
     discrete: bool = None  # Must be set
 
+    beta: bool = False
+
     activation: str = "leaky_relu"
     sigma0: float = 1.0
 
@@ -77,6 +79,9 @@ class RelationConfig(BaseConfig):
     rel_input_size: int = 4
 
     sigma0: float = 1.0
+
+    beta: bool = False
+
 
     vec_hidden_layers: List[int] = [32, 32]
     rel_hidden_layers: List[int] = [32, 32]
