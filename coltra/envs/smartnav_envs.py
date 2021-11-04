@@ -86,9 +86,9 @@ class SmartNavEnv(MultiAgentEnv):
             done["__all__"] = False
 
         obs, info = self.process_obs(obs)
-        # stats = self.stats_channel.parse_info()
-        #
-        # info = {**info, **stats}
+        stats = self.stats_channel.parse_info()
+
+        info = {**info, **stats}
 
         return obs, reward, done, info
 
