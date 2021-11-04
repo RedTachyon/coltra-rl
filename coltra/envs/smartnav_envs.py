@@ -21,6 +21,7 @@ from mlagents_envs.side_channel.environment_parameters_channel import (
 from coltra.buffers import Action, Observation
 from coltra.envs import MultiAgentEnv, SubprocVecEnv
 from coltra.envs.base_env import ActionDict, VecEnv
+from coltra.envs.side_channels import StatsChannel
 from coltra.utils import np_float
 
 
@@ -54,9 +55,10 @@ class SmartNavEnv(MultiAgentEnv):
         self.path = file_name
 
         self.engine_channel = EngineConfigurationChannel()
+        self.stats_channel = StatsChannel()
         self.param_channel = EnvironmentParametersChannel()
 
-        channels = [self.engine_channel, self.param_channel]
+        channels = [self.engine_channel, self.stats_channel, self.param_channel]
 
         self.unity = UnityEnvironment(self.path, side_channels=channels, **kwargs)
         self.env = UnityToGymWrapper(self.unity)
@@ -84,6 +86,9 @@ class SmartNavEnv(MultiAgentEnv):
             done["__all__"] = False
 
         obs, info = self.process_obs(obs)
+        # stats = self.stats_channel.parse_info()
+        #
+        # info = {**info, **stats}
 
         return obs, reward, done, info
 

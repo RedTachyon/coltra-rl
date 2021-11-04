@@ -56,11 +56,11 @@ if __name__ == "__main__":
     model_config = config["model"]
     env_config = config["environment"]
 
-    wandb.init(project="smartnav", sync_tensorboard=True, config=config)
+    wandb.init(project="smartnav", sync_tensorboard=True, config=config, name=args.name)
 
-    wandb_config = wandb.config
+    # wandb_config = wandb.config
 
-    env_config["visible_reward"] = wandb_config["visible_reward"]
+    # env_config["visible_reward"] = wandb_config["visible_reward"]
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
@@ -71,10 +71,11 @@ if __name__ == "__main__":
     # env = SmartNavEnv.get_venv(workers, file_name=args.env)
 
     METRICS = [
-        "success_rate",
-        "num_steps_not_progressing",
-        "visibility_rate",
-        "goal_distance",
+        "legacy_success_rate",
+        "legacy_num_steps_not_progressing",
+        "legacy_map_idx",
+        "legacy_goal_distance",
+        "legacy_is_visible"
     ]
 
     env = SmartNavEnv(file_name=args.env, metrics=METRICS, env_params=env_config)
