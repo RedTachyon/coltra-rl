@@ -24,6 +24,7 @@ class Parser(BaseParser):
     name: str
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
+    visibility_reward: Optional[float] = -0.005
 
     _help = {
         "config": "Config file for the coltra",
@@ -32,6 +33,7 @@ class Parser(BaseParser):
         "name": "Name of the tb directory to store the logs",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
+        "visibility_reward": "Value of penalty for being seen"
     }
 
     _abbrev = {
@@ -41,6 +43,7 @@ class Parser(BaseParser):
         "name": "n",
         "start_dir": "sd",
         "start_idx": "si",
+        "visibility_reward": "vr",
     }
 
 
@@ -55,6 +58,9 @@ if __name__ == "__main__":
     trainer_config = config["trainer"]
     model_config = config["model"]
     env_config = config["environment"]
+
+    if args.visibility_reward:
+        env_config["visible_reward"] = args.visibility_reward
 
     wandb.init(project="smartnav", sync_tensorboard=True, config=config, name=args.name)
 
