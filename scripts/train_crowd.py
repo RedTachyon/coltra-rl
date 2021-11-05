@@ -63,7 +63,25 @@ if __name__ == "__main__":
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
-    workers = trainer_config.get("workers") or 4  # default value
+    workers = trainer_config["workers"]
+
+    # Initialize the environment
+    env = UnitySimpleCrowdEnv.get_venv(workers, file_name=args.env)
+
+    # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
+
+    # Initialize the agent
+    obs_size = env.observation_space.shape[0]
+    buffer_size = env.get_attr("obs_buffer_size")[0]
+    action_size = env.action_space.shape[0]
+
+    # sample_obs = next(iter(env.reset().values()))
+    # obs_size = sample_obs.vector.shape[0]
+    # ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
+
+    model_config["input_size"] = obs_size
+    model_config["buffer_input_size"] = buffer_size
+    model_config["num_actions"] = action_size
 
     wandb.init(
         project="crowdai",
@@ -73,25 +91,6 @@ if __name__ == "__main__":
         name=args.name,
     )
 
-    # Initialize the environment
-    env = UnitySimpleCrowdEnv.get_venv(trainer_config["workers"], file_name=args.env)
-
-    # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
-
-    # Initialize the agent
-    obs_size = env.observation_space.shape[0]
-    buffer_size = 4  # TODO: Hardcoded, fix
-
-    # sample_obs = next(iter(env.reset().values()))
-    # obs_size = sample_obs.vector.shape[0]
-    # ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
-
-    # model_config["input_size"] = obs_size
-    # model_config["buffer_input_size"] = buffer_size
-    # model_config["rays_input_size"] = ray_size
-
-    # if args.model_type == "rays":
-    #     model_cls = LeeModel
     if args.model_type == "relation":
         model_cls = RelationModel
     else:

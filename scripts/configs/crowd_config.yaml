@@ -34,9 +34,9 @@ trainer:
     use_gpu:
 
 model:
-  input_size: 7
-  num_actions: 2
-  rel_input_size: 4
+  input_size:
+  num_actions:
+  rel_input_size:
   activation: tanh
   discrete: false
 

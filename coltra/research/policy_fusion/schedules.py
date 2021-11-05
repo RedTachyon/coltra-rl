@@ -18,6 +18,11 @@ Schedules = SimpleNamespace(
             (100, True, [True, False], "collision", -0.3),
             (500, False, [False, False], "collision", -0.3)
         ],
+
+        [
+            (1, False, [False], "collision", 0.0),
+            (100, True, [True, False], "collision", -0.9),
+        ]
     ],
     SmartNavSchedules=[
         [

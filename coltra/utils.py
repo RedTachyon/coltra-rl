@@ -1,3 +1,5 @@
+import socket
+from sys import platform
 from typing import (
     Dict,
     List,
@@ -14,6 +16,7 @@ from typing import (
 import numpy as np
 
 import torch
+from mlagents_envs.exception import UnityWorkerInUseException
 from torch import nn
 from torch import Tensor
 import torch.nn.functional as F
@@ -289,3 +292,37 @@ def read_ana(path: str) -> Dict:
 
     data = parse_ana(text)
     return data
+
+
+def is_worker_free(worker_id: int, base_port: int = 5005):
+    """
+    Attempts to bind to the requested communicator port, checking if it is already in use.
+    Returns whether the port is free.
+    """
+    port = base_port + worker_id
+    status = True
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if platform == "linux" or platform == "linux2":
+        # On linux, the port remains unusable for TIME_WAIT=60 seconds after closing
+        # SO_REUSEADDR frees the port right after closing the environment
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        s.bind(("localhost", port))
+    except OSError:
+        status = False
+    #         raise UnityWorkerInUseException(self.worker_id)
+    finally:
+        s.close()
+
+    return status
+
+
+def find_free_worker(max_value: int = 100) -> int:
+    """
+    Finds a free worker ID.
+    """
+    for worker_id in range(max_value):
+        if is_worker_free(worker_id):
+            return worker_id
+
+    raise UnityWorkerInUseException("All workers are in use.")

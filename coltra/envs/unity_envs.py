@@ -23,6 +23,7 @@ from .side_channels import StatsChannel
 from coltra.buffers import Observation, Action
 from .subproc_vec_env import SubprocVecEnv
 from .base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
+from ..utils import find_free_worker
 
 
 class Mode(Enum):
@@ -138,19 +139,22 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             for key, value in behaviors.items()
             if not key.startswith("Manager")
         }
+
         # semi-hardcoded computation of obs/action spaces, slightly different api than gym
-        behavior_spec = next(iter(self.behaviors.values()))
-        obs_shape = behavior_spec[0][1].shape  # I know, ouch
-        action_shape = behavior_spec[1].continuous_size
+        self.behavior_name = list(self.behaviors.keys())[0]
+        obs_spec, action_spec = self.behaviors[self.behavior_name]
+
+        obs_shape = obs_spec[1].shape
+        action_size = action_spec.continuous_size
 
         self.obs_vector_size = obs_shape[0]
-        self.obs_buffer_size = behavior_spec[0][0].shape[-1]  # TODO: WTF???
-        self.action_vector_size = action_shape
+        self.obs_buffer_size = obs_spec[0].shape[-1]
+        self.action_vector_size = action_size
 
         self.observation_space = Box(
             low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32
         )
-        self.action_space = Box(low=-1, high=1, shape=(action_shape,), dtype=np.float32)
+        self.action_space = Box(low=-1, high=1, shape=(action_size,), dtype=np.float32)
 
     def _get_step_info(
         self, step: bool = False
@@ -306,11 +310,12 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def get_venv(
         cls, workers: int = 8, file_name: Optional[str] = None, *args, **kwargs
     ) -> SubprocVecEnv:
+        base_worker_id = find_free_worker(500)
         venv = SubprocVecEnv(
             [
                 cls.get_env_creator(
                     file_name=file_name,
-                    worker_id=i,
+                    worker_id=base_worker_id + i,
                     seed=i,
                     *args,
                     **kwargs,
