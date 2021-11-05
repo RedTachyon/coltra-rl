@@ -82,7 +82,6 @@ class RelationConfig(BaseConfig):
 
     beta: bool = False
 
-
     vec_hidden_layers: List[int] = [32, 32]
     rel_hidden_layers: List[int] = [32, 32]
     com_hidden_layers: List[int] = [32, 32]

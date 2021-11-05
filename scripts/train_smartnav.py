@@ -33,7 +33,7 @@ class Parser(BaseParser):
         "name": "Name of the tb directory to store the logs",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
-        "visibility_reward": "Value of penalty for being seen"
+        "visibility_reward": "Value of penalty for being seen",
     }
 
     _abbrev = {
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         "legacy_num_steps_not_progressing",
         "legacy_map_idx",
         "legacy_goal_distance",
-        "legacy_is_visible"
+        "legacy_is_visible",
     ]
 
     env = SmartNavEnv(file_name=args.env, metrics=METRICS, env_params=env_config)
