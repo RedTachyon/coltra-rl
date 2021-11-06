@@ -2,6 +2,7 @@ import numpy as np
 from typing import Tuple, List, Union, Dict, Optional
 from enum import Enum
 
+from PIL.Image import Image
 from gym.spaces import Box
 from mlagents_envs.base_env import (
     ActionTuple,
@@ -291,8 +292,15 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def close(self):
         self.unity.close()
 
-    def render(self, mode="human"):
-        raise NotImplementedError
+    def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
+        if self.virtual_display:
+            img = self.virtual_display.grab()
+            if mode == "rgb_array":
+                return np.array(img)
+            else:
+                return img
+        else:
+            return None
 
     def set_timescale(self, timescale: float = 100.0):
         self.engine_channel.set_configuration_parameters(time_scale=timescale)
