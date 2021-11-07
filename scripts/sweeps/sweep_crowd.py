@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     config_path = "sweep_config.yaml"
     iters = 1000
-    env_path = "~/builds/LinuxCAI-v2/crowdai.x86_64"
+    env_path = "/home/ariel/builds/LinuxCAI-v2/crowdai.x86_64"
     tb_name = "crowd-sweep"
     model_type = "relation"
 
