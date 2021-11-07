@@ -123,5 +123,9 @@ if __name__ == "__main__":
 
     wandb.log({"video": wandb.Video(f"vid.mp4")})
 
+    print("Video uploaded to wandb")
+
+    env.close()
+
 
 
