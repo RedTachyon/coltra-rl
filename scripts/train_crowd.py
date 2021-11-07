@@ -80,7 +80,7 @@ if __name__ == "__main__":
     # ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
 
     model_config["input_size"] = obs_size
-    model_config["buffer_input_size"] = buffer_size
+    model_config["rel_input_size"] = buffer_size
     model_config["num_actions"] = action_size
 
     wandb.init(

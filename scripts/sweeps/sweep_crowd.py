@@ -8,6 +8,7 @@ from typarse import BaseParser
 
 from coltra.agents import CAgent, Agent
 from coltra.collectors import collect_renders
+from coltra.envs.probe_envs import ConstRewardEnv
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
@@ -15,16 +16,17 @@ from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 
 
-def fix_wandb_config(wandb_config: dict, config: dict):
-    for k in wandb_config:
+def fix_wandb_config(wandb_config: dict, main_config: dict):
+    keys = wandb_config.keys()
+
+    for k in keys:
         names = k.split(".")
-        sub_config = config
+        sub_config = main_config
         for name in names[:-1]:
             sub_config = sub_config[name]
 
         sub_config[names[-1]] = wandb_config[k]
 
-    keys = wandb_config.keys()
     for k in keys:
         del wandb_config[k]
 
@@ -35,7 +37,7 @@ def fix_wandb_config(wandb_config: dict, config: dict):
 if __name__ == "__main__":
     CUDA = torch.cuda.is_available()
 
-    config_path = "../configs/crowd_config.yaml"
+    config_path = "sweep_config.yaml"
     iters = 1000
     env_path = "~/builds/LinuxCAI-v2/crowdai.x86_64"
     tb_name = "crowd-sweep"
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     workers = trainer_config["workers"]
 
     # Initialize the environment
-    env = UnitySimpleCrowdEnv.get_venv(workers, file_name=env_path)
+    env = UnitySimpleCrowdEnv.get_venv(workers, file_name=env_path, no_graphics=True)
 
     # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
@@ -64,11 +66,11 @@ if __name__ == "__main__":
     action_size = env.action_space.shape[0]
 
     model_config["input_size"] = obs_size
-    model_config["buffer_input_size"] = buffer_size
+    model_config["rel_input_size"] = buffer_size
     model_config["num_actions"] = action_size
 
     wandb.init(
-        # project="crowdai",
+        project="debug",
         entity="redtachyon",
         sync_tensorboard=True,
         config={},
@@ -102,7 +104,7 @@ if __name__ == "__main__":
 
     print("Training complete. Collecting renders")
 
-    env = UnitySimpleCrowdEnv(file_name=env_path, virtual_display=(1600, 900))
+    env = UnitySimpleCrowdEnv(file_name=env_path, virtual_display=(1600, 900), no_graphics=False)
 
     renders, _ = collect_renders(agents, env, num_steps=trainer_config["steps"]*2, disable_tqdm=True)
 
