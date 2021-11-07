@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
     env = UnitySimpleCrowdEnv(file_name=env_path, virtual_display=(1600, 900), no_graphics=False)
 
-    renders, _ = collect_renders(agents, env, num_steps=trainer_config["steps"]*2, disable_tqdm=True)
+    renders, _ = collect_renders(agents, env, num_steps=trainer_config["steps"], disable_tqdm=False)
 
     frame_size = renders.shape[1:3]
 
