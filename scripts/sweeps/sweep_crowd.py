@@ -121,5 +121,7 @@ if __name__ == "__main__":
 
     print(f"Video saved to vid.mp4")
 
+    wandb.log({"video": wandb.Video(f"vid.mp4")})
+
 
 
