@@ -40,7 +40,7 @@ if __name__ == "__main__":
     CUDA = torch.cuda.is_available()
 
     config_path = "sweep_config.yaml"
-    iters = 2
+    iters = 1000
     env_path = "/home/ariel/builds/LinuxCAI-v1/crowdai.x86_64"
     tb_name = "crowd-sweep"
     model_type = "relation"

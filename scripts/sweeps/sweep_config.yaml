@@ -56,7 +56,7 @@ model:
 
 environment:
   agents: 20
-  mode: hallway
+  mode: random
 
   # Reward coefficients
   potential: 0.4
