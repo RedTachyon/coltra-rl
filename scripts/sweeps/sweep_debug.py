@@ -79,9 +79,7 @@ if __name__ == "__main__":
         # name=name,
     )
 
-    fix_wandb_config(
-        wandb.config, config
-    )
+    fix_wandb_config(wandb.config, config)
     # wandb_config = wandb.config  # This now holds the wandb config
 
     print(f"{wandb.config=}")

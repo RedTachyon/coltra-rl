@@ -20,6 +20,10 @@ from coltra.trainers import PPOCrowdTrainer
 
 
 def fix_wandb_config(wandb_config: Config, main_config: dict):
+    """
+    !!! Mutates both wandb_config and main_config. !!!
+
+    """
     keys = wandb_config.keys()
 
     for k in keys:
@@ -80,9 +84,7 @@ if __name__ == "__main__":
         # name=name,
     )
 
-    fix_wandb_config(
-        wandb.config, config
-    )  # TODO: test on a sample sweep to see if configs are correct
+    fix_wandb_config(wandb.config, config)
     # wandb_config = wandb.config  # This now holds the wandb config
 
     if model_type == "relation":
