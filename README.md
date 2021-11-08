@@ -2,6 +2,39 @@
 
 ![coltra logo](https://user-images.githubusercontent.com/19414946/139559727-d71caab7-1467-47a5-ac82-acdb9062e85f.png)
 
+# SmartNav Branch
+
+Hello there! You must be looking at this in relation to the SmartNav/SmartHider project to try and train an agent
+in a more sane way. You're in the right place! This is a special release without some volatile features,
+as at the moment of writing, the library is still in development.
+
+Feel free to look at the general ReadMe below, it will hopefully explain the philosophy and some of the internal 
+structure of the library. Depending on when you're reading this, there might be docs available for the general
+library, but they might differ from this release. I make no promises that it will be compatible in the same 
+exact way as now, but assuming everything goes as planned, there should be a way to run SmartHider from here.
+
+Your main entry point will be `scripts/train_smartnav.py`. You need to give it the path to the project executable,
+the other arguments are optional. Check them out in the Parser class, the syntax there is probably new,
+but hopefully intuitive. It will automatically pull hyperparameters from `configs/smartnav_configs/base_config.yaml`.
+
+The results will be saved in `~/tb_logs/<name>_<date>/`, you can use that directory when running `train_smartnav.py` or
+`enjoy_smartnav.py` to resume training or visualize your results.
+
+My support for this release will be limited after I go back to my usual work, but we'll see how the collaboration 
+with Ubi evolves.
+
+## Quick Installation
+
+```shell
+<download this release>
+cd coltra-rl
+<create a virtual environment and activate it>
+pip install -r requirements.txt
+pip install -e .
+```
+
+# Original readme
+
 Figured I can finally open-source this. 
 Coltra, a portmanteau of **Col**lect and **tra**in is the RL framework I've been developing for my PhD work due to a frustration with all the other existing libraries.
 
@@ -316,7 +349,6 @@ Finally, we have a few scripts that can be used to instantly train or visualize 
 ```shell
 cd scripts
 python train_gym.py -c configs/gym_config.yaml -i 500 -e CartPole-v1 -n test_run
-python train_pursuit.py -c configs/pursuit_config.yaml -i 500 -n test_run
 ```
 
 **NOTE:** because nobody other than me ever used this, scripts include logging to my wandb account, which will fail

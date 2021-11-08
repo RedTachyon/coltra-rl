@@ -18,17 +18,17 @@ import wandb
 
 
 class Parser(BaseParser):
-    config: str = "configs/base_config.yaml"
+    config: str = "configs/smartnav_configs/base_config.yaml"
     iters: int = 500
     env: str
-    name: str
+    name: str = "debug"
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
     visibility_reward: Optional[float] = -0.005
 
     _help = {
         "config": "Config file for the coltra",
-        "iters": "Number of coltra iterations",
+        "iters": "Number of training iterations",
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
@@ -77,11 +77,11 @@ if __name__ == "__main__":
     # env = SmartNavEnv.get_venv(workers, file_name=args.env)
 
     METRICS = [
-        "legacy_success_rate",
-        "legacy_num_steps_not_progressing",
-        "legacy_map_idx",
-        "legacy_goal_distance",
-        "legacy_is_visible",
+        # "legacy_success_rate",
+        # "legacy_num_steps_not_progressing",
+        # "legacy_map_idx",
+        # "legacy_goal_distance",
+        # "legacy_is_visible",
     ]
 
     env = SmartNavEnv(file_name=args.env, metrics=METRICS, env_params=env_config)
