@@ -11,8 +11,6 @@ from coltra.models.mlp_models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
 
-import wandb
-
 import pybullet_envs
 
 from coltra.wrappers import ObsVecNormWrapper, LastRewardWrapper
@@ -65,10 +63,6 @@ if __name__ == "__main__":
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
-
-    wandb.init(
-        project="coltra", entity="redtachyon", sync_tensorboard=True, config=config
-    )
 
     workers = trainer_config["workers"]
 

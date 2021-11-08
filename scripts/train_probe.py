@@ -15,8 +15,6 @@ from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
 from coltra.envs import probe_env_classes
 
-import wandb
-
 
 class Parser(BaseParser):
     config: str = "configs/probe_config.yaml"

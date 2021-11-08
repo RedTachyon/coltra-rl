@@ -8,8 +8,6 @@ from .base_env import MultiAgentEnv
 from .subproc_vec_env import SubprocVecEnv
 from ..utils import np_float
 
-import wandb
-
 
 class ConstRewardEnv(MultiAgentEnv):
     def __init__(self, num_agents: int = 1, seed: Optional[int] = None):

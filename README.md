@@ -355,9 +355,6 @@ cd scripts
 python train_gym.py -c configs/gym_config.yaml -i 500 -e CartPole-v1 -n test_run
 ```
 
-**NOTE:** because nobody other than me ever used this, scripts include logging to my wandb account, which will fail
-unless you hack my account. Please don't. You can change it, and in a while I plan to make it managed from the CLI or a file or something.
-
 # Contributing guide
 
 This project is currently *not* encouraging contributions since it's in a volatile state and I need 

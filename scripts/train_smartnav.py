@@ -14,8 +14,6 @@ from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
 
-import wandb
-
 
 class Parser(BaseParser):
     config: str = "configs/smartnav_configs/base_config.yaml"
@@ -61,12 +59,6 @@ if __name__ == "__main__":
 
     if args.visibility_reward:
         env_config["visible_reward"] = args.visibility_reward
-
-    wandb.init(project="smartnav", sync_tensorboard=True, config=config, name=args.name)
-
-    # wandb_config = wandb.config
-
-    # env_config["visible_reward"] = wandb_config["visible_reward"]
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
