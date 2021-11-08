@@ -29,8 +29,8 @@ def fix_wandb_config(wandb_config: dict, main_config: dict):
 
         sub_config[names[-1]] = wandb_config[k]
 
-    for k in keys:
-        del wandb_config[k]
+    # for k in keys:
+    #     del wandb_config[k]
 
     wandb_config.update(config)
     return
