@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 import cv2
@@ -111,17 +112,18 @@ if __name__ == "__main__":
     frame_size = renders.shape[1:3]
 
     print("Recording a video")
+    video_path = trainer.path / "video.webm"
     out = cv2.VideoWriter(
-        f"vid.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 30, frame_size[::-1]
+        video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
     )
     for frame in renders[..., ::-1]:
         out.write(frame)
 
     out.release()
 
-    print(f"Video saved to vid.mp4")
+    print(f"Video saved to {video_path}")
 
-    wandb.log({"video": wandb.Video(f"vid.mp4")})
+    wandb.log({"video": wandb.Video(video_path)})
 
     print("Video uploaded to wandb")
 
