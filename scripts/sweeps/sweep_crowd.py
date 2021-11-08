@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import Optional
 
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     frame_size = renders.shape[1:3]
 
     print("Recording a video")
-    video_path = trainer.path / "video.webm"
+    video_path = os.path.join(trainer.path, "video.webm")
     out = cv2.VideoWriter(
         video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
     )
