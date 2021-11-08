@@ -10,11 +10,6 @@ from coltra.envs.base_env import MultiAgentEnv
 from coltra.envs.subproc_vec_env import VecEnv, SubprocVecEnv
 
 
-def import_bullet():
-    # noinspection PyUnresolvedReferences
-    import pybullet_envs
-
-
 class MultiGymEnv(MultiAgentEnv):
     """
     A wrapper for environments that can be `gym.make`'d
@@ -32,8 +27,6 @@ class MultiGymEnv(MultiAgentEnv):
         super().__init__(seed)
         if wrappers is None:
             wrappers = []
-        if "Bullet" in env_name:
-            import_fn = import_bullet
 
         import_fn()
 

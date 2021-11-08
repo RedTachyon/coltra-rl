@@ -11,8 +11,6 @@ from coltra.models.mlp_models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
 
-import pybullet_envs
-
 from coltra.wrappers import ObsVecNormWrapper, LastRewardWrapper
 from coltra.wrappers.agent_wrappers import RetNormWrapper
 

@@ -12,8 +12,6 @@ from coltra.groups import HomogeneousGroup
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
 
-import pybullet_envs
-
 
 class Parser(BaseParser):
     path: str
