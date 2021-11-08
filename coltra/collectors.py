@@ -121,7 +121,7 @@ def collect_renders(
 
     if env_kwargs is None:
         env_kwargs = {}
-    obs_dict = env.reset(env_kwargs)
+    obs_dict = env.reset(**env_kwargs)
     agent_id = list(obs_dict.keys())[0]  # Only consider a single agent
 
     renders = []
