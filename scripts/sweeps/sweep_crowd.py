@@ -79,7 +79,9 @@ if __name__ == "__main__":
         # name=name,
     )
 
-    fix_wandb_config(wandb.config, config)  # TODO: test on a sample sweep to see if configs are correct
+    fix_wandb_config(
+        wandb.config, config
+    )  # TODO: test on a sample sweep to see if configs are correct
     # wandb_config = wandb.config  # This now holds the wandb config
 
     if model_type == "relation":
@@ -106,9 +108,17 @@ if __name__ == "__main__":
 
     print("Training complete. Collecting renders")
 
-    env = UnitySimpleCrowdEnv(file_name=env_path, virtual_display=(1600, 900), no_graphics=False)
+    env = UnitySimpleCrowdEnv(
+        file_name=env_path, virtual_display=(1600, 900), no_graphics=False
+    )
 
-    renders, _ = collect_renders(agents, env, num_steps=trainer_config["steps"], disable_tqdm=False)
+    renders, _ = collect_renders(
+        agents,
+        env,
+        num_steps=trainer_config["steps"],
+        disable_tqdm=False,
+        env_kwargs=env_config,
+    )
 
     frame_size = renders.shape[1:3]
 
@@ -129,6 +139,3 @@ if __name__ == "__main__":
     print("Video uploaded to wandb")
 
     env.close()
-
-
-

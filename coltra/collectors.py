@@ -102,7 +102,7 @@ def collect_renders(
     num_steps: int,
     deterministic: bool = True,
     disable_tqdm: bool = False,
-    **kwargs
+    env_kwargs: Optional[dict] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Performs a rollout of the agent in the environment, recording the renders
@@ -119,7 +119,9 @@ def collect_renders(
         metrics: a dictionary of metrics passed by the environment
     """
 
-    obs_dict = env.reset(**kwargs)
+    if env_kwargs is None:
+        env_kwargs = {}
+    obs_dict = env.reset(env_kwargs)
     agent_id = list(obs_dict.keys())[0]  # Only consider a single agent
 
     renders = []
