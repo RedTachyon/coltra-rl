@@ -33,6 +33,10 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+NOTE: By default, this is set to work with SmartHider *not* in legacy mode. To use the same interface as SmartNav in general, you need to uncomment
+the appropriate metrics in `scripts/train_smartnav.py#L79` - this corresponds to the fake observations that are passed in the observation vector
+in SmartNav. SmartHider doesn't use it, but includes an option to keep it for compatibility reasons.
+
 # Original readme
 
 Figured I can finally open-source this. 
