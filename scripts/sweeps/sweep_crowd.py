@@ -7,6 +7,7 @@ import torch
 import wandb
 import yaml
 from typarse import BaseParser
+from wandb import Config
 
 from coltra.agents import CAgent, Agent
 from coltra.collectors import collect_renders
@@ -18,7 +19,7 @@ from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 
 
-def fix_wandb_config(wandb_config: dict, main_config: dict):
+def fix_wandb_config(wandb_config: Config, main_config: dict):
     keys = wandb_config.keys()
 
     for k in keys:
@@ -29,8 +30,8 @@ def fix_wandb_config(wandb_config: dict, main_config: dict):
 
         sub_config[names[-1]] = wandb_config[k]
 
-    for k in keys:
-        del wandb_config[k]
+    # for k in keys:
+    #     del wandb_config[k]
 
     wandb_config.update(config)
     return

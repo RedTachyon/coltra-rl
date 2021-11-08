@@ -16,7 +16,7 @@ trainer:
       amsgrad: false
 
     gamma: 0.99
-    eta: 0.5
+    eta: 0.0
     gae_lambda: 0.95
 
     advantage_normalization: true
