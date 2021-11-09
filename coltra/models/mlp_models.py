@@ -3,8 +3,10 @@ from typing import Dict, Tuple, Callable, List
 
 import torch
 import torch.nn.functional as F
+from gym import Space
+from gym.spaces import Discrete, Box
 from torch import nn, Tensor
-from torch.distributions import Distribution, Normal, Categorical
+from torch.distributions import Distribution, Normal, Categorical, Beta
 from typarse import BaseConfig
 
 from coltra.buffers import Observation
@@ -14,7 +16,7 @@ from coltra.configs import MLPConfig
 
 
 class MLPModel(BaseModel):
-    def __init__(self, config: Dict):
+    def __init__(self, config: Dict, action_space: Space):
         super().__init__()
 
         Config: MLPConfig = MLPConfig.clone()
@@ -25,31 +27,45 @@ class MLPModel(BaseModel):
         assert (
             self.config.input_size > 0
         ), "Model config invalid, input_size must be > 0"
-        assert (
-            self.config.num_actions > 0
-        ), "Model config invalid, num_actions must be > 0"
-        assert self.config.discrete in (True, False), "Model config invalid, discrete must be True or False"
 
-        self.discrete = self.config.discrete
-        self.std_head = self.config.std_head
+        assert self.config.mode in ["head", "logstd", "beta"], \
+            "Model config invalid, mode must be either 'head', 'logstd', 'beta' or None"
+
+        self.action_space = action_space
+        self.discrete = isinstance(self.action_space, Discrete)
+        self.action_mode = self.config.mode
+
+        if self.discrete:
+            assert isinstance(self.action_space, Discrete)
+            self.num_actions = self.action_space.n
+            self.action_low, self.action_high = None, None
+        else:
+            assert isinstance(self.action_space, Box)
+            self.num_actions = self.action_space.shape[0]
+            self.action_low, self.action_high = torch.tensor(self.action_space.low), torch.tensor(self.action_space.high)
+
         self.sigma0 = self.config.sigma0
         self.input_size = self.config.input_size
         self.latent_size = self.config.hidden_sizes[-1]
-        self.num_actions = self.config.num_actions
 
         self.activation: Callable = get_activation(self.config.activation)
 
         heads: List[int]
         is_policy: List[bool]
         if self.discrete:
-            heads = [self.config.num_actions]
+            heads = [self.num_actions]
             is_policy = [True]
-        elif self.std_head:
-            heads = [self.config.num_actions, self.config.num_actions]
+        elif self.action_mode == "head":
+            heads = [self.num_actions, self.num_actions]
             is_policy = [True, False]
-        else:  # not discrete, not std_head
-            heads = [self.config.num_actions]
+        elif self.action_mode == "logstd":
+            heads = [self.num_actions]
             is_policy = [True]
+        elif self.action_mode == "beta":
+            heads = [self.num_actions, self.num_actions]
+            is_policy = [True, True]
+        else:
+            raise ValueError("Mode invalid, must be passed if the action space is discrete.")
 
         # Create the policy network
         self.policy_network = FCNetwork(
@@ -70,13 +86,14 @@ class MLPModel(BaseModel):
             is_policy=is_policy,
         )
 
-        if self.std_head:
-            self.logstd = None
-        else:
+        if self.action_mode == "logstd":
             self.logstd = nn.Parameter(
                 torch.tensor(self.config.sigma0)
-                * torch.ones(1, self.config.num_actions)
+                * torch.ones(1, self.num_actions)
             )
+        else:
+            self.logstd = None
+
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
     def forward(
@@ -88,16 +105,21 @@ class MLPModel(BaseModel):
         if self.discrete:
             [action_logits] = self.policy_network(x.vector)
             action_distribution = Categorical(logits=action_logits)
-        elif self.std_head:
+        elif self.action_mode == "head":
             [action_mu, action_std] = self.policy_network(x.vector)
             action_std = F.softplus(action_std - self.sigma0)
 
             action_distribution = Normal(loc=action_mu, scale=action_std)
-        else:
+        elif self.action_mode == "logstd":
             [action_mu] = self.policy_network(x.vector)
 
             action_std = torch.exp(self.logstd)
             action_distribution = Normal(loc=action_mu, scale=action_std)
+        elif self.action_mode == "beta":  # TODO: add appropriate transformations
+            [action_mu, action_eta] = self.policy_network(x.vector)
+            action_distribution = Beta(action_mu, action_eta)
+        else:
+            raise ValueError("Mode invalid, must be passed if the action space is discrete.")
 
         extra_outputs = {}
 
