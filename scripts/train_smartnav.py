@@ -77,11 +77,11 @@ if __name__ == "__main__":
     # env = SmartNavEnv.get_venv(workers, file_name=args.env)
 
     METRICS = [
-        "legacy_success_rate",
-        "legacy_num_steps_not_progressing",
-        "legacy_map_idx",
-        "legacy_goal_distance",
-        "legacy_is_visible",
+        # "legacy_success_rate",
+        # "legacy_num_steps_not_progressing",
+        # "legacy_map_idx",
+        # "legacy_goal_distance",
+        # "legacy_is_visible",
     ]
 
     env = SmartNavEnv(file_name=args.env, metrics=METRICS, env_params=env_config)
