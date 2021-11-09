@@ -22,7 +22,7 @@ from coltra.buffers import Action, Observation
 from coltra.envs import MultiAgentEnv, SubprocVecEnv
 from coltra.envs.base_env import ActionDict, VecEnv
 from coltra.envs.side_channels import StatsChannel
-from coltra.utils import np_float
+from coltra.utils import np_float, find_free_worker
 
 
 class SmartNavEnv(MultiAgentEnv):
@@ -136,11 +136,13 @@ class SmartNavEnv(MultiAgentEnv):
     def get_venv(
         cls, workers: int = 8, file_name: Optional[str] = None, *args, **kwargs
     ) -> SubprocVecEnv:
+        base_worker_id = find_free_worker(500)
+
         venv = SubprocVecEnv(
             [
                 cls.get_env_creator(
                     file_name=file_name,
-                    worker_id=i,
+                    worker_id=base_worker_id + i,
                     seed=i,
                     **kwargs,
                 )

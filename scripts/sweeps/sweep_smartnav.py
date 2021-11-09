@@ -65,7 +65,9 @@ if __name__ == "__main__":
 
     # Initialize the environment
     # env = UnitySimpleCrowdEnv.get_venv(workers, file_name=env_path, no_graphics=True)
-    env = SmartNavEnv(file_name=env_path, metrics=[], env_params=env_config, no_graphics=True)
+    env = SmartNavEnv(
+        file_name=env_path, metrics=[], env_params=env_config, no_graphics=True
+    )
 
     # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
