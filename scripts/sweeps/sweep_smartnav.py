@@ -113,6 +113,7 @@ if __name__ == "__main__":
         virtual_display=(1600, 900),
         no_graphics=False,
         worker_id=worker_id,
+        time_scale=1.0,
     )
 
     renders, _ = collect_renders(
