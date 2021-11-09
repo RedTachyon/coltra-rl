@@ -47,7 +47,7 @@ if __name__ == "__main__":
     CUDA = torch.cuda.is_available()
 
     config_path = "smartnav_config.yaml"
-    iters = 1000
+    iters = 500
     env_path = "/home/akwiatkowski@ubisoft.org/projects/coltra-rl/builds/LinuxCustomRLNewVis-v1/smarthider.x86_64"
     tb_name = "smartnav-sweep"
 
