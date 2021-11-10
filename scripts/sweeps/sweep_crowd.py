@@ -17,7 +17,6 @@ from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
-from coltra.utils import find_free_worker
 
 
 def fix_wandb_config(wandb_config: Config, main_config: dict):
@@ -111,13 +110,11 @@ if __name__ == "__main__":
     env.close()
 
     print("Training complete. Collecting renders")
-    worker_id = find_free_worker(500)
 
     env = UnitySimpleCrowdEnv(
         file_name=env_path,
         virtual_display=(1600, 900),
         no_graphics=False,
-        worker_id=worker_id,
     )
 
     renders, _ = collect_renders(
