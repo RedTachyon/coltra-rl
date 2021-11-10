@@ -3,6 +3,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 import torch
+from gym import Space
 from torch import Tensor, nn
 from torch.distributions import Distribution, Categorical, Normal
 
@@ -14,13 +15,13 @@ from coltra.utils import get_activation
 class JointModel(BaseModel):
     def __init__(
         self,
+        config: dict,  # Unused
+        action_space: Space,
         models: list[BaseModel],
-        num_actions: int,
-        discrete: bool,
         activation: str = "leaky_relu",
         copy_logstd: bool = False,
     ):
-        super().__init__()
+        super().__init__(config, action_space)
         assert len(models) > 0, "JointModel needs at least 1 model"
         assert (
             len(set([model.input_size for model in models])) == 1
@@ -30,8 +31,6 @@ class JointModel(BaseModel):
 
         self.models = nn.ModuleList(models)
         self.input_size = self.models[0].input_size
-        self.num_actions = num_actions
-        self.discrete = discrete
         self.latent_size = sum([model.latent_size for model in models])
         self.activation = get_activation(activation)
 
@@ -44,7 +43,7 @@ class JointModel(BaseModel):
                 torch.ones(1, self.num_actions, device=self.device)
             )
 
-        self.policy_head = nn.Linear(self.latent_size, num_actions).to(self.device)
+        self.policy_head = nn.Linear(self.latent_size, self.num_actions).to(self.device)
         self.value_head = nn.Linear(self.latent_size, 1).to(self.device)
 
     def forward(
@@ -103,9 +102,9 @@ class JointModel(BaseModel):
             copy.deepcopy(model).to(device) for _ in range(num_clones)
         ]
         return cls(
+            config={},
             models=model_list,
-            num_actions=model.num_actions,
-            discrete=model.discrete,
+            action_space=model.action_space,
             activation=activation,
             copy_logstd=copy_logstd,
         )

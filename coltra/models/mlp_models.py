@@ -17,7 +17,7 @@ from coltra.configs import MLPConfig
 
 class MLPModel(BaseModel):
     def __init__(self, config: Dict, action_space: Space):
-        super().__init__()
+        super().__init__(config, action_space)
 
         Config: MLPConfig = MLPConfig.clone()
 
@@ -31,18 +31,7 @@ class MLPModel(BaseModel):
         assert self.config.mode in ["head", "logstd", "beta"], \
             "Model config invalid, mode must be either 'head', 'logstd', 'beta' or None"
 
-        self.action_space = action_space
-        self.discrete = isinstance(self.action_space, Discrete)
         self.action_mode = self.config.mode
-
-        if self.discrete:
-            assert isinstance(self.action_space, Discrete)
-            self.num_actions = self.action_space.n
-            self.action_low, self.action_high = None, None
-        else:
-            assert isinstance(self.action_space, Box)
-            self.num_actions = self.action_space.shape[0]
-            self.action_low, self.action_high = torch.tensor(self.action_space.low), torch.tensor(self.action_space.high)
 
         self.sigma0 = self.config.sigma0
         self.input_size = self.config.input_size
@@ -141,8 +130,8 @@ class MLPModel(BaseModel):
 
 
 class ImageMLPModel(MLPModel):
-    def __init__(self, config: Dict):
-        super().__init__(config)
+    def __init__(self, config: Dict, action_space: Space):
+        super().__init__(config, action_space)
 
     def _flatten(self, obs: Observation):
         image: torch.Tensor = obs.image

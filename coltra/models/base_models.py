@@ -1,6 +1,8 @@
 from typing import List, Callable, Union, Tuple, Dict
 
 import torch
+from gym import Space
+from gym.spaces import Discrete, Box
 from torch import nn, Tensor
 from torch.distributions import Distribution
 
@@ -24,11 +26,23 @@ class BaseModel(nn.Module):
     activation: Callable
     device: str
 
-    def __init__(self):
+    def __init__(self, config: dict, action_space: Space):
         super().__init__()
         self._stateful = False
-        # self.config = config
+        self.raw_config = config
         self.device = "cpu"
+
+        self.action_space = action_space
+        self.discrete = isinstance(self.action_space, Discrete)
+
+        if self.discrete:
+            assert isinstance(self.action_space, Discrete)
+            self.num_actions = self.action_space.n
+            self.action_low, self.action_high = None, None
+        else:
+            assert isinstance(self.action_space, Box)
+            self.num_actions = self.action_space.shape[0]
+            self.action_low, self.action_high = torch.tensor(self.action_space.low), torch.tensor(self.action_space.high)
 
     # TO IMPLEMENT
     def forward(

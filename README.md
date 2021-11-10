@@ -67,7 +67,8 @@ if __name__ == '__main__':
                     "input_size": env.observation_space.shape[0],
                     "num_actions": env.action_space.n,
                     "discrete": True
-                }
+                },
+                action_space=env.action_space
             )
         )
     )
@@ -280,7 +281,8 @@ model = MLPModel(
         "input_size": env.observation_space.shape[0],
         "num_actions": env.action_space.shape[0],
         "discrete": True
-    }
+    },
+    action_space=env.action_space
 )
 agent = DAgent(model)
 agents = HomogeneousGroup(agent)

@@ -2,7 +2,9 @@ import os
 import shutil
 
 import gym
+import numpy as np
 import torch
+from gym.spaces import Box
 
 from coltra.buffers import discrete
 from coltra.envs import MultiGymEnv
@@ -42,7 +44,14 @@ def test_agent_wrapper_save():
 
     os.mkdir("temp")
     agent = RetNormWrapper(
-        CAgent(MLPModel({"input_size": 5, "num_actions": 2, "discrete": False}))
+        CAgent(
+            MLPModel(
+                {"input_size": 5},
+                action_space=Box(
+                    low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+                ),
+            )
+        )
     )
     agent.save("temp")
 

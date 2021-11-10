@@ -92,7 +92,7 @@ if __name__ == "__main__":
     else:
         model_cls = MLPModel
 
-    model = model_cls(model_config)
+    model = model_cls(model_config, action_space=env.action_space)
     agent = CAgent(model)
     agents = HomogeneousGroup(agent)
 

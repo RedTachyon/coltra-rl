@@ -1,6 +1,8 @@
 from typing import List
 
+import numpy as np
 import torch
+from gym.spaces import Box, Discrete
 from torch import Tensor
 from torch.distributions import Normal
 from typarse import BaseConfig
@@ -70,7 +72,12 @@ def test_lee():
     assert out1.shape == (10, 2)
     assert out2.shape == (10, 4)
 
-    model = LeeModel({})
+    model = LeeModel(
+        {},
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
+    )
     agent = CAgent(model)
 
     action, state, extra = agent.act(obs, get_value=True)
@@ -83,7 +90,6 @@ def test_lee():
 def test_relnet():
     class Config(BaseConfig):
         input_size: int = 4
-        num_actions: int = 2
         rel_input_size: int = 5
 
         sigma0: float = 0.0
@@ -96,7 +102,12 @@ def test_relnet():
         initializer: str = "orthogonal"
 
     config = Config.to_dict()
-    model = RelationModel(config)
+    model = RelationModel(
+        config,
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
+    )
 
     obs = Observation(vector=torch.rand(7, 4), buffer=torch.rand(7, 11, 5))
 
@@ -112,14 +123,19 @@ def test_relnet():
 def test_multiple_mlps():
     config1 = {"input_size": 3, "num_actions": 1, "discrete": False}
 
-    mlp1 = MLPModel(config1)
+    mlp1 = MLPModel(
+        config1,
+        action_space=Box(
+            low=-np.ones(1, dtype=np.float32), high=np.ones(1, dtype=np.float32)
+        ),
+    )
 
     assert mlp1.discrete is False
     assert mlp1.policy_network.hidden_layers[0].in_features == 3
 
     config2 = {"input_size": 5, "num_actions": 2, "discrete": True}
 
-    mlp2 = MLPModel(config2)
+    mlp2 = MLPModel(config2, action_space=Discrete(2))
 
     assert mlp2.discrete is True
     assert mlp2.policy_network.hidden_layers[0].in_features == 5
