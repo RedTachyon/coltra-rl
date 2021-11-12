@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Type
 
 import torch
 import wandb
@@ -8,6 +8,7 @@ from typarse import BaseParser
 from coltra.agents import CAgent, Agent
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
+from coltra.models import BaseModel
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
@@ -100,7 +101,7 @@ if __name__ == "__main__":
     if args.start_dir:
         agent = CAgent.load(args.start_dir, weight_idx=args.start_idx)
     else:
-        model = model_cls(model_config)
+        model = model_cls(model_config, env.action_space)
         agent = CAgent(model)
 
     agents = HomogeneousGroup(agent)

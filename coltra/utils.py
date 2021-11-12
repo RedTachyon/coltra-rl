@@ -22,6 +22,7 @@ from torch import Tensor
 import torch.nn.functional as F
 import time
 
+from torch.distributions import AffineTransform
 from torch.optim.optimizer import Optimizer
 from torch.optim.adam import Adam
 from torch.optim.adadelta import Adadelta
@@ -326,3 +327,30 @@ def find_free_worker(max_value: int = 100) -> int:
             return worker_id
 
     raise UnityWorkerInUseException("All workers are in use.")
+
+
+class AffineBeta(torch.distributions.TransformedDistribution):
+    def __init__(self, a: Tensor, b: Tensor, low: Tensor, high: Tensor):
+        self.low = torch.as_tensor(low, dtype=torch.float32)
+        self.high = torch.as_tensor(high, dtype=torch.float32)
+        self.a = torch.as_tensor(a, dtype=torch.float32)
+        self.b = torch.as_tensor(b, dtype=torch.float32)
+        self.loc = self.low
+        self.scale = self.high - self.low
+        super().__init__(
+            torch.distributions.Beta(a, b), AffineTransform(self.loc, self.scale)
+        )
+
+    @property
+    def mean(self):
+        return self.base_dist.mean * self.scale + self.loc
+
+    @property
+    def variance(self):
+        return self.base_dist.variance * self.scale ** 2
+
+    def entropy(self):
+        return self.base_dist.entropy() + self.scale.log()
+
+    def enumerate_support(self, expand=True):
+        raise NotImplementedError

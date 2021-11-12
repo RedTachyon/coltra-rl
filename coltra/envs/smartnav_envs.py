@@ -60,7 +60,10 @@ class SmartNavEnv(MultiAgentEnv):
 
         channels = [self.engine_channel, self.stats_channel, self.param_channel]
 
-        self.unity = UnityEnvironment(self.path, side_channels=channels, **kwargs)
+        worker_id = find_free_worker(500)
+        self.unity = UnityEnvironment(
+            self.path, side_channels=channels, worker_id=worker_id, **kwargs
+        )
         self.env = UnityToGymWrapper(self.unity)
 
         self.engine_channel.set_configuration_parameters(time_scale=time_scale)
@@ -136,13 +139,10 @@ class SmartNavEnv(MultiAgentEnv):
     def get_venv(
         cls, workers: int = 8, file_name: Optional[str] = None, *args, **kwargs
     ) -> SubprocVecEnv:
-        base_worker_id = find_free_worker(500)
-
         venv = SubprocVecEnv(
             [
                 cls.get_env_creator(
                     file_name=file_name,
-                    worker_id=base_worker_id + i,
                     seed=i,
                     **kwargs,
                 )

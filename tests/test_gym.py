@@ -91,9 +91,7 @@ trainer:
 
 model:
   input_size:
-  num_actions:
   activation: tanh
-  discrete:
 
   hidden_sizes: [16, 16]
   separate_value: true
@@ -142,7 +140,7 @@ model:
     model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
-    model = model_cls(model_config)
+    model = model_cls(model_config, action_space=action_space)
     agent = agent_cls(model)
 
     group = HomogeneousGroup(agent)

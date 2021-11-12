@@ -24,7 +24,7 @@ from .side_channels import StatsChannel
 from coltra.buffers import Observation, Action
 from .subproc_vec_env import SubprocVecEnv
 from .base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
-from ..utils import find_free_worker
+from coltra.utils import find_free_worker
 
 
 class Mode(Enum):
@@ -127,7 +127,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         kwargs["side_channels"].append(self.stats_channel)
         kwargs["side_channels"].append(self.param_channel)
 
-        self.unity = UnityEnvironment(file_name=file_name, **kwargs)
+        worker_id = find_free_worker(500)
+        self.unity = UnityEnvironment(
+            file_name=file_name, worker_id=worker_id, **kwargs
+        )
         self.behaviors = {}
         # self.manager = ""
 
@@ -318,12 +321,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def get_venv(
         cls, workers: int = 8, file_name: Optional[str] = None, *args, **kwargs
     ) -> SubprocVecEnv:
-        base_worker_id = find_free_worker(500)
         venv = SubprocVecEnv(
             [
                 cls.get_env_creator(
                     file_name=file_name,
-                    worker_id=base_worker_id + i,
                     seed=i,
                     *args,
                     **kwargs,

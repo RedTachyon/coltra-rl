@@ -18,7 +18,6 @@ from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
-from coltra.utils import find_free_worker
 
 
 def fix_wandb_config(wandb_config: Config, main_config: dict):
@@ -65,10 +64,12 @@ if __name__ == "__main__":
 
     # Initialize the environment
     # env = UnitySimpleCrowdEnv.get_venv(workers, file_name=env_path, no_graphics=True)
-    worker_id = find_free_worker(500)
 
     env = SmartNavEnv(
-        file_name=env_path, metrics=[], env_params=env_config, no_graphics=True, worker_id=worker_id
+        file_name=env_path,
+        metrics=[],
+        env_params=env_config,
+        no_graphics=True,
     )
 
     # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
@@ -92,7 +93,7 @@ if __name__ == "__main__":
 
     model_cls = MLPModel
 
-    model = model_cls(model_config)
+    model = model_cls(model_config, action_space=env.action_space)
     agent = CAgent(model)
     agents = HomogeneousGroup(agent)
 
@@ -110,13 +111,11 @@ if __name__ == "__main__":
     env.close()
 
     print("Training complete. Collecting renders")
-    worker_id = find_free_worker(500)
 
     env = SmartNavEnv(
         file_name=env_path,
         virtual_display=(1600, 900),
         no_graphics=False,
-        worker_id=worker_id,
         time_scale=1.0,
     )
 

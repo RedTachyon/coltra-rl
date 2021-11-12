@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Tuple, Union
 
 import torch
+from gym import Space
 from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.distributions import Distribution, Normal
@@ -13,16 +14,16 @@ from coltra.models.base_models import FCNetwork, BaseModel
 
 class RelationNetwork(nn.Module):
     def __init__(
-        self,
-        vec_input_size: int = 4,
-        rel_input_size: int = 4,
-        vec_hidden_layers: List[int] = [32, 32],
-        rel_hidden_layers: List[int] = [32, 32],
-        com_hidden_layers: List[int] = [32, 32],
-        output_sizes: List[int] = [2, 2],
-        is_policy: Union[bool, List[bool]] = [True, False],
-        activation: str = "tanh",
-        initializer: str = "kaiming_uniform",
+            self,
+            vec_input_size: int = 4,
+            rel_input_size: int = 4,
+            vec_hidden_layers: List[int] = [32, 32],
+            rel_hidden_layers: List[int] = [32, 32],
+            com_hidden_layers: List[int] = [32, 32],
+            output_sizes: List[int] = [2, 2],
+            is_policy: Union[bool, List[bool]] = [True, False],
+            activation: str = "tanh",
+            initializer: str = "kaiming_uniform",
     ):
         super().__init__()
 
@@ -89,16 +90,18 @@ class RelationNetwork(nn.Module):
 
         return x_com
 
+
 class RelationModel(BaseModel):
-    def __init__(self, config: Dict):
-        super().__init__()
+    def __init__(self, config: dict, action_space: Space):
+        super().__init__(config, action_space=action_space)
 
         Config = RelationConfig.clone()
 
         Config.update(config)
         self.config = Config
 
-        self.discrete = False  # TODO: add support for discrete heads
+        assert not self.discrete
+        # self.discrete = False  # TODO: add support for discrete heads
         # self.std_head = self.config.std_head
         self.sigma0 = self.config.sigma0
         self.input_size = self.config.input_size
@@ -137,9 +140,8 @@ class RelationModel(BaseModel):
         self.config = self.config.to_dict()
 
     def forward(
-        self, x: Observation, state: Tuple = (), get_value: bool = True
+            self, x: Observation, state: Tuple = (), get_value: bool = True
     ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
-
         [action_mu] = self.policy_network(x)
         action_std = torch.exp(self.logstd)
 

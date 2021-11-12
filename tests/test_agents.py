@@ -3,6 +3,7 @@ import shutil
 
 import numpy as np
 import torch
+from gym.spaces import Box, Discrete
 from torch import Tensor
 
 from coltra.agents import ConstantAgent, CAgent, DAgent, Agent
@@ -94,7 +95,10 @@ def test_fancy_mlp_agent():
             "num_actions": 2,
             "discrete": False,
             "hidden_sizes": [32, 32],
-        }
+        },
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
     )
 
     assert len(model.policy_network.hidden_layers) == 2
@@ -145,7 +149,13 @@ def test_discrete_fancy_mlp_agent():
     )
 
     model = MLPModel(
-        {"input_size": 81, "hidden_sizes": [32, 32], "num_actions": 2, "discrete": True}
+        {
+            "input_size": 81,
+            "hidden_sizes": [32, 32],
+            "num_actions": 2,
+            "discrete": True,
+        },
+        action_space=Discrete(2),
     )
 
     assert len(model.policy_network.hidden_layers) == 2
@@ -197,10 +207,11 @@ def test_saving():
     model = MLPModel(
         {
             "input_size": 81,
-            "num_actions": 2,
-            "discrete": False,
             "hidden_sizes": [32, 32],
-        }
+        },
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
     )
 
     assert len(model.policy_network.hidden_layers) == 2
@@ -233,10 +244,11 @@ def test_saving_wrapper():
     model = MLPModel(
         {
             "input_size": 81,
-            "num_actions": 2,
-            "discrete": False,
             "hidden_sizes": [32, 32],
-        }
+        },
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
     )
 
     assert len(model.policy_network.hidden_layers) == 2

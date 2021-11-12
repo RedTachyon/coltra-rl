@@ -1,6 +1,8 @@
 from typing import List
 
+import numpy as np
 import torch
+from gym.spaces import Box, Discrete
 from torch import Tensor
 from torch.distributions import Normal
 from typarse import BaseConfig
@@ -10,6 +12,7 @@ from coltra.buffers import Observation
 from coltra.models import FCNetwork, MLPModel
 from coltra.models.raycast_models import LeeNetwork, LeeModel
 from coltra.models.relational_models import RelationNetwork, RelationModel
+from coltra.utils import AffineBeta
 
 
 def test_fc():
@@ -70,7 +73,12 @@ def test_lee():
     assert out1.shape == (10, 2)
     assert out2.shape == (10, 4)
 
-    model = LeeModel({})
+    model = LeeModel(
+        {},
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
+    )
     agent = CAgent(model)
 
     action, state, extra = agent.act(obs, get_value=True)
@@ -83,7 +91,6 @@ def test_lee():
 def test_relnet():
     class Config(BaseConfig):
         input_size: int = 4
-        num_actions: int = 2
         rel_input_size: int = 5
 
         sigma0: float = 0.0
@@ -96,7 +103,12 @@ def test_relnet():
         initializer: str = "orthogonal"
 
     config = Config.to_dict()
-    model = RelationModel(config)
+    model = RelationModel(
+        config,
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
+    )
 
     obs = Observation(vector=torch.rand(7, 4), buffer=torch.rand(7, 11, 5))
 
@@ -110,16 +122,39 @@ def test_relnet():
 
 
 def test_multiple_mlps():
-    config1 = {"input_size": 3, "num_actions": 1, "discrete": False}
+    config1 = {"input_size": 3}
 
-    mlp1 = MLPModel(config1)
+    mlp1 = MLPModel(
+        config1,
+        action_space=Box(
+            low=-np.ones(1, dtype=np.float32), high=np.ones(1, dtype=np.float32)
+        ),
+    )
 
     assert mlp1.discrete is False
     assert mlp1.policy_network.hidden_layers[0].in_features == 3
 
-    config2 = {"input_size": 5, "num_actions": 2, "discrete": True}
+    config2 = {"input_size": 5}
 
-    mlp2 = MLPModel(config2)
+    mlp2 = MLPModel(config2, action_space=Discrete(2))
 
     assert mlp2.discrete is True
     assert mlp2.policy_network.hidden_layers[0].in_features == 5
+
+
+def test_beta_mlp():
+    config = {"input_size": 5, "mode": "beta"}
+
+    mlp = MLPModel(
+        config,
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
+    )
+
+    dummy_input = Observation(torch.randn(5, 5))
+    action_dist, state, extra = mlp(dummy_input, get_value=True)
+
+    assert isinstance(action_dist, AffineBeta)
+    assert torch.allclose(action_dist.low, -torch.ones(5, 2))
+    assert torch.allclose(action_dist.high, torch.ones(5, 2))

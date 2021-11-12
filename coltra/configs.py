@@ -5,15 +5,12 @@ from typarse import BaseConfig
 
 class MLPConfig(BaseConfig):
     input_size: int = 0  # Must be set
-    num_actions: int = 0  # Must be set
-    discrete: bool = None  # Must be set
 
     beta: bool = False
+    mode: Optional[str] = "logstd"
 
     activation: str = "leaky_relu"
     sigma0: float = 1.0
-
-    std_head: bool = False
 
     hidden_sizes: List[int] = [64, 64]
 
