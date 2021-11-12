@@ -70,10 +70,14 @@ class BaseModel(nn.Module):
 
     def cuda(self, *args, **kwargs):
         super().cuda(*args, **kwargs)
+        self.action_low = self.action_low.to("cuda")
+        self.action_high = self.action_high.to("cuda")
         self.device = "cuda"
 
     def cpu(self):
         super().cpu()
+        self.action_low = self.action_low.to("cpu")
+        self.action_high = self.action_high.to("cpu")
         self.device = "cpu"
 
 
