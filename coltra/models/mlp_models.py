@@ -6,11 +6,11 @@ import torch.nn.functional as F
 from gym import Space
 from gym.spaces import Discrete, Box
 from torch import nn, Tensor
-from torch.distributions import Distribution, Normal, Categorical, Beta
+from torch.distributions import Distribution, Normal, Categorical, Beta, TransformedDistribution, AffineTransform
 from typarse import BaseConfig
 
 from coltra.buffers import Observation
-from coltra.utils import get_activation
+from coltra.utils import get_activation, AffineBeta
 from coltra.models.base_models import FCNetwork, BaseModel
 from coltra.configs import MLPConfig
 
@@ -104,9 +104,10 @@ class MLPModel(BaseModel):
 
             action_std = torch.exp(self.logstd)
             action_distribution = Normal(loc=action_mu, scale=action_std)
-        elif self.action_mode == "beta":  # TODO: add appropriate transformations
-            [action_mu, action_eta] = self.policy_network(x.vector)
-            action_distribution = Beta(action_mu, action_eta)
+        elif self.action_mode == "beta":
+            [action_a, action_b] = self.policy_network(x.vector)
+            action_a, action_b = action_a.exp(), action_b.exp()
+            action_distribution = AffineBeta(action_a, action_b, self.action_low, self.action_high)
         else:
             raise ValueError("Mode invalid, must be passed if the action space is discrete.")
 
