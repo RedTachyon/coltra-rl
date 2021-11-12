@@ -337,7 +337,9 @@ class AffineBeta(torch.distributions.TransformedDistribution):
         self.b = torch.as_tensor(b, dtype=torch.float32)
         self.loc = self.low
         self.scale = self.high - self.low
-        super().__init__(torch.distributions.Beta(a, b), AffineTransform(self.loc, self.scale))
+        super().__init__(
+            torch.distributions.Beta(a, b), AffineTransform(self.loc, self.scale)
+        )
 
     @property
     def mean(self):
@@ -345,7 +347,7 @@ class AffineBeta(torch.distributions.TransformedDistribution):
 
     @property
     def variance(self):
-        return self.base_dist.variance * self.scale**2
+        return self.base_dist.variance * self.scale ** 2
 
     def entropy(self):
         return self.base_dist.entropy() + self.scale.log()
