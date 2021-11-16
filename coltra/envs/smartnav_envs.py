@@ -79,6 +79,7 @@ class SmartNavEnv(MultiAgentEnv):
             self.param_channel.set_float_parameter(key, kwargs[key])
         obs = self.env.reset()
         obs, _ = self.process_obs(obs)
+        _ = self.stats_channel.parse_info()  # Clear the initial metrics
         return obs
 
     def step(self, action_dict: ActionDict):
