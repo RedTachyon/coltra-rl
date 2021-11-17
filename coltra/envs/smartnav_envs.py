@@ -1,4 +1,5 @@
 import itertools
+from enum import Enum
 
 from PIL.Image import Image
 import numpy as np
@@ -7,7 +8,7 @@ import time
 import gym
 from gym import error, spaces
 
-from mlagents_envs.base_env import ActionTuple, BaseEnv
+from mlagents_envs.base_env import ActionTuple, BaseEnv, ObservationSpec
 from mlagents_envs.base_env import DecisionSteps, TerminalSteps
 from mlagents_envs import logging_util
 from mlagents_envs.environment import UnityEnvironment
@@ -23,6 +24,40 @@ from coltra.envs import MultiAgentEnv, SubprocVecEnv
 from coltra.envs.base_env import ActionDict, VecEnv
 from coltra.envs.side_channels import StatsChannel
 from coltra.utils import np_float, find_free_worker
+
+
+class Sensor(Enum):
+    Buffer = 0
+    Ray = 1
+    Vector = 2
+    Image = 3
+
+    @staticmethod
+    def from_string(name: str):
+        if name.lower().startswith("buffer"):
+            return Sensor.Buffer
+        elif name.lower().startswith("ray"):
+            return Sensor.Ray
+        elif name.lower().startswith("vector"):
+            return Sensor.Vector
+        elif name.lower().startswith("image"):
+            return Sensor.Image
+        else:
+            raise ValueError(f"{name} is not a supported sensor")
+
+    def to_string(self) -> str:
+        if self == Sensor.Buffer:
+            return "buffer"
+        elif self == Sensor.Ray:
+            return "rays"
+        elif self == Sensor.Vector:
+            return "vector"
+        elif self == Sensor.Image:
+            return "image"
+        else:
+            raise ValueError(
+                f"You have angered the Old God Cthulhu (and need to update the sensors)"
+            )
 
 
 class SmartNavEnv(MultiAgentEnv):
@@ -74,6 +109,9 @@ class SmartNavEnv(MultiAgentEnv):
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
 
+        self.agent_name = list(self.unity.behavior_specs.keys())[0]
+        self.behavior_specs = self.unity.behavior_specs[self.agent_name]
+
     def reset(self, **kwargs):
         for key in kwargs:
             self.param_channel.set_float_parameter(key, kwargs[key])
@@ -100,7 +138,7 @@ class SmartNavEnv(MultiAgentEnv):
         return {agent_id: action_dict[agent_id].continuous for agent_id in action_dict}
 
     def process_obs(
-        self, obs_dict: dict[str, np.ndarray]
+        self, obs_dict: dict[str, Union[np.ndarray, Tuple[np.ndarray, ...]]]
     ) -> Tuple[dict[str, Observation], dict]:
         all_obs = {}
         all_info = {}
@@ -116,15 +154,35 @@ class SmartNavEnv(MultiAgentEnv):
 
         return all_obs, all_info
 
-    def process_single_obs(self, obs: np.ndarray) -> Tuple[Observation, dict]:
-        if self.num_metrics == 0:
-            return Observation(obs), {}
-        n_obs = Observation(vector=obs[: -self.num_metrics])
-        info = {
-            self.metrics[i]: np_float(obs[-self.num_metrics + i])
-            for i in range(self.num_metrics)
-        }
+    def process_single_obs(
+        self, obs: Union[np.ndarray, Tuple[np.ndarray, ...]]
+    ) -> Tuple[Observation, dict]:
+        info = {}
+        if isinstance(obs, tuple):
+            n_obs = Observation(
+                **{
+                    Sensor.from_string(spec.name).to_string(): o
+                    for (o, spec) in zip(obs, self.behavior_specs.observation_specs)
+                }
+            )
+        else:
+            n_obs = Observation(vector=obs)
+        # n_obs = Observation(vector=obs[: -self.num_metrics])
+        # info = {
+        #     self.metrics[i]: np_float(obs[-self.num_metrics + i])
+        #     for i in range(self.num_metrics)
+        # }
         return n_obs, info
+
+    # def legacy_process_single_obs(self, obs: np.ndarray) -> Tuple[Observation, dict]:
+    #     if self.num_metrics == 0:
+    #         return Observation(obs), {}
+    #     n_obs = Observation(vector=obs[: -self.num_metrics])
+    #     info = {
+    #         self.metrics[i]: np_float(obs[-self.num_metrics + i])
+    #         for i in range(self.num_metrics)
+    #     }
+    #     return n_obs, info
 
     def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
         if self.virtual_display:
