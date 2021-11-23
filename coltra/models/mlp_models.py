@@ -136,6 +136,8 @@ class ImageMLPModel(MLPModel):
 
     def _flatten(self, obs: Observation):
         image: torch.Tensor = obs.image
+        if image is None:
+            return obs
         if image.shape == 3:  # no batch
             dim = 0
         else:  # image.shape == 4, batch
@@ -153,13 +155,11 @@ class ImageMLPModel(MLPModel):
     ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
         return super().forward(self._flatten(x), state, get_value)
 
-    def latent(self, x: Observation, state: Tuple) -> Tensor:
+    def latent(self, x: Observation, state: Tuple = ()) -> Tensor:
         return super().latent(self._flatten(x), state)
 
     def value(self, x: Observation, state: Tuple = ()) -> Tensor:
-        if x.image is not None and x.vector is None:
-            x = self._flatten(x)
-        return super().value(x, state)
+        return super().value(self._flatten(x), state)
 
     def latent_value(self, x: Observation, state: Tuple) -> Tensor:
         return super().latent_value(self._flatten(x), state)

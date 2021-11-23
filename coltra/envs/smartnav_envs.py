@@ -6,9 +6,10 @@ import numpy as np
 from typing import Any, Dict, List, Tuple, Union, Optional
 import time
 import gym
-from gym import error, spaces
+from gym import error, spaces, Space
+from gym.spaces import Box
 
-from mlagents_envs.base_env import ActionTuple, BaseEnv, ObservationSpec
+from mlagents_envs.base_env import ActionTuple, BaseEnv, ObservationSpec, BehaviorSpec
 from mlagents_envs.base_env import DecisionSteps, TerminalSteps
 from mlagents_envs import logging_util
 from mlagents_envs.environment import UnityEnvironment
@@ -60,6 +61,28 @@ class Sensor(Enum):
             )
 
 
+def behavior_to_space(behavior_spec: BehaviorSpec, flatten: bool = True) -> Space:
+    obs_specs = behavior_spec.observation_specs
+
+    if flatten:
+        return Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(sum(np.prod(obs_spec.shape) for obs_spec in obs_specs),),
+        )
+
+    if len(obs_specs) == 1:
+        return Box(low=-np.inf, high=np.inf, shape=obs_specs[0].shape)
+
+    else:
+        return gym.spaces.Dict(
+            spaces={
+                obs_spec.name: Box(low=-np.inf, high=np.inf, shape=obs_spec.shape)
+                for obs_spec in obs_specs
+            }
+        )
+
+
 class SmartNavEnv(MultiAgentEnv):
     def __init__(
         self,
@@ -106,11 +129,13 @@ class SmartNavEnv(MultiAgentEnv):
         for key in env_params:
             self.param_channel.set_float_parameter(key, env_params[key])
 
-        self.action_space = self.env.action_space
-        self.observation_space = self.env.observation_space
-
         self.agent_name = list(self.unity.behavior_specs.keys())[0]
         self.behavior_specs = self.unity.behavior_specs[self.agent_name]
+
+        self.action_space = self.env.action_space
+
+        # self.observation_space = self.env.observation_space
+        self.observation_space = behavior_to_space(self.behavior_specs, flatten=True)
 
     def reset(self, **kwargs):
         for key in kwargs:
