@@ -1,22 +1,16 @@
 import os
-from datetime import datetime
-from typing import Optional
 
 import cv2
 import torch
 import wandb
 import yaml
-from typarse import BaseParser
 from wandb import Config
 
-from coltra.agents import CAgent, Agent
+from coltra.agents import CAgent
 from coltra.collectors import collect_renders
 from coltra.envs import SmartNavEnv
-from coltra.envs.probe_envs import ConstRewardEnv
-from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
-from coltra.models.mlp_models import MLPModel, ImageMLPModel
-from coltra.models.relational_models import RelationModel
+from coltra.models.mlp_models import ImageMLPModel
 from coltra.trainers import PPOCrowdTrainer
 
 
@@ -100,14 +94,18 @@ if __name__ == "__main__":
     if CUDA:
         agents.cuda()
 
-    trainer = PPOCrowdTrainer(agents, env, trainer_config)
-    trainer.train(
-        iters,
-        disable_tqdm=False,
-        save_path=trainer.path,
-        collect_kwargs=env_config,
-    )
-
+    try:
+        trainer = PPOCrowdTrainer(agents, env, trainer_config)
+        trainer.train(
+            iters,
+            disable_tqdm=False,
+            save_path=trainer.path,
+            collect_kwargs=env_config,
+        )
+    except Exception as err:
+        print(f"Exception during training: {err}")
+        env.close()
+        quit()
     env.close()
 
     print("Training complete. Collecting renders")
@@ -119,13 +117,18 @@ if __name__ == "__main__":
         time_scale=1.0,
     )
 
-    renders, _ = collect_renders(
-        agents,
-        env,
-        num_steps=trainer_config["steps"],
-        disable_tqdm=False,
-        env_kwargs=env_config,
-    )
+    try:
+        renders, _ = collect_renders(
+            agents,
+            env,
+            num_steps=trainer_config["steps"],
+            disable_tqdm=False,
+            env_kwargs=env_config,
+        )
+    except Exception as err:
+        print(f"Exception during visualization: {err}")
+        env.close()
+        quit()
 
     frame_size = renders.shape[1:3]
 

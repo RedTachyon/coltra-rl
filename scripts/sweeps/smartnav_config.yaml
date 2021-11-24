@@ -1,6 +1,6 @@
 ---
 trainer:
-  steps: 400
+  steps: 300
   workers: 1
 
   tensorboard_name:
