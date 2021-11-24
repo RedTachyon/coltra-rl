@@ -29,8 +29,8 @@ from coltra.models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
 
 
-def test_multigym():
-    env = MultiGymEnv.get_venv(workers=1, env_name="MountainCar-v0")
+def test_multigym_single():
+    env = MultiGymEnv(env_name="MountainCar-v0")
     obs = env.reset()
 
     name = list(obs.keys())[0]
@@ -50,6 +50,29 @@ def test_multigym():
 
     assert isinstance(done, dict)
     assert isinstance(done[name], bool)
+
+
+def test_multigym():
+    env = MultiGymEnv.get_venv(workers=1, env_name="MountainCar-v0")
+    obs = env.reset()
+
+    # name = list(obs.keys())[0]
+    # assert isinstance(obs, dict)
+    # assert isinstance(obs[name], Observation)
+    # assert isinstance(obs[name].vector, np.ndarray)
+    #
+    # action = {key: Action(discrete=env.action_space.sample()) for key in obs}
+    #
+    # obs, reward, done, info = env.step(action)
+    # assert isinstance(obs, dict)
+    # assert isinstance(obs[name], Observation)
+    # assert isinstance(obs[name].vector, np.ndarray)
+    #
+    # assert isinstance(reward, dict)
+    # assert isinstance(reward[name], float)
+    #
+    # assert isinstance(done, dict)
+    # assert isinstance(done[name], bool)
 
 
 def test_training():
@@ -130,10 +153,8 @@ model:
     # Initialize the agent
     sample_obs = next(iter(env.reset().values()))
     obs_size = sample_obs.vector.shape[0]
-    ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
 
     model_config["input_size"] = obs_size
-    model_config["rays_input_size"] = ray_size
     model_config["discrete"] = is_discrete_action
     model_config["num_actions"] = action_shape
 
