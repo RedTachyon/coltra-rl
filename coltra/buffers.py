@@ -125,7 +125,7 @@ class Multitype:
         self._dict = state
 
 
-BaseObs = Union[np.ndarray, dict[str, "BaseObs"]]
+BaseObs = Union[Array, dict[str, Array]]
 
 
 class Observation(Multitype):
@@ -140,7 +140,7 @@ class Observation(Multitype):
         self._dict = {**self._dict, **kwargs}
 
 
-BaseAction = Union[np.ndarray, int, dict[str, "BaseAction"]]
+BaseAction = Union[Array, int, dict[str, Array]]
 
 
 class Action(Multitype):
