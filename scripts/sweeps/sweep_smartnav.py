@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     config_path = "smartnav_config.yaml"
     iters = 500
-    env_path = "/home/akwiatkowski@ubisoft.org/projects/coltra-rl/builds/LinuxCustomRLNewVis-v1/smarthider.x86_64"
+    env_path = "/home/akwiatkowski@ubisoft.org/projects/coltra-rl/builds/SmartHiderLinux-v1/smarthider.x86_64"
     tb_name = "smartnav-sweep"
 
     with open(config_path, "r") as f:

@@ -135,9 +135,10 @@ class ImageMLPModel(MLPModel):
         super().__init__(config, action_space)
 
     def _flatten(self, obs: Observation):
-        image: torch.Tensor = obs.image
-        if image is None:
+        if not hasattr(obs, "image"):
             return obs
+        image: torch.Tensor = obs.image
+
         if image.shape == 3:  # no batch
             dim = 0
         else:  # image.shape == 4, batch
@@ -145,7 +146,7 @@ class ImageMLPModel(MLPModel):
 
         vector = torch.flatten(image, start_dim=dim)
 
-        if obs.vector is not None:
+        if hasattr(obs, "vector"):
             vector = torch.cat([obs.vector, vector], dim=dim)
 
         return Observation(vector=vector)
