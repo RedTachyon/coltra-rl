@@ -25,37 +25,37 @@ def is_array(x: Any) -> bool:
 
 
 class Multitype:
-    dict: dict[str, Array]
+    _dict: Dict[str, Array]
 
     @classmethod
     def stack_tensor(cls, value_list: list[Multitype], dim: int = 0):
         res = cls()
-        keys = value_list[0].dict.keys()  # assume all the inputs have the same keys
+        keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
         for key in keys:
             tensors = [torch.as_tensor(value[key]) for value in value_list]
 
             value = torch.stack(tensors, dim=dim) if tensors else None
-            res.dict[key] = value
+            res._dict[key] = value
 
         return res
 
     @classmethod
     def cat_tensor(cls, value_list: list[Multitype], dim: int = 0):
         res = cls()
-        keys = value_list[0].dict.keys()  # assume all the inputs have the same keys
+        keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
         for key in keys:
             tensors = [torch.as_tensor(value[key]) for value in value_list]
 
             value = torch.cat(tensors, dim=dim) if tensors else None
-            res.dict[key] = value
+            res._dict[key] = value
 
         return res
 
     @property
     def batch_size(self) -> int:
         value = -1
-        for key in self.dict.keys():
-            field_value = self.dict[key]
+        for key in self._dict.keys():
+            field_value = self._dict[key]
             # TODO: Fix this
             if field_value is None:
                 continue
@@ -75,19 +75,19 @@ class Multitype:
 
     def tensor(self, device: str = "cpu"):
         res = type(self)()
-        for key in self.dict.keys():
-            value = self.dict[key]
+        for key in self._dict.keys():
+            value = self._dict[key]
             tensor = torch.as_tensor(value).to(device)
-            res.dict[key] = tensor
+            res._dict[key] = tensor
         return res
 
     def apply(self, func: Callable[[Array], Array]):
         """Applies a function to each field, returns a new object"""
         res = type(self)()
-        for key in self.dict.keys():
-            value = self.dict[key]
+        for key in self._dict.keys():
+            value = self._dict[key]
             new_field = func(value)
-            res.dict[key] = new_field
+            res._dict[key] = new_field
         return res
 
     def cuda(self, *args, **kwargs):
@@ -98,31 +98,31 @@ class Multitype:
 
     def __getitem__(self, item: Union[str, int, slice]) -> Union[Array, Multitype]:
         if isinstance(item, str):
-            return self.dict[item]
+            return self._dict[item]
         else:
             res = type(self)()
-            for key in self.dict.keys():
-                value = self.dict[key]
+            for key in self._dict.keys():
+                value = self._dict[key]
                 new_field = value[item]
-                res.dict[key] = new_field
+                res._dict[key] = new_field
             return res
 
     def __getattr__(self, item) -> Array:
-        if item not in self.dict:
+        if item not in self._dict:
             raise AttributeError(
                 f"Attribute {item} not found in this instance of {type(self).__name__}"
             )
-        return self.dict[item]
+        return self._dict[item]
 
     def __repr__(self):
-        inside_str = ", ".join([f"{key}={value}" for key, value in self.dict.items()])
+        inside_str = ", ".join([f"{key}={value}" for key, value in self._dict.items()])
         return f"{type(self).__name__}({inside_str})"
 
     def __getstate__(self):
-        return self.dict
+        return self._dict
 
     def __setstate__(self, state):
-        self.dict = state
+        self._dict = state
 
 
 BaseObs = Union[np.ndarray, dict[str, "BaseObs"]]
@@ -131,13 +131,13 @@ BaseObs = Union[np.ndarray, dict[str, "BaseObs"]]
 class Observation(Multitype):
     def __init__(self, obs: Optional[BaseObs] = None, **kwargs: Array):
         if obs is None:
-            self.dict = {}
+            self._dict = {}
         elif obs is not None and is_array(obs):
-            self.dict = {"vector": obs}
+            self._dict = {"vector": obs}
         else:  # is not None and not is_array => is a dict
-            self.dict = obs
+            self._dict = obs
 
-        self.dict = {**self.dict, **kwargs}
+        self._dict = {**self._dict, **kwargs}
 
 
 BaseAction = Union[np.ndarray, int, dict[str, "BaseAction"]]
@@ -146,13 +146,13 @@ BaseAction = Union[np.ndarray, int, dict[str, "BaseAction"]]
 class Action(Multitype):
     def __init__(self, action: Optional[BaseAction] = None, **kwargs: Array):
         if action is None:
-            self.dict = {}
+            self._dict = {}
         elif action is not None and is_array(action):  # default is continuous action
-            self.dict = {"continuous": action}
+            self._dict = {"continuous": action}
         else:  # is not None and not is_array => is a dict
-            self.dict = action
+            self._dict = action
 
-        self.dict = {**self.dict, **kwargs}
+        self._dict = {**self._dict, **kwargs}
 
 
 def discrete(value: Array) -> Action:
