@@ -1,6 +1,6 @@
 import copy
 import os
-from datetime import datetime
+import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, Union
 
@@ -66,7 +66,7 @@ class PPOCrowdTrainer(Trainer):
         # Setup tensorboard
         self.writer: Optional[SummaryWriter]
         if self.config.tensorboard_name:
-            dt_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            dt_string = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             path = (
                 Path.home() / "tb_logs" / f"{self.config.tensorboard_name}_{dt_string}"
             )
