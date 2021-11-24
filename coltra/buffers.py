@@ -34,7 +34,7 @@ class Multitype:
         for key in keys:
             tensors = [torch.as_tensor(value[key]) for value in value_list]
 
-            value = torch.stack(tensors, dim=dim) if tensors else None
+            value = torch.stack(tensors, dim=dim)
             res._dict[key] = value
 
         return res
@@ -46,7 +46,7 @@ class Multitype:
         for key in keys:
             tensors = [torch.as_tensor(value[key]) for value in value_list]
 
-            value = torch.cat(tensors, dim=dim) if tensors else None
+            value = torch.cat(tensors, dim=dim)
             res._dict[key] = value
 
         return res
