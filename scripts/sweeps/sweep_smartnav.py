@@ -15,7 +15,7 @@ from coltra.envs import SmartNavEnv
 from coltra.envs.probe_envs import ConstRewardEnv
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
-from coltra.models.mlp_models import MLPModel
+from coltra.models.mlp_models import MLPModel, ImageMLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     fix_wandb_config(wandb.config, config)
 
-    model_cls = MLPModel
+    model_cls = ImageMLPModel
 
     model = model_cls(model_config, action_space=env.action_space)
     agent = CAgent(model)
