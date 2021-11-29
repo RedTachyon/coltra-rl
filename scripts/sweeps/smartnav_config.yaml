@@ -40,7 +40,7 @@ model:
 
   activation: leaky_relu
 
-  hidden_sizes: [1024, 1024]
+  hidden_sizes: [512, 512]
 
   sigma0: 1.0
   std_head: false
