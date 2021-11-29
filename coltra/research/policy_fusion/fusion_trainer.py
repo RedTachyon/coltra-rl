@@ -126,6 +126,8 @@ class FusionTrainer(Trainer):
                 params["visible_reward"] = -0.004
                 assert isinstance(self.agents.agent.model, JointModel)
                 self.agents.agent.model.freeze_models([False, False])
+                self.agents.agent.model.reinitialize_head()
+                self.reinitialize_ppo()
 
 
             full_batch, collector_metrics, shape = collect_crowd_data(

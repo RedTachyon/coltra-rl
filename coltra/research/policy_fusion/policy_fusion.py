@@ -108,3 +108,7 @@ class JointModel(BaseModel):
             activation=activation,
             copy_logstd=copy_logstd,
         )
+
+    def reinitialize_head(self):
+        self.policy_head = nn.Linear(self.latent_size, self.num_actions).to(self.device)
+        self.value_head = nn.Linear(self.latent_size, 1).to(self.device)
