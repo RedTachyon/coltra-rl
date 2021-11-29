@@ -135,7 +135,7 @@ if __name__ == "__main__":
     print("Recording a video")
     video_path = os.path.join(trainer.path, "video.webm")
     out = cv2.VideoWriter(
-        video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
+        video_path, cv2.VideoWriter_fourcc(*"VP90"), 5, frame_size[::-1]
     )
     for frame in renders[..., ::-1]:
         out.write(frame)
