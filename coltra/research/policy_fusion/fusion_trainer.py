@@ -110,34 +110,23 @@ class FusionTrainer(Trainer):
         if save_path:
             self.agents.save(save_path)
 
-        # TODO WIP: more flexible setting of thresholds
-        # thresholds = [
-        #     ("collision", 100, -0.6),
-        #     ("collision", 500, -0.3),
-        # ]
-        #
-        # clone_steps = [100]
-        #
-        # freeze_steps = [
-        #     (500, [False, False])
-        # ]
-
         params = {
-            "collision": -0.3,
+            "visible_reward": -0.001,
         }
 
         for step in trange(1, num_iterations + 1, disable=disable_tqdm):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
 
-            # if step == num_iterations // 10:
-            #     params["collision"] = -0.6
-            #     self.clone_model(copy_logstd=True)
-            #
-            # if step == num_iterations // 2:
-            #     params["colision"] = -0.3
-            #     assert isinstance(self.agents.agent.model, JointModel)
-            #     self.agents.agent.model.freeze_models([False, False])
+            if step == num_iterations // 5:  # 100-200, phase 2
+                params["visible_reward"] = -0.01
+                self.clone_model(copy_logstd=True)
+
+            if step == 2*num_iterations // 5:  # 200-500, phase 3
+                params["visible_reward"] = -0.004
+                assert isinstance(self.agents.agent.model, JointModel)
+                self.agents.agent.model.freeze_models([False, False])
+
 
             full_batch, collector_metrics, shape = collect_crowd_data(
                 agents=self.agents,
