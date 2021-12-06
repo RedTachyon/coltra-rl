@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Tuple, Union
 
 import torch
+from gym import Space
 from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.distributions import Distribution, Normal
@@ -13,16 +14,16 @@ from coltra.models.base_models import FCNetwork, BaseModel
 
 class RelationNetwork(nn.Module):
     def __init__(
-        self,
-        vec_input_size: int = 4,
-        rel_input_size: int = 4,
-        vec_hidden_layers: List[int] = [32, 32],
-        rel_hidden_layers: List[int] = [32, 32],
-        com_hidden_layers: List[int] = [32, 32],
-        output_sizes: List[int] = [2, 2],
-        is_policy: Union[bool, List[bool]] = [True, False],
-        activation: str = "tanh",
-        initializer: str = "kaiming_uniform",
+            self,
+            vec_input_size: int = 4,
+            rel_input_size: int = 4,
+            vec_hidden_layers: List[int] = [32, 32],
+            rel_hidden_layers: List[int] = [32, 32],
+            com_hidden_layers: List[int] = [32, 32],
+            output_sizes: List[int] = [2, 2],
+            is_policy: Union[bool, List[bool]] = [True, False],
+            activation: str = "tanh",
+            initializer: str = "kaiming_uniform",
     ):
         super().__init__()
 
@@ -72,30 +73,55 @@ class RelationNetwork(nn.Module):
 
         return x_com
 
+    def latent(self, x: Observation) -> Tensor:
+        x_vector = x.vector
+        assert len(x_vector.shape) == 2  # [B, N]
+        [x_vector] = self.vec_mlp(x_vector)
+
+        x_buffer = x.buffer
+        assert len(x_buffer.shape) == 3  # [B, A, N]
+
+        [x_buffer] = self.rel_mlp(x_buffer)
+        x_buffer = torch.mean(x_buffer, dim=-2)  # [B, N]
+
+        x_com = torch.cat([x_vector, x_buffer], dim=-1)
+
+        x_com = self.com_mlp.latent(x_com)
+
+        return x_com
+
 
 class RelationModel(BaseModel):
-    def __init__(self, config: Dict):
-        super().__init__()
+    def __init__(self, config: dict, action_space: Space):
+        super().__init__(config, action_space=action_space)
 
         Config = RelationConfig.clone()
 
         Config.update(config)
         self.config = Config
 
+        assert not self.discrete
+        # self.discrete = False  # TODO: add support for discrete heads
+        # self.std_head = self.config.std_head
+        self.sigma0 = self.config.sigma0
+        self.input_size = self.config.input_size
+        self.latent_size = self.config.com_hidden_layers[-1]
+        self.num_actions = self.config.num_actions
+
         self.policy_network = RelationNetwork(
-            vec_input_size=self.config.vec_input_size,
+            vec_input_size=self.config.input_size,
             rel_input_size=self.config.rel_input_size,
             vec_hidden_layers=self.config.vec_hidden_layers,
             rel_hidden_layers=self.config.rel_hidden_layers,
             com_hidden_layers=self.config.com_hidden_layers,
-            output_sizes=[self.config.num_actions, self.config.num_actions],
+            output_sizes=[self.config.num_actions],
             is_policy=[True, False],
             activation=self.config.activation,
             initializer=self.config.initializer,
         )
 
         self.value_network = RelationNetwork(
-            vec_input_size=self.config.vec_input_size,
+            vec_input_size=self.config.input_size,
             rel_input_size=self.config.rel_input_size,
             vec_hidden_layers=self.config.vec_hidden_layers,
             rel_hidden_layers=self.config.rel_hidden_layers,
@@ -106,14 +132,18 @@ class RelationModel(BaseModel):
             initializer=self.config.initializer,
         )
 
+        self.logstd = nn.Parameter(
+            torch.tensor(self.config.sigma0)
+            * torch.ones(1, self.config.num_actions)
+        )
+
         self.config = self.config.to_dict()
 
     def forward(
-        self, x: Observation, state: Tuple = (), get_value: bool = True
+            self, x: Observation, state: Tuple = (), get_value: bool = True
     ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
-
-        [action_mu, action_std] = self.policy_network(x)
-        action_std = F.softplus(action_std)  # TODO.txt: Figure out the low entropy
+        [action_mu] = self.policy_network(x)
+        action_std = torch.exp(self.logstd)
 
         action_distribution = Normal(loc=action_mu, scale=action_std)
 
@@ -128,3 +158,11 @@ class RelationModel(BaseModel):
     def value(self, x: Observation, state: Tuple = ()) -> Tensor:
         [value] = self.value_network(x)
         return value
+
+    def latent(self, x: Observation, state: Tuple) -> Tensor:
+        latent = self.policy_network.latent(x)
+        return latent
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
+        latent = self.value_network.latent(x)
+        return latent

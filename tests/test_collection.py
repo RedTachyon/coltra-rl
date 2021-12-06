@@ -10,9 +10,7 @@ from coltra.envs.probe_envs import ConstRewardEnv
 
 def test_const_reward():
     env = ConstRewardEnv(num_agents=10)
-    model = MLPModel(
-        {"input_size": env.obs_vector_size, "num_actions": 2, "discrete": False}
-    )
+    model = MLPModel({"input_size": env.obs_vector_size}, action_space=env.action_space)
     agents = HomogeneousGroup(CAgent(model))
 
     data_dict, stats, shape = collect_crowd_data(agents, env, num_steps=100)
@@ -33,7 +31,7 @@ def test_const_reward():
 
     assert isinstance(data.obs.vector, Tensor)
     assert isinstance(data.action.continuous, Tensor)
-    assert data.action.discrete is None
+    # assert data.action.discrete is None
     assert isinstance(data.reward, Tensor)
     assert isinstance(data.done, Tensor)
     assert isinstance(data.value, Tensor)

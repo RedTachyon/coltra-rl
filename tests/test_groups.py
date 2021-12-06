@@ -1,3 +1,6 @@
+import numpy as np
+from gym.spaces import Box
+
 from coltra.groups import MacroAgent, HomogeneousGroup
 from coltra.models import MLPModel
 from coltra.agents import Agent, CAgent, DAgent
@@ -7,7 +10,14 @@ import shutil
 
 def test_policy_mapping():
     group = HomogeneousGroup(
-        CAgent(MLPModel({"input_size": 5, "num_actions": 2, "discrete": False}))
+        CAgent(
+            MLPModel(
+                {"input_size": 5},
+                action_space=Box(
+                    low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+                ),
+            )
+        )
     )
 
     assert group.get_policy_name("anything") == "crowd" == group.policy_name
@@ -21,7 +31,14 @@ def test_save():
 
     os.mkdir("temp")
     group = HomogeneousGroup(
-        CAgent(MLPModel({"input_size": 5, "num_actions": 2, "discrete": False}))
+        CAgent(
+            MLPModel(
+                {"input_size": 5},
+                action_space=Box(
+                    low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+                ),
+            )
+        )
     )
 
     group.save("temp")

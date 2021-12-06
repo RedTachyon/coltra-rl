@@ -1,11 +1,15 @@
 import itertools
+from enum import Enum
+
+from PIL.Image import Image
 import numpy as np
 from typing import Any, Dict, List, Tuple, Union, Optional
 import time
 import gym
-from gym import error, spaces
+from gym import error, spaces, Space
+from gym.spaces import Box
 
-from mlagents_envs.base_env import ActionTuple, BaseEnv
+from mlagents_envs.base_env import ActionTuple, BaseEnv, ObservationSpec, BehaviorSpec
 from mlagents_envs.base_env import DecisionSteps, TerminalSteps
 from mlagents_envs import logging_util
 from mlagents_envs.environment import UnityEnvironment
@@ -19,7 +23,64 @@ from mlagents_envs.side_channel.environment_parameters_channel import (
 from coltra.buffers import Action, Observation
 from coltra.envs import MultiAgentEnv, SubprocVecEnv
 from coltra.envs.base_env import ActionDict, VecEnv
-from coltra.utils import np_float
+from coltra.envs.side_channels import StatsChannel
+from coltra.utils import np_float, find_free_worker
+
+
+class Sensor(Enum):
+    Buffer = 0
+    Ray = 1
+    Vector = 2
+    Image = 3
+
+    @staticmethod
+    def from_string(name: str):
+        if name.lower().startswith("buffer"):
+            return Sensor.Buffer
+        elif name.lower().startswith("ray"):
+            return Sensor.Ray
+        elif name.lower().startswith("vector"):
+            return Sensor.Vector
+        elif name.lower().startswith("image"):
+            return Sensor.Image
+        else:
+            raise ValueError(f"{name} is not a supported sensor")
+
+    def to_string(self) -> str:
+        if self == Sensor.Buffer:
+            return "buffer"
+        elif self == Sensor.Ray:
+            return "rays"
+        elif self == Sensor.Vector:
+            return "vector"
+        elif self == Sensor.Image:
+            return "image"
+        else:
+            raise ValueError(
+                f"You have angered the Old God Cthulhu (and need to update the sensors)"
+            )
+
+
+def behavior_to_space(behavior_spec: BehaviorSpec, flatten: bool = True) -> Space:
+    obs_specs = behavior_spec.observation_specs
+
+    if flatten:
+        return Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(sum(np.prod(obs_spec.shape) for obs_spec in obs_specs),),
+        )
+
+    if len(obs_specs) == 1:
+        return Box(low=-np.inf, high=np.inf, shape=obs_specs[0].shape)
+
+    else:
+        return gym.spaces.Dict(
+            spaces={
+                obs_spec.name: Box(low=-np.inf, high=np.inf, shape=obs_spec.shape)
+                for obs_spec in obs_specs
+            }
+        )
 
 
 class SmartNavEnv(MultiAgentEnv):
@@ -30,6 +91,7 @@ class SmartNavEnv(MultiAgentEnv):
         metrics: Optional[list[str]] = None,
         env_params: Optional[dict[str, Any]] = None,
         time_scale: float = 100.0,
+        virtual_display: Optional[tuple[int, int]] = None,
         **kwargs,
     ):
         super().__init__(seed, **kwargs)
@@ -38,16 +100,28 @@ class SmartNavEnv(MultiAgentEnv):
         if metrics is None:
             metrics = []
 
+        if virtual_display:
+            from pyvirtualdisplay.smartdisplay import SmartDisplay
+
+            self.virtual_display = SmartDisplay(size=virtual_display)
+            self.virtual_display.start()
+        else:
+            self.virtual_display = None
+
         self.metrics = metrics
         self.num_metrics = len(self.metrics)
         self.path = file_name
 
         self.engine_channel = EngineConfigurationChannel()
+        self.stats_channel = StatsChannel()
         self.param_channel = EnvironmentParametersChannel()
 
-        channels = [self.engine_channel, self.param_channel]
+        channels = [self.engine_channel, self.stats_channel, self.param_channel]
 
-        self.unity = UnityEnvironment(self.path, side_channels=channels, **kwargs)
+        worker_id = find_free_worker(500)
+        self.unity = UnityEnvironment(
+            self.path, side_channels=channels, worker_id=worker_id, **kwargs
+        )
         self.env = UnityToGymWrapper(self.unity)
 
         self.engine_channel.set_configuration_parameters(time_scale=time_scale)
@@ -55,14 +129,20 @@ class SmartNavEnv(MultiAgentEnv):
         for key in env_params:
             self.param_channel.set_float_parameter(key, env_params[key])
 
+        self.agent_name = list(self.unity.behavior_specs.keys())[0]
+        self.behavior_specs = self.unity.behavior_specs[self.agent_name]
+
         self.action_space = self.env.action_space
-        self.observation_space = self.env.observation_space
+
+        # self.observation_space = self.env.observation_space
+        self.observation_space = behavior_to_space(self.behavior_specs, flatten=True)
 
     def reset(self, **kwargs):
         for key in kwargs:
             self.param_channel.set_float_parameter(key, kwargs[key])
         obs = self.env.reset()
         obs, _ = self.process_obs(obs)
+        _ = self.stats_channel.parse_info()  # Clear the initial metrics
         return obs
 
     def step(self, action_dict: ActionDict):
@@ -73,6 +153,9 @@ class SmartNavEnv(MultiAgentEnv):
             done["__all__"] = False
 
         obs, info = self.process_obs(obs)
+        stats = self.stats_channel.parse_info()
+
+        info = {**info, **stats}
 
         return obs, reward, done, info
 
@@ -80,7 +163,7 @@ class SmartNavEnv(MultiAgentEnv):
         return {agent_id: action_dict[agent_id].continuous for agent_id in action_dict}
 
     def process_obs(
-        self, obs_dict: dict[str, np.ndarray]
+        self, obs_dict: dict[str, Union[np.ndarray, Tuple[np.ndarray, ...]]]
     ) -> Tuple[dict[str, Observation], dict]:
         all_obs = {}
         all_info = {}
@@ -96,21 +179,45 @@ class SmartNavEnv(MultiAgentEnv):
 
         return all_obs, all_info
 
-    def process_single_obs(self, obs: np.ndarray) -> Tuple[Observation, dict]:
-        if self.num_metrics == 0:
-            return Observation(obs), {}
-        n_obs = Observation(vector=obs[: -self.num_metrics])
-        info = {
-            self.metrics[i]: np_float(obs[-self.num_metrics + i])
-            for i in range(self.num_metrics)
-        }
+    def process_single_obs(
+        self, obs: Union[np.ndarray, Tuple[np.ndarray, ...]]
+    ) -> Tuple[Observation, dict]:
+        info = {}
+        if isinstance(obs, tuple):
+            n_obs = Observation(
+                **{
+                    Sensor.from_string(spec.name).to_string(): o
+                    for (o, spec) in zip(obs, self.behavior_specs.observation_specs)
+                }
+            )
+        else:
+            n_obs = Observation(vector=obs)
+        # n_obs = Observation(vector=obs[: -self.num_metrics])
+        # info = {
+        #     self.metrics[i]: np_float(obs[-self.num_metrics + i])
+        #     for i in range(self.num_metrics)
+        # }
         return n_obs, info
 
-    # def __getattr__(self, item):
-    #     return getattr(self.env, item)
+    # def legacy_process_single_obs(self, obs: np.ndarray) -> Tuple[Observation, dict]:
+    #     if self.num_metrics == 0:
+    #         return Observation(obs), {}
+    #     n_obs = Observation(vector=obs[: -self.num_metrics])
+    #     info = {
+    #         self.metrics[i]: np_float(obs[-self.num_metrics + i])
+    #         for i in range(self.num_metrics)
+    #     }
+    #     return n_obs, info
 
-    def render(self, mode="rgb_array"):
-        return np.array([[]])
+    def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
+        if self.virtual_display:
+            img = self.virtual_display.grab()
+            if mode == "rgb_array":
+                return np.array(img)
+            else:
+                return img
+        else:
+            return None
 
     @classmethod
     def get_venv(
@@ -120,7 +227,6 @@ class SmartNavEnv(MultiAgentEnv):
             [
                 cls.get_env_creator(
                     file_name=file_name,
-                    worker_id=i,
                     seed=i,
                     **kwargs,
                 )

@@ -2,6 +2,7 @@ import numpy as np
 from typing import Tuple, List, Union, Dict, Optional
 from enum import Enum
 
+from PIL.Image import Image
 from gym.spaces import Box
 from mlagents_envs.base_env import (
     ActionTuple,
@@ -23,6 +24,7 @@ from .side_channels import StatsChannel
 from coltra.buffers import Observation, Action
 from .subproc_vec_env import SubprocVecEnv
 from .base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
+from coltra.utils import find_free_worker
 
 
 class Mode(Enum):
@@ -103,9 +105,18 @@ def process_decisions(
 
 
 class UnitySimpleCrowdEnv(MultiAgentEnv):
-    def __init__(self, file_name: Optional[str] = None, **kwargs):
-
+    def __init__(
+        self,
+        file_name: Optional[str] = None,
+        virtual_display: Optional[tuple[int, int]] = None,
+        **kwargs,
+    ):
         super().__init__()
+        if virtual_display:
+            from pyvirtualdisplay.smartdisplay import SmartDisplay
+
+            self.virtual_display = SmartDisplay(size=virtual_display)
+            self.virtual_display.start()
         self.engine_channel = EngineConfigurationChannel()
         self.stats_channel = StatsChannel()
         self.param_channel = EnvironmentParametersChannel()
@@ -116,7 +127,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         kwargs["side_channels"].append(self.stats_channel)
         kwargs["side_channels"].append(self.param_channel)
 
-        self.unity = UnityEnvironment(file_name=file_name, **kwargs)
+        worker_id = find_free_worker(500)
+        self.unity = UnityEnvironment(
+            file_name=file_name, worker_id=worker_id, **kwargs
+        )
         self.behaviors = {}
         # self.manager = ""
 
@@ -129,17 +143,22 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             for key, value in behaviors.items()
             if not key.startswith("Manager")
         }
+
         # semi-hardcoded computation of obs/action spaces, slightly different api than gym
-        behavior_spec = next(iter(self.behaviors.values()))
-        obs_shape = behavior_spec[0][0].shape  # I know, ouch
-        action_shape = behavior_spec[1].continuous_size
+        self.behavior_name = list(self.behaviors.keys())[0]
+        obs_spec, action_spec = self.behaviors[self.behavior_name]
+
+        obs_shape = obs_spec[1].shape
+        action_size = action_spec.continuous_size
+
         self.obs_vector_size = obs_shape[0]
-        self.action_vector_size = action_shape
+        self.obs_buffer_size = obs_spec[0].shape[-1]
+        self.action_vector_size = action_size
 
         self.observation_space = Box(
             low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32
         )
-        self.action_space = Box(low=-1, high=1, shape=(action_shape,), dtype=np.float32)
+        self.action_space = Box(low=-1, high=1, shape=(action_size,), dtype=np.float32)
 
     def _get_step_info(
         self, step: bool = False
@@ -234,6 +253,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def reset(self, **kwargs) -> ObsDict:
 
         for (name, value) in kwargs.items():
+            if name == "mode":
+                value = Mode.from_string(value).value
             self.param_channel.set_float_parameter(name, value)
 
         self.unity.reset()
@@ -274,8 +295,15 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def close(self):
         self.unity.close()
 
-    def render(self, mode="human"):
-        raise NotImplementedError
+    def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
+        if self.virtual_display:
+            img = self.virtual_display.grab()
+            if mode == "rgb_array":
+                return np.array(img)
+            else:
+                return img
+        else:
+            return None
 
     def set_timescale(self, timescale: float = 100.0):
         self.engine_channel.set_configuration_parameters(time_scale=timescale)
@@ -297,7 +325,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             [
                 cls.get_env_creator(
                     file_name=file_name,
-                    worker_id=i,
                     seed=i,
                     *args,
                     **kwargs,

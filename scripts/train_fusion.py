@@ -1,6 +1,7 @@
 from typing import Optional
 
 import torch
+import wandb
 import yaml
 from typarse import BaseParser
 
@@ -9,8 +10,9 @@ from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
+from coltra.research import JointModel
+from coltra.research.policy_fusion.fusion_trainer import FusionTrainer
 from coltra.trainers import PPOCrowdTrainer
-from coltra.models.raycast_models import LeeModel
 
 
 class Parser(BaseParser):
@@ -18,10 +20,7 @@ class Parser(BaseParser):
     iters: int = 500
     env: str
     name: str
-    workers: int = 8
-    model_type: str = "blind"
-    mode: Optional[str]
-    num_agents: Optional[int]
+    model_type: str = "relation"
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
 
@@ -30,9 +29,7 @@ class Parser(BaseParser):
         "iters": "Number of coltra iterations",
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
-        "workers": "Number of parallel collection envs to use",
         "model_type": "Type of the information that a model has access to",
-        "mode": "What board layout should be used",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
     }
@@ -42,10 +39,7 @@ class Parser(BaseParser):
         "iters": "i",
         "env": "e",
         "name": "n",
-        "workers": "w",
         "model_type": "mt",
-        "mode": "m",
-        "num_agents": "na",
         "start_dir": "sd",
         "start_idx": "si",
     }
@@ -65,33 +59,32 @@ if __name__ == "__main__":
 
     trainer_config = config["trainer"]
     model_config = config["model"]
+    env_config = config["environment"]
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
-    if args.mode:
-        trainer_config["mode"] = args.mode
 
-    if args.num_agents:
-        trainer_config["num_agents"] = args.num_agents
+    if args.name:
+        wandb.init(
+            project="crowdai",
+            entity="redtachyon",
+            sync_tensorboard=True,
+            config=config,
+            name=args.name,
+        )
 
-    workers = trainer_config.get("workers") or 8  # default value
+    workers = trainer_config.get("workers") or 4  # default value
 
     # Initialize the environment
-    env = UnitySimpleCrowdEnv.get_venv(args.workers, file_name=args.env)
+    env = UnitySimpleCrowdEnv.get_venv(workers, file_name=args.env)
 
     # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
     # Initialize the agent
-    sample_obs = next(iter(env.reset().values()))
-    obs_size = sample_obs.vector.shape[0]
-    ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
+    obs_size = env.observation_space.shape[0]
+    buffer_size = 4  # TODO: Hardcoded, fix
 
-    model_config["input_size"] = obs_size
-    model_config["rays_input_size"] = ray_size
-
-    if args.model_type == "rays":
-        model_cls = LeeModel
-    elif args.model_type == "relation":
+    if args.model_type == "relation":
         model_cls = RelationModel
     else:
         model_cls = MLPModel
@@ -100,7 +93,10 @@ if __name__ == "__main__":
     if args.start_dir:
         agent = CAgent.load(args.start_dir, weight_idx=args.start_idx)
     else:
-        model = model_cls(model_config)
+        model = model_cls(model_config, env.action_space)
+        joint_model = JointModel(
+            config={}, models=[model], action_space=env.action_space
+        )
         agent = CAgent(model)
 
     agents = HomogeneousGroup(agent)
@@ -108,10 +104,10 @@ if __name__ == "__main__":
     if CUDA:
         agents.cuda()
 
-    # env = SubprocVecEnv([
-    #     get_env_creator(file_name=args.env, no_graphics=True, worker_id=i, seed=i)
-    #     for i in range(workers)
-    # ])
-
-    trainer = PPOCrowdTrainer(agents, env, trainer_config)
-    trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)
+    trainer = FusionTrainer(agents, env, trainer_config)
+    trainer.train(
+        args.iters,
+        disable_tqdm=False,
+        save_path=trainer.path,
+        # collect_kwargs=env_config,
+    )

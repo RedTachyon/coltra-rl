@@ -1,3 +1,5 @@
+import socket
+from sys import platform
 from typing import (
     Dict,
     List,
@@ -14,11 +16,13 @@ from typing import (
 import numpy as np
 
 import torch
+from mlagents_envs.exception import UnityWorkerInUseException
 from torch import nn
 from torch import Tensor
 import torch.nn.functional as F
 import time
 
+from torch.distributions import AffineTransform
 from torch.optim.optimizer import Optimizer
 from torch.optim.adam import Adam
 from torch.optim.adadelta import Adadelta
@@ -289,3 +293,64 @@ def read_ana(path: str) -> Dict:
 
     data = parse_ana(text)
     return data
+
+
+def is_worker_free(worker_id: int, base_port: int = 5005):
+    """
+    Attempts to bind to the requested communicator port, checking if it is already in use.
+    Returns whether the port is free.
+    """
+    port = base_port + worker_id
+    status = True
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if platform == "linux" or platform == "linux2":
+        # On linux, the port remains unusable for TIME_WAIT=60 seconds after closing
+        # SO_REUSEADDR frees the port right after closing the environment
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        s.bind(("localhost", port))
+    except OSError:
+        status = False
+    #         raise UnityWorkerInUseException(self.worker_id)
+    finally:
+        s.close()
+
+    return status
+
+
+def find_free_worker(max_value: int = 100) -> int:
+    """
+    Finds a free worker ID.
+    """
+    for worker_id in range(max_value):
+        if is_worker_free(worker_id):
+            return worker_id
+
+    raise UnityWorkerInUseException("All workers are in use.")
+
+
+class AffineBeta(torch.distributions.TransformedDistribution):
+    def __init__(self, a: Tensor, b: Tensor, low: Tensor, high: Tensor):
+        self.low = torch.as_tensor(low, dtype=torch.float32)
+        self.high = torch.as_tensor(high, dtype=torch.float32)
+        self.a = torch.as_tensor(a, dtype=torch.float32)
+        self.b = torch.as_tensor(b, dtype=torch.float32)
+        self.loc = self.low
+        self.scale = self.high - self.low
+        super().__init__(
+            torch.distributions.Beta(a, b), AffineTransform(self.loc, self.scale)
+        )
+
+    @property
+    def mean(self):
+        return self.base_dist.mean * self.scale + self.loc
+
+    @property
+    def variance(self):
+        return self.base_dist.variance * self.scale ** 2
+
+    def entropy(self):
+        return self.base_dist.entropy() + self.scale.log()
+
+    def enumerate_support(self, expand=True):
+        raise NotImplementedError

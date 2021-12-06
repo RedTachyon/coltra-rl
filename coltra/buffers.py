@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, fields
-from typing import List, Dict, Union, get_type_hints, Callable, Optional
+from typing import List, Dict, Union, get_type_hints, Callable, Optional, Any
 
 import numpy as np
 
 import torch
 from torch import Tensor
 
-TensorArray = Union[np.ndarray, torch.Tensor]
+Array = Union[np.ndarray, torch.Tensor]
 
 
 def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
@@ -20,49 +20,48 @@ def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
         return _multitensor.batch_size
 
 
-@dataclass
-class Multitype:
-    @classmethod
-    def stack_tensor(cls, value_list: List[Multitype], dim: int = 0):
-        res = cls()
-        for field_ in get_type_hints(cls):
-            tensors = [
-                torch.as_tensor(getattr(value, field_))
-                for value in value_list
-                if getattr(value, field_) is not None
-            ]
+def is_array(x: Any) -> bool:
+    return isinstance(x, np.ndarray) or isinstance(x, torch.Tensor)
 
-            value = torch.stack(tensors, dim=dim) if tensors else None
-            setattr(res, field_, value)
+
+class Multitype:
+    _dict: Dict[str, Array]
+
+    @classmethod
+    def stack_tensor(cls, value_list: list[Multitype], dim: int = 0):
+        res = cls()
+        keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
+        for key in keys:
+            tensors = [torch.as_tensor(value[key]) for value in value_list]
+
+            value = torch.stack(tensors, dim=dim)
+            res._dict[key] = value
 
         return res
 
     @classmethod
-    def cat_tensor(cls, value_list: List[Multitype], dim: int = 0):
+    def cat_tensor(cls, value_list: list[Multitype], dim: int = 0):
         res = cls()
-        for field_ in get_type_hints(cls):
-            tensors = [
-                torch.as_tensor(getattr(value, field_))
-                for value in value_list
-                if getattr(value, field_) is not None
-            ]
+        keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
+        for key in keys:
+            tensors = [torch.as_tensor(value[key]) for value in value_list]
 
-            value = torch.cat(tensors, dim=dim) if tensors else None
-            setattr(res, field_, value)
+            value = torch.cat(tensors, dim=dim)
+            res._dict[key] = value
 
         return res
 
     @property
     def batch_size(self) -> int:
         value = -1
-        for field_ in fields(self):
-            field_value = getattr(self, field_.name)
-            # TODO: Fix this shit
+        for key in self._dict.keys():
+            field_value = self._dict[key]
+            # TODO: Fix this
             if field_value is None:
                 continue
             _batch_size = (
                 field_value.shape[0]
-                if (len(field_value.shape) > 1 or field_.name == "discrete")
+                if (len(field_value.shape) > 1 or key == "discrete")
                 else 1
             )
             if value < 0:
@@ -76,27 +75,19 @@ class Multitype:
 
     def tensor(self, device: str = "cpu"):
         res = type(self)()
-        for field_ in fields(self):
-            value = getattr(self, field_.name)
-            tensor = torch.as_tensor(value).to(device) if value is not None else None
-            setattr(res, field_.name, tensor)
+        for key in self._dict.keys():
+            value = self._dict[key]
+            tensor = torch.as_tensor(value).to(device)
+            res._dict[key] = tensor
         return res
 
-    def __getitem__(self, item):
-        res = type(self)()
-        for field_ in fields(self):
-            value = getattr(self, field_.name)
-            part = value[item] if value is not None else None
-            setattr(res, field_.name, part)
-        return res
-
-    def apply(self, func: Callable[[TensorArray], TensorArray]):
+    def apply(self, func: Callable[[Array], Array]):
         """Applies a function to each field, returns a new object"""
         res = type(self)()
-        for field_ in fields(self):
-            value = getattr(self, field_.name)
-            new_field = func(value) if value is not None else None
-            setattr(res, field_.name, new_field)
+        for key in self._dict.keys():
+            value = self._dict[key]
+            new_field = func(value)
+            res._dict[key] = new_field
         return res
 
     def cuda(self, *args, **kwargs):
@@ -105,35 +96,77 @@ class Multitype:
     def cpu(self):
         return self.apply(lambda x: x.cpu())
 
+    def __getitem__(self, item: Union[str, int, slice]) -> Union[Array, Multitype]:
+        if isinstance(item, str):
+            return self._dict[item]
+        else:
+            res = type(self)()
+            for key in self._dict.keys():
+                value = self._dict[key]
+                new_field = value[item]
+                res._dict[key] = new_field
+            return res
 
-# TODO: Make those into generics?
-# TODO: More convenience functions (here and agents)
-@dataclass
+    def __getattr__(self, item) -> Array:
+        if item not in self._dict:
+            raise AttributeError(
+                f"Attribute {item} not found in this instance of {type(self).__name__}"
+            )
+        return self._dict[item]
+
+    def __repr__(self):
+        inside_str = ", ".join([f"{key}={value}" for key, value in self._dict.items()])
+        return f"{type(self).__name__}({inside_str})"
+
+    def __getstate__(self):
+        return self._dict
+
+    def __setstate__(self, state):
+        self._dict = state
+
+
+BaseObs = Union[Array, dict[str, Array]]
+
+
 class Observation(Multitype):
-    vector: Optional[TensorArray] = None
-    rays: Optional[TensorArray] = None
-    buffer: Optional[TensorArray] = None
-    image: Optional[TensorArray] = None
+    def __init__(self, obs: Optional[BaseObs] = None, **kwargs: Array):
+        if obs is None:
+            self._dict = {}
+        elif obs is not None and is_array(obs):
+            self._dict = {"vector": obs}
+        else:  # is not None and not is_array => is a dict
+            self._dict = obs
+
+        self._dict = {**self._dict, **kwargs}
 
 
-@dataclass
+BaseAction = Union[Array, int, dict[str, Array]]
+
+
 class Action(Multitype):
-    continuous: Optional[TensorArray] = None
-    discrete: Optional[TensorArray] = None
+    def __init__(self, action: Optional[BaseAction] = None, **kwargs: Array):
+        if action is None:
+            self._dict = {}
+        elif action is not None and is_array(action):  # default is continuous action
+            self._dict = {"continuous": action}
+        else:  # is not None and not is_array => is a dict
+            self._dict = action
+
+        self._dict = {**self._dict, **kwargs}
 
 
-def discrete(value: TensorArray) -> Action:
+def discrete(value: Array) -> Action:
     return Action(discrete=value)
 
 
-def continuous(value: TensorArray) -> Action:
+def continuous(value: Array) -> Action:
     return Action(continuous=value)
 
 
-Reward = TensorArray  # float32
-LogProb = TensorArray  # float32
-Value = TensorArray  # float32
-Done = Union[TensorArray, bool]  # bool
+Reward = Array  # float32
+LogProb = Array  # float32
+Value = Array  # float32
+Done = Union[Array, bool]  # bool
 
 
 @dataclass
@@ -145,7 +178,7 @@ class MemoryRecord:
     done: Done
     last_value: Optional[Value]
 
-    def apply(self, func: Callable[[TensorArray], TensorArray]):
+    def apply(self, func: Callable[[Array], Array]):
         """Applies a function to each field, returns a new object"""
         kwargs = {}
         for field_ in fields(self):

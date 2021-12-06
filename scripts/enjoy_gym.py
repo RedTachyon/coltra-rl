@@ -81,7 +81,7 @@ if __name__ == "__main__":
     frame_size = renders.shape[1:3]
 
     out = cv2.VideoWriter(
-        f"{args.video}.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 30, frame_size[::-1]
+        f"{args.video}.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 5, frame_size[::-1]
     )
     for frame in renders[..., ::-1]:
         out.write(frame)

@@ -1,6 +1,6 @@
 import copy
 import os
-from datetime import datetime
+import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, Union
 
@@ -31,7 +31,7 @@ class Trainer:
         num_iterations: int,
         disable_tqdm: bool = False,
         save_path: Optional[str] = None,
-        **collect_kwargs,
+        **kwargs,
     ):
         raise NotImplementedError
 
@@ -66,7 +66,7 @@ class PPOCrowdTrainer(Trainer):
         # Setup tensorboard
         self.writer: Optional[SummaryWriter]
         if self.config.tensorboard_name:
-            dt_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            dt_string = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             path = (
                 Path.home() / "tb_logs" / f"{self.config.tensorboard_name}_{dt_string}"
             )
@@ -90,7 +90,7 @@ class PPOCrowdTrainer(Trainer):
         num_iterations: int,
         disable_tqdm: bool = False,
         save_path: Optional[str] = None,
-        **collect_kwargs,
+        collect_kwargs: Optional[dict[str, Any]] = None,
     ):
 
         if save_path is None:
@@ -112,7 +112,7 @@ class PPOCrowdTrainer(Trainer):
                 agents=self.agents,
                 env=self.env,
                 num_steps=self.config.steps,
-                **collect_kwargs,
+                env_kwargs=collect_kwargs,
             )
 
             data_time = timer.checkpoint()

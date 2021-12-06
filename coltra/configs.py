@@ -5,13 +5,12 @@ from typarse import BaseConfig
 
 class MLPConfig(BaseConfig):
     input_size: int = 0  # Must be set
-    num_actions: int = 0  # Must be set
-    discrete: bool = False  # Must be set
+
+    beta: bool = False
+    mode: Optional[str] = "logstd"
 
     activation: str = "leaky_relu"
-    sigma0: float = 0.5
-
-    std_head: bool = True
+    sigma0: float = 1.0
 
     hidden_sizes: List[int] = [64, 64]
 
@@ -58,9 +57,6 @@ class TrainerConfig(BaseConfig):
     steps: int = 500
     workers: int = 8
 
-    mode: str = "random"
-    num_agents: int = 20
-
     tensorboard_name: Optional[str] = None
     save_freq: int = 10
 
@@ -75,11 +71,17 @@ class LeeConfig(BaseConfig):
 
 
 class RelationConfig(BaseConfig):
-    vec_input_size: int = 4
+    input_size: int = 7
+    num_actions: int = 2
     rel_input_size: int = 4
+
+    sigma0: float = 1.0
+
+    beta: bool = False
+
     vec_hidden_layers: List[int] = [32, 32]
     rel_hidden_layers: List[int] = [32, 32]
     com_hidden_layers: List[int] = [32, 32]
-    num_actions: int = 2
+
     activation: str = "tanh"
-    initializer: str = "kaiming_uniform"
+    initializer: str = "orthogonal"

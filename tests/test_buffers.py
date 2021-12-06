@@ -5,7 +5,7 @@ import torch
 from coltra.buffers import (
     Observation,
     Action,
-    TensorArray,
+    Array,
     Reward,
     LogProb,
     Value,
@@ -45,14 +45,14 @@ def test_obs_to_tensor():
     assert obs.buffer.shape == (5, 10, 4)
 
 
-def test_obs_get():
-    obs = Observation(vector=np.random.randn(5, 81), buffer=np.random.randn(5, 10, 4))
-
-    part_obs = obs[0:2]  # [0, 1]
-
-    assert part_obs.batch_size == 2
-    assert part_obs.vector.shape == (2, 81)
-    assert part_obs.buffer.shape == (2, 10, 4)
+# def test_obs_get():  # This feature has been deprecated I guess
+#     obs = Observation(vector=np.random.randn(5, 81), buffer=np.random.randn(5, 10, 4))
+#
+#     part_obs = obs[0:2]  # [0, 1]
+#
+#     assert part_obs.batch_size == 2
+#     assert part_obs.vector.shape == (2, 81)
+#     assert part_obs.buffer.shape == (2, 10, 4)
 
 
 def test_obs_stack():

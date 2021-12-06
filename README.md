@@ -67,7 +67,8 @@ if __name__ == '__main__':
                     "input_size": env.observation_space.shape[0],
                     "num_actions": env.action_space.n,
                     "discrete": True
-                }
+                },
+                action_space=env.action_space
             )
         )
     )
@@ -165,20 +166,22 @@ obs, reward, done, info = env.step({agent_id: Action(discrete=env.action_space.s
 
 ### Observation and Action
 
-This is something that I count as a rough edge in the current state of the framework, but it only needs some refining,
-and I'd very much like to keep it in some way.
+This is something that the static-typing/functional-programming nerd in me demanded very loudly. 
 
-Basically, environments as observations output `Dict[str, Observation]`, and as actions expect `Dict[str, Action]`
+Basically, environments always output `Dict[str, Observation]` as observations, and expect `Dict[str, Action]` as actions
 
-`Observation` and `Action` are both defined in `coltra.buffers` and are glorified dataclasses
-with some convenience methods. They hold either `np.ndarray`s or `torch.Tensor`s, and should be
-really made into explicit generics. An Action can hold a vector and/or a (single-branch) discrete action.
-An Observation can hold a subset of: vector, image, rays, buffer. There is in principle no difference in how they're
+`Observation` and `Action` are both defined in `coltra.buffers` and are glorified dataclasses/dictionaries
+with some convenience methods. They hold either `np.ndarray`s or `torch.Tensor`s, and perhaps will
+be made into explicit generics on that. An Action can hold a continuous action, a discrete action, or a dictionary (not nested) of those.
+An Observation can similarly hold a vector or a number of them in a dictionary. There is in principle no difference in how they're
 treated, but it allows for multimodal models, e.g. one that receives a vector observation, and raycasts. 
 This will (hopefully) make sense when you see how Models are treated.
-This can in principle changed to be more general, and end-users are very welcome to modify it to their needs.
 
 Note that both Observation and Action can hold either individual values, or batches.
+
+The whole point of this is that now, every environment's output is the same type: `Observation`. This is different
+from the usual `gym` model, where the output might be a `np.ndarray` or a `tuple` or a `dict` or who knows what else.
+The same is the case for actions.
 
 ### Model
 
@@ -280,7 +283,8 @@ model = MLPModel(
         "input_size": env.observation_space.shape[0],
         "num_actions": env.action_space.shape[0],
         "discrete": True
-    }
+    },
+    action_space=env.action_space
 )
 agent = DAgent(model)
 agents = HomogeneousGroup(agent)
@@ -325,7 +329,7 @@ unless you hack my account. Please don't. You can change it, and in a while I pl
 # Contributing guide
 
 This project is currently *not* encouraging contributions since it's in a volatile state and I need 
-to make sure I have comfortable base that will be somewhat stable and can be built upon.
+to make sure I have a comfortable base that will be somewhat stable and can be built upon.
 
 What I do encourage is feedback -- if something's not clear, or you think could be done better, let me know.
 But no promises, since for the moment at least, it's not a community-driven project.
@@ -334,7 +338,7 @@ I plan to change this Soon(TM), and if you're reading this, you'll probably be i
 
 If nevertheless you fell in love with the project and want to help, I have some simple standards:
 
-1. Type hints. ALWAYS. Untyped functions scare me.
+1. Type hints. Always. Untyped functions scare me.
 2. Consistent formatting - just run `black .`
 3. Make sure that tests pass. Add new tests when you add new stuff.
 4. Keep code clean and readable. Single-variable names are accepted in mathematical parts of the code, nowhere else

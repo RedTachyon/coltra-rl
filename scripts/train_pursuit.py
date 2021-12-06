@@ -21,9 +21,9 @@ from pettingzoo.sisl import pursuit_v3
 
 
 class Parser(BaseParser):
-    config: str = "configs/base_config.yaml"
+    config: str = "configs/pursuit_config.yaml"
     iters: int = 500
-    name: str
+    name: Optional[str] = None
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
     normalize: bool = False
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     if args.start_dir:
         agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
-        model = model_cls(model_config)
+        model = model_cls(model_config, action_space)
         agent = agent_cls(model)
 
     if args.normalize:
@@ -105,3 +105,5 @@ if __name__ == "__main__":
 
     trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)
+
+    env.close()

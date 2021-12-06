@@ -1,49 +1,49 @@
 from typing import Optional
 
+import gym
 import numpy as np
 import torch
 import yaml
 from typarse import BaseParser
-import gym
 
-from coltra.agents import CAgent, DAgent, Agent
-from coltra.envs.smartnav_envs import SmartNavEnv
+from coltra.agents import CAgent, DAgent
+from coltra.envs.pettingzoo_envs import PettingZooEnv
 from coltra.groups import HomogeneousGroup
-from coltra.models.mlp_models import MLPModel
-from coltra.models.relational_models import RelationModel
+from coltra.models.mlp_models import MLPModel, ImageMLPModel
 from coltra.trainers import PPOCrowdTrainer
-from coltra.models.raycast_models import LeeModel
+from coltra.envs import MultiGymEnv
+from coltra.wrappers import ObsVecNormWrapper
+from coltra.wrappers.agent_wrappers import RetNormWrapper
 
 import wandb
 
+from pettingzoo.sisl import multiwalker_v7
+
 
 class Parser(BaseParser):
-    config: str = "configs/base_config.yaml"
+    config: str = "configs/pursuit_config.yaml"
     iters: int = 500
-    env: str
-    name: str
+    name: Optional[str] = None
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
-    visibility_reward: Optional[float] = -0.005
+    normalize: bool = False
 
     _help = {
         "config": "Config file for the coltra",
         "iters": "Number of coltra iterations",
-        "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
-        "visibility_reward": "Value of penalty for being seen",
+        "normalize": "Whether to use the obs and return normalizing wrappers",
     }
 
     _abbrev = {
         "config": "c",
         "iters": "i",
-        "env": "e",
         "name": "n",
         "start_dir": "sd",
         "start_idx": "si",
-        "visibility_reward": "vr",
+        "normalize": "norm",
     }
 
 
@@ -57,34 +57,18 @@ if __name__ == "__main__":
 
     trainer_config = config["trainer"]
     model_config = config["model"]
-    env_config = config["environment"]
-
-    if args.visibility_reward:
-        env_config["visible_reward"] = args.visibility_reward
-
-    wandb.init(project="smartnav", sync_tensorboard=True, config=config, name=args.name)
-
-    # wandb_config = wandb.config
-
-    # env_config["visible_reward"] = wandb_config["visible_reward"]
 
     trainer_config["tensorboard_name"] = args.name
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
-    workers = trainer_config.get("workers")
+    wandb.init(
+        project="coltra", entity="redtachyon", sync_tensorboard=True, config=config
+    )
+
+    workers = trainer_config["workers"]
 
     # Initialize the environment
-    # env = SmartNavEnv.get_venv(workers, file_name=args.env)
-
-    METRICS = [
-        # "legacy_success_rate",
-        # "legacy_num_steps_not_progressing",
-        # "legacy_map_idx",
-        # "legacy_goal_distance",
-        # "legacy_is_visible",
-    ]
-
-    env = SmartNavEnv(file_name=args.env, metrics=METRICS, env_params=env_config)
+    env = PettingZooEnv.get_venv(8, env_creator=multiwalker_v7.parallel_env)
     action_space = env.action_space
     observation_space = env.observation_space
 
@@ -97,29 +81,27 @@ if __name__ == "__main__":
     else:
         action_shape = action_space.shape[0]
 
-    model_config["input_size"] = np.product(observation_space.shape) - len(METRICS)
+    model_config["input_size"] = np.product(observation_space.shape)
     model_config["num_actions"] = action_shape
     model_config["discrete"] = is_discrete_action
 
     model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
-    agent: Agent
     if args.start_dir:
         agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
-        model = model_cls(model_config, action_space)
+        model = model_cls(model_config, env.action_space)
         agent = agent_cls(model)
+
+    if args.normalize:
+        agent = ObsVecNormWrapper(agent)
+        agent = RetNormWrapper(agent)
 
     agents = HomogeneousGroup(agent)
 
     if CUDA:
-        agent.cuda()
-
-    # env = SubprocVecEnv([
-    #     get_env_creator(file_name=args.env, no_graphics=True, worker_id=i, seed=i)
-    #     for i in range(workers)
-    # ])
+        agents.cuda()
 
     trainer = PPOCrowdTrainer(agents, env, trainer_config)
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)

@@ -3,6 +3,7 @@ import shutil
 
 import numpy as np
 import torch
+from gym.spaces import Box, Discrete
 from torch import Tensor
 
 from coltra.agents import ConstantAgent, CAgent, DAgent, Agent
@@ -18,7 +19,7 @@ def test_constant_agent():
     actions, _, _ = agent.act(obs_batch=obs)
 
     assert actions.continuous.shape == (5, 2)
-    assert actions.discrete is None
+    # assert actions.discrete is None
     assert np.allclose(actions.continuous, np.ones_like(actions.continuous))
 
     logprobs, values, entropies = agent.evaluate(obs, actions)
@@ -88,7 +89,17 @@ def test_fancy_mlp_agent():
         buffer=np.random.randn(5, 10, 4).astype(np.float32),
     )
 
-    model = MLPModel({"input_size": 81, "num_actions": 2, "hidden_sizes": [32, 32]})
+    model = MLPModel(
+        {
+            "input_size": 81,
+            "num_actions": 2,
+            "discrete": False,
+            "hidden_sizes": [32, 32],
+        },
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
+    )
 
     assert len(model.policy_network.hidden_layers) == 2
     assert not model.discrete
@@ -98,13 +109,13 @@ def test_fancy_mlp_agent():
     actions, _, extra = agent.act(obs_batch=obs, get_value=True)
 
     assert actions.continuous.shape == (5, 2)
-    assert actions.discrete is None
+    # assert actions.discrete is None
     assert extra["value"].shape == (5,)
 
     actions, _, extra = agent.act(obs_batch=obs, get_value=True, deterministic=True)
 
     assert actions.continuous.shape == (5, 2)
-    assert actions.discrete is None
+    # assert actions.discrete is None
     assert extra["value"].shape == (5,)
 
     logprobs, values, entropies = agent.evaluate(obs, actions)
@@ -138,7 +149,13 @@ def test_discrete_fancy_mlp_agent():
     )
 
     model = MLPModel(
-        {"input_size": 81, "hidden_sizes": [32, 32], "num_actions": 2, "discrete": True}
+        {
+            "input_size": 81,
+            "hidden_sizes": [32, 32],
+            "num_actions": 2,
+            "discrete": True,
+        },
+        action_space=Discrete(2),
     )
 
     assert len(model.policy_network.hidden_layers) == 2
@@ -149,13 +166,13 @@ def test_discrete_fancy_mlp_agent():
     actions, _, extra = agent.act(obs_batch=obs, get_value=True)
 
     assert actions.discrete.shape == (5,)
-    assert actions.continuous is None
+    # assert actions.continuous is None
     assert extra["value"].shape == (5,)
 
     actions, _, extra = agent.act(obs_batch=obs, get_value=True, deterministic=True)
 
     assert actions.discrete.shape == (5,)
-    assert actions.continuous is None
+    # assert actions.continuous is None
     assert extra["value"].shape == (5,)
 
     logprobs, values, entropies = agent.evaluate(obs, actions)
@@ -187,7 +204,15 @@ def test_saving():
         vector=np.random.randn(5, 81).astype(np.float32),
     )
 
-    model = MLPModel({"input_size": 81, "num_actions": 2, "hidden_sizes": [32, 32]})
+    model = MLPModel(
+        {
+            "input_size": 81,
+            "hidden_sizes": [32, 32],
+        },
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
+    )
 
     assert len(model.policy_network.hidden_layers) == 2
     assert not model.discrete
@@ -216,7 +241,15 @@ def test_saving_wrapper():
         vector=np.random.randn(5, 81).astype(np.float32),
     )
 
-    model = MLPModel({"input_size": 81, "num_actions": 2, "hidden_sizes": [32, 32]})
+    model = MLPModel(
+        {
+            "input_size": 81,
+            "hidden_sizes": [32, 32],
+        },
+        action_space=Box(
+            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+        ),
+    )
 
     assert len(model.policy_network.hidden_layers) == 2
     assert not model.discrete

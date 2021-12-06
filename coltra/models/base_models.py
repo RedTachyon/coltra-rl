@@ -1,6 +1,8 @@
 from typing import List, Callable, Union, Tuple, Dict
 
 import torch
+from gym import Space
+from gym.spaces import Discrete, Box
 from torch import nn, Tensor
 from torch.distributions import Distribution
 
@@ -17,12 +19,30 @@ class BaseModel(nn.Module):
     The output of each model is an action distribution, the next recurrent state,
     and a dictionary with any extra outputs like the value
     """
+    input_size: int
+    latent_size: int
+    num_actions: int
+    discrete: bool
+    activation: Callable
+    device: str
 
-    def __init__(self):
+    def __init__(self, config: dict, action_space: Space):
         super().__init__()
         self._stateful = False
-        # self.config = config
+        self.raw_config = config
         self.device = "cpu"
+
+        self.action_space = action_space
+        self.discrete = isinstance(self.action_space, Discrete)
+
+        if self.discrete:
+            assert isinstance(self.action_space, Discrete)
+            self.num_actions = self.action_space.n
+            self.action_low, self.action_high = None, None
+        else:
+            assert isinstance(self.action_space, Box)
+            self.num_actions = self.action_space.shape[0]
+            self.action_low, self.action_high = torch.tensor(self.action_space.low), torch.tensor(self.action_space.high)
 
     # TO IMPLEMENT
     def forward(
@@ -32,6 +52,12 @@ class BaseModel(nn.Module):
         raise NotImplementedError
 
     def value(self, x: Observation, state: Tuple) -> Tensor:
+        raise NotImplementedError
+
+    def latent(self, x: Observation, state: Tuple) -> Tensor:
+        raise NotImplementedError
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
         raise NotImplementedError
 
     # Built-ins
@@ -44,10 +70,16 @@ class BaseModel(nn.Module):
 
     def cuda(self, *args, **kwargs):
         super().cuda(*args, **kwargs)
+        if not self.discrete:
+            self.action_low = self.action_low.to("cuda")
+            self.action_high = self.action_high.to("cuda")
         self.device = "cuda"
 
     def cpu(self):
         super().cpu()
+        if not self.discrete:
+            self.action_low = self.action_low.to("cpu")
+            self.action_high = self.action_high.to("cpu")
         self.device = "cpu"
 
 
@@ -101,3 +133,11 @@ class FCNetwork(nn.Module):
             x = self.activation(x)
 
         return [head(x) for head in self.heads]
+
+    def latent(self, x: Tensor) -> Tensor:
+        for i, layer in enumerate(self.hidden_layers):
+            x = layer(x)
+            if i < len(self.hidden_layers) - 1:
+                x = self.activation(x)
+
+        return x

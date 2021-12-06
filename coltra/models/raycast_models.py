@@ -1,6 +1,7 @@
 import copy
 from typing import Dict, List, Tuple
 
+from gym import Space
 from torch.distributions import Distribution, Normal
 from typarse import BaseConfig
 
@@ -62,8 +63,8 @@ class LeeNetwork(nn.Module):
 
 
 class LeeModel(BaseModel):
-    def __init__(self, config: Dict):
-        super().__init__()
+    def __init__(self, config: Dict, action_space: Space):
+        super().__init__(config, action_space=action_space)
 
         Config = LeeConfig.clone()
 
