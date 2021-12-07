@@ -72,7 +72,6 @@ class LeeConfig(BaseConfig):
 
 class RelationConfig(BaseConfig):
     input_size: int = 7
-    num_actions: int = 2
     rel_input_size: int = 4
 
     sigma0: float = 1.0

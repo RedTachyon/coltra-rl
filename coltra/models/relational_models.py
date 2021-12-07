@@ -106,7 +106,6 @@ class RelationModel(BaseModel):
         self.sigma0 = self.config.sigma0
         self.input_size = self.config.input_size
         self.latent_size = self.config.com_hidden_layers[-1]
-        self.num_actions = self.config.num_actions
 
         self.policy_network = RelationNetwork(
             vec_input_size=self.config.input_size,
@@ -114,7 +113,7 @@ class RelationModel(BaseModel):
             vec_hidden_layers=self.config.vec_hidden_layers,
             rel_hidden_layers=self.config.rel_hidden_layers,
             com_hidden_layers=self.config.com_hidden_layers,
-            output_sizes=[self.config.num_actions],
+            output_sizes=[self.num_actions],
             is_policy=[True, False],
             activation=self.config.activation,
             initializer=self.config.initializer,
@@ -134,7 +133,7 @@ class RelationModel(BaseModel):
 
         self.logstd = nn.Parameter(
             torch.tensor(self.config.sigma0)
-            * torch.ones(1, self.config.num_actions)
+            * torch.ones(1, self.num_actions)
         )
 
         self.config = self.config.to_dict()
