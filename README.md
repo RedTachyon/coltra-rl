@@ -149,14 +149,14 @@ belong to, e.g. `pursuer_0&env=3`
 A simple interface is using either `MultiGymEnv` for multiagentified Gym environments, or `PettingZooEnv` for PettingZoo envs.
 
 ```python
-from pettingzoo.sisl import pursuit_v3 
+from pettingzoo.sisl import pursuit_v4
 
 from coltra.buffers import Action
 from coltra.envs import PettingZooEnv, MultiGymEnv
 
 # env = MultiGymEnv.get_venv(workers=8, env_name="CartPole-v1")  # Creates 8 copies of CartPole
 
-env = PettingZooEnv.get_venv(workers=8, env_fn=pursuit_v3.parallel_env)  # Creates 8 copies of Pursuit, 8 agents each
+env = PettingZooEnv.get_venv(workers=8, env_fn=pursuit_v4.parallel_env)  # Creates 8 copies of Pursuit, 8 agents each
 
 obs = env.reset()  # Look at the structure of observations
 
