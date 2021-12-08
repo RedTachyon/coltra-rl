@@ -156,7 +156,7 @@ class RelationModel(BaseModel):
         action_distribution: Distribution
         if self.beta:
             [action_a, action_b] = self.policy_network(x)
-            action_a, action_b = action_a.exp(), action_b.exp()
+            action_a, action_b = action_a.exp() + 1, action_b.exp() + 1
             action_distribution = AffineBeta(action_a, action_b, self.action_low, self.action_high)
         else:
             [action_mu] = self.policy_network(x)
