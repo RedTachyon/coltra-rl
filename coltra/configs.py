@@ -74,6 +74,9 @@ class RelationConfig(BaseConfig):
     input_size: int = 7
     rel_input_size: int = 4
 
+    activation: str = "tanh"
+    initializer: str = "orthogonal"
+
     sigma0: float = 1.0
 
     beta: bool = False
@@ -82,5 +85,4 @@ class RelationConfig(BaseConfig):
     rel_hidden_layers: List[int] = [32, 32]
     com_hidden_layers: List[int] = [32, 32]
 
-    activation: str = "tanh"
-    initializer: str = "orthogonal"
+

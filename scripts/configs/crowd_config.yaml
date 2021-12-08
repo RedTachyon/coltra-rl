@@ -40,6 +40,8 @@ model:
   activation: tanh
   initializer: orthogonal
 
+  beta: true
+
   hidden_sizes: [64, 64, 64]
   separate_value: true
 
