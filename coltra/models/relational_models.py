@@ -10,6 +10,7 @@ from typarse import BaseConfig
 from coltra.buffers import Observation
 from coltra.configs import RelationConfig
 from coltra.models.base_models import FCNetwork, BaseModel
+from coltra.utils import AffineBeta
 
 
 class RelationNetwork(nn.Module):
@@ -131,20 +132,28 @@ class RelationModel(BaseModel):
             initializer=self.config.initializer,
         )
 
-        self.logstd = nn.Parameter(
-            torch.tensor(self.config.sigma0)
-            * torch.ones(1, self.num_actions)
-        )
+        if self.config.beta:
+            self.logstd = None
+        else:
+            self.logstd = nn.Parameter(
+                torch.tensor(self.config.sigma0)
+                * torch.ones(1, self.num_actions)
+            )
 
         self.config = self.config.to_dict()
 
     def forward(
             self, x: Observation, state: Tuple = (), get_value: bool = True
     ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
-        [action_mu] = self.policy_network(x)
-        action_std = torch.exp(self.logstd)
-
-        action_distribution = Normal(loc=action_mu, scale=action_std)
+        action_distribution: Distribution
+        if self.action_mode == "beta":
+            [action_a, action_b] = self.policy_network(x.vector)
+            action_a, action_b = action_a.exp(), action_b.exp()
+            action_distribution = AffineBeta(action_a, action_b, self.action_low, self.action_high)
+        else:
+            [action_mu] = self.policy_network(x)
+            action_std = torch.exp(self.logstd)
+            action_distribution = Normal(loc=action_mu, scale=action_std)
 
         extra_outputs = {}
 

@@ -48,7 +48,6 @@ class PPOCrowdTrainer(Trainer):
         super().__init__(agents, env, config)
 
         Config = TrainerConfig.clone()
-
         Config.update(config)
 
         self.agents = agents
@@ -77,8 +76,8 @@ class PPOCrowdTrainer(Trainer):
             # Log the configs
             with open(str(path / "trainer_config.yaml"), "w") as f:
                 yaml.dump(self.config.to_dict(), f)
-            with open(str(path / f"full_config.yaml"), "w") as f:
-                yaml.dump(config, f)
+            # with open(str(path / f"full_config.yaml"), "w") as f:
+            #     yaml.dump(config, f)
 
             self.path = str(path)
         else:

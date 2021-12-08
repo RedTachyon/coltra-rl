@@ -28,20 +28,26 @@ from coltra.utils import find_free_worker
 
 
 class Mode(Enum):
+    Default = -1.0
     Random = 0.0
     Circle = 1.0
     Hallway = 2.0
+    Json = 3.0
 
     @staticmethod
     def from_string(name: str):
+        if name.lower() == "default":
+            return Mode.Default
         if name.lower() == "random":
             return Mode.Random
-        elif name.lower() == "circle":
+        if name.lower() == "circle":
             return Mode.Circle
-        elif name.lower() == "hallway":
+        if name.lower() == "hallway":
             return Mode.Hallway
-        else:
-            raise ValueError(f"{name} is not a valid mode identifier")
+        if name.lower() == "json":
+            return Mode.Json
+
+        raise ValueError(f"{name} is not a valid mode identifier")
 
 
 class Sensor(Enum):

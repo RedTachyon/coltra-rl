@@ -1,7 +1,7 @@
 ---
 trainer:
-  steps: 500
-  workers: 4
+  steps: 200
+  workers: 8
 
   tensorboard_name:
   save_freq: 10
@@ -16,7 +16,7 @@ trainer:
       amsgrad: false
 
     gamma: 0.99
-    eta: 0.5
+    eta: 0.0
     gae_lambda: 0.95
 
     advantage_normalization: true
@@ -35,16 +35,13 @@ trainer:
 
 model:
   input_size:
-  num_actions:
   rel_input_size:
+
   activation: tanh
-  discrete: false
+  initializer: orthogonal
 
   hidden_sizes: [64, 64, 64]
   separate_value: true
-
-
-  conv_filters: 2
 
   sigma0: 1.0
 
@@ -52,21 +49,20 @@ model:
   rel_hidden_layers: [32, 32]
   com_hidden_layers: [32, 32]
 
-  initializer: orthogonal
 
 environment:
-  agents: 20
-  mode: hallway
+  agents: 12
+  mode: default
 
   # Reward coefficients
   potential: 0.4
   goal: 1.0
   collision: -0.3
   sight_radius: 5.0
-  sight_agents: 10.0
+  sight_agents: 15.0
 
-  comfort_speed: 1.4
-  comfort_speed_weight: 1.5
+  comfort_speed: 1.0
+  comfort_speed_weight: -0.0
 
-  comfort_distance: 1.5
-  comfort_distance_weight: 1.0
+  comfort_distance: 0.0
+  comfort_distance_weight: 0.0
