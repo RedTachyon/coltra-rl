@@ -107,6 +107,14 @@ class RelationModel(BaseModel):
         self.sigma0 = self.config.sigma0
         self.input_size = self.config.input_size
         self.latent_size = self.config.com_hidden_layers[-1]
+        self.beta = self.config.beta
+
+        if self.beta:
+            heads = [self.num_actions, self.num_actions]
+            is_policy = [True, True]
+        else:
+            heads = [self.num_actions]
+            is_policy = [True]
 
         self.policy_network = RelationNetwork(
             vec_input_size=self.config.input_size,
@@ -114,8 +122,8 @@ class RelationModel(BaseModel):
             vec_hidden_layers=self.config.vec_hidden_layers,
             rel_hidden_layers=self.config.rel_hidden_layers,
             com_hidden_layers=self.config.com_hidden_layers,
-            output_sizes=[self.num_actions],
-            is_policy=[True, False],
+            output_sizes=heads,
+            is_policy=is_policy,
             activation=self.config.activation,
             initializer=self.config.initializer,
         )
@@ -146,8 +154,8 @@ class RelationModel(BaseModel):
             self, x: Observation, state: Tuple = (), get_value: bool = True
     ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
         action_distribution: Distribution
-        if self.action_mode == "beta":
-            [action_a, action_b] = self.policy_network(x.vector)
+        if self.beta:
+            [action_a, action_b] = self.policy_network(x)
             action_a, action_b = action_a.exp(), action_b.exp()
             action_distribution = AffineBeta(action_a, action_b, self.action_low, self.action_high)
         else:
