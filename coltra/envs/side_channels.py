@@ -70,3 +70,19 @@ class StatsChannel(SideChannel):
         if clear:
             self.msg_buffer = []
         return result
+
+
+class SavePathChannel(SideChannel):
+    def __init__(self) -> None:
+        super().__init__(uuid.UUID("621f0a70-4f87-11ea-a6bf-784f4387d1f8"))
+
+    def send_string(self, data: str) -> None:
+        # Unused, mostly just pro forma
+        # Add the string to an OutgoingMessage
+        msg = OutgoingMessage()
+        msg.write_string(data)
+        # We call this method to queue the data we want to send
+        super().queue_message_to_send(msg)
+
+    def on_message_received(self, msg: IncomingMessage) -> None:
+        raise ValueError("Sending a message through a read-only channel")

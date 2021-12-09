@@ -20,7 +20,7 @@ from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
 
-from .side_channels import StatsChannel
+from .side_channels import StatsChannel, SavePathChannel
 from coltra.buffers import Observation, Action
 from .subproc_vec_env import SubprocVecEnv
 from .base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
@@ -126,12 +126,14 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.engine_channel = EngineConfigurationChannel()
         self.stats_channel = StatsChannel()
         self.param_channel = EnvironmentParametersChannel()
+        self.save_path_channel = SavePathChannel()
 
         self.active_agents: List[str] = []
 
         kwargs.setdefault("side_channels", []).append(self.engine_channel)
         kwargs["side_channels"].append(self.stats_channel)
         kwargs["side_channels"].append(self.param_channel)
+        kwargs["side_channels"].append(self.save_path_channel)
 
         worker_id = find_free_worker(500)
         self.unity = UnityEnvironment(
@@ -259,6 +261,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def reset(self, **kwargs) -> ObsDict:
 
         for (name, value) in kwargs.items():
+            if name == "save_path":
+                self.save_path_channel.send_string(value)
+                continue
             if name == "mode":
                 value = Mode.from_string(value).value
             self.param_channel.set_float_parameter(name, value)

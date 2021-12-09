@@ -19,7 +19,7 @@ from coltra.models.raycast_models import LeeModel
 
 
 class Parser(BaseParser):
-    config: str = "configs/crowd_config.yaml"
+    config: str = "configs/nocollision.yaml"
     iters: int = 500
     env: str
     name: str
