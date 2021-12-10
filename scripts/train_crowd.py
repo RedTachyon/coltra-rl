@@ -175,11 +175,10 @@ if __name__ == "__main__":
             trajectory.add_file(trajectory_path)
             wandb.log_artifact(trajectory)
 
-        env.close()
     finally:
         print("Cleaning up")
         try:
-            env.close()
+            env.close()  # pytype: disable=name-error
             print("Env closed")
         except NameError:
             print("Env wasn't created. Exiting coltra")

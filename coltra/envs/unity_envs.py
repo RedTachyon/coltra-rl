@@ -123,6 +123,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
             self.virtual_display = SmartDisplay(size=virtual_display)
             self.virtual_display.start()
+        else:
+            self.virtual_display = None
         self.engine_channel = EngineConfigurationChannel()
         self.stats_channel = StatsChannel()
         self.param_channel = EnvironmentParametersChannel()
@@ -304,7 +306,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         return info_dict
 
     def close(self):
+        if self.virtual_display:
+            self.virtual_display.stop()
         self.unity.close()
+
 
     def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
         if self.virtual_display:
