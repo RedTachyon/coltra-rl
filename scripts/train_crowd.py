@@ -142,7 +142,7 @@ if __name__ == "__main__":
         for d, i in [(d, i) for d in [True, False] for i in range(1,6)]:
             print(f"Recording {'' if d else 'non'}deterministic video number {i}")
             trajectory_path = os.path.join(trainer.path, "trajectories", f"trajectory_{'det' if d else 'rnd'}_{i}.json")
-            env.reset(save_trajectory=1., save_path=trajectory_path)
+            env.reset(save_path=trajectory_path)
 
             renders, _ = collect_renders(
                 agents,
