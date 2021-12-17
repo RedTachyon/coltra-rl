@@ -139,7 +139,8 @@ if __name__ == "__main__":
         os.mkdir(os.path.join(trainer.path, "trajectories"))
         os.mkdir(os.path.join(trainer.path, "videos"))
 
-        for d, i in [(d, i) for d in [True, False] for i in range(1,6)]:
+        for i in range(6):
+            d = i > 0
             print(f"Recording {'' if d else 'non'}deterministic video number {i}")
             trajectory_path = os.path.join(trainer.path, "trajectories", f"trajectory_{'det' if d else 'rnd'}_{i}.json")
             env.reset(save_path=trajectory_path)

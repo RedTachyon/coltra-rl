@@ -15,7 +15,7 @@ trainer:
       weight_decay: 0
       amsgrad: false
 
-    gamma: 0.99
+    gamma: 0.999
     eta: 0.0
     gae_lambda: 0.95
 
@@ -57,15 +57,14 @@ environment:
   mode: default
 
   # Reward coefficients
-  potential: 1.0
-  goal: 1.0
+  potential: 0.0
+  goal: 0.0
   collision: -0.05
   sight_radius: 5.0
   sight_agents: 15.0
 
   comfort_speed: 1.0
-  comfort_speed_weight: 0
-  comfort_speed_exponent: 1.0
+  comfort_speed_weight: -0.5
 
   comfort_distance: 0.0
   comfort_distance_weight: 0.0
