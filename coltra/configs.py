@@ -17,6 +17,15 @@ class MLPConfig(BaseConfig):
     initializer: str = "kaiming_uniform"
 
 
+class QMLPConfig(BaseConfig):
+    input_size: int = 0  # Must be set
+
+    activation: str = "leaky_relu"
+
+    hidden_sizes: List[int] = [64, 64]
+
+    initializer: str = "kaiming_uniform"
+
 class OptimizerKwargs(BaseConfig):
     lr: float = 1e-4
     betas: Tuple[float, float] = (0.9, 0.999)
