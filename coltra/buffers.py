@@ -32,9 +32,12 @@ class Multitype:
         res = cls()
         keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
         for key in keys:
-            tensors = [torch.as_tensor(value[key]) for value in value_list]
+            stacked = np.stack([value[key] for value in value_list], axis=dim)
+            value = torch.as_tensor(stacked)
 
-            value = torch.stack(tensors, dim=dim)
+            # tensors = [torch.as_tensor(value[key]) for value in value_list]
+
+            # value = torch.stack(tensors, dim=dim)
             res._dict[key] = value
 
         return res
