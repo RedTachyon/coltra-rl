@@ -8,6 +8,7 @@ import wandb
 import yaml
 from matplotlib import pyplot as plt
 from typarse import BaseParser
+import seaborn as sns
 
 from coltra.agents import CAgent, Agent
 from coltra.collectors import collect_renders
@@ -155,8 +156,10 @@ if __name__ == "__main__":
         os.mkdir(os.path.join(trainer.path, "videos"))
         os.mkdir(os.path.join(trainer.path, "images"))
 
+        sns.set()
+
         for i in range(6):
-            d = i > 0
+            d = i == 0
             print(f"Recording {'' if d else 'non'}deterministic video number {i}")
             trajectory_path = os.path.join(
                 trainer.path,
