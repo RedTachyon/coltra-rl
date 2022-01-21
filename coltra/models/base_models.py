@@ -83,6 +83,24 @@ class BaseModel(nn.Module):
         self.device = "cpu"
 
 
+class BaseQModel(nn.Module):
+    def __init__(self, config: dict, action_space: Space):
+        super().__init__()
+        self.raw_config = config
+        self.device = "cpu"
+
+        self.action_space = action_space
+        assert isinstance(self.action_space, Discrete)
+
+        # DQN can only handle discrete actions
+        self.discrete = True
+        self.num_actions = self.action_space.n
+        self.action_low, self.action_high = None, None
+
+    def forward(self, x: Observation, state: Tuple) -> Tuple[Tensor, Tuple]:
+        raise NotImplementedError
+
+
 class FCNetwork(nn.Module):
     def __init__(
         self,

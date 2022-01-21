@@ -11,8 +11,8 @@ from typarse import BaseConfig
 
 from coltra.buffers import Observation
 from coltra.utils import get_activation, AffineBeta
-from coltra.models.base_models import FCNetwork, BaseModel
-from coltra.configs import MLPConfig
+from coltra.models.base_models import FCNetwork, BaseModel, BaseQModel
+from coltra.configs import MLPConfig, QMLPConfig
 
 
 class MLPModel(BaseModel):
@@ -164,3 +164,22 @@ class ImageMLPModel(MLPModel):
 
     def latent_value(self, x: Observation, state: Tuple) -> Tensor:
         return super().latent_value(self._flatten(x), state)
+
+
+class MLPQModel(BaseQModel):
+    def __init__(self, config: dict, action_space: Space):
+        super().__init__(config, action_space)
+
+        Config: QMLPConfig = QMLPConfig.clone()
+
+        Config.update(config)
+        self.config = Config
+
+        self.q_network = FCNetwork(
+            input_size=self.config.input_size,
+            output_sizes=[self.num_actions],
+            hidden_sizes=self.config.hidden_sizes,
+            activation=self.config.activation,
+            initializer=self.config.initializer,
+            is_policy=False,
+        )

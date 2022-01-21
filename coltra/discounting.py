@@ -22,7 +22,7 @@ def get_episode_rewards(
     rewards = rewards.reshape(shape)
     dones = dones.reshape(shape)
     batch_size, num_steps = shape
-    # TODO: FIX THIS SHIT
+
     returns = []
     for i in range(batch_size):
         ep_return = np.float32(0.0)
@@ -108,7 +108,25 @@ def discount_experience(
 
     else:  # UGAE
         raise NotImplementedError
-        # ep_lens = get_episode_lens(dones)
+        # np_last_vals = last_values.detach().cpu().numpy().astype(np.float32)
+        # batch_size = np_last_vals.shape
+        # np_rewards = (
+        #     rewards.detach()
+        #     .cpu()
+        #     .numpy()
+        #     .astype(np.float32)
+        #     .reshape(batch_size + (-1,))
+        # )
+        # np_values = (
+        #     values.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
+        # )
+        # np_dones = (
+        #     dones.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
+        # )
+        # full_size = dones.shape[0]
+        #
+        # ep_lens = get_episode_lengths(np_dones, (batch_size, full_size//batch_size))
+
         # ep_len = ep_lens[0]
         # for val in ep_lens:
         #     assert val == ep_len, "Episodes need to be of constant length for bGAE"
