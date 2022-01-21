@@ -28,6 +28,7 @@ class Parser(BaseParser):
     env: str
     name: str
     model_type: str = "relation"
+    dynamics: Optional[str] = None
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
 
@@ -37,6 +38,7 @@ class Parser(BaseParser):
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
         "model_type": "Type of the information that a model has access to",
+        "dynamics": "Type of dynamics to use",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
     }
@@ -47,6 +49,7 @@ class Parser(BaseParser):
         "env": "e",
         "name": "n",
         "model_type": "mt",
+        "dynamics": "d",
         "start_dir": "sd",
         "start_idx": "si",
     }
@@ -64,6 +67,12 @@ if __name__ == "__main__":
 
         with open(args.config, "r") as f:
             config = yaml.load(f.read(), yaml.Loader)
+
+        if args.dynamics is not None:
+            assert args.dynamics in ("CartesianVelocity", "CartesianAcceleration", "PolarVelocity", "PolarAcceleration"), ValueError(
+                "Wrong dynamics type passed."
+            )
+            config["environment"]["dynamics"] = args.dynamics
 
         trainer_config = config["trainer"]
         model_config = config["model"]
@@ -96,7 +105,7 @@ if __name__ == "__main__":
         model_config["num_actions"] = action_size
 
         wandb.init(
-            project="crowdai",
+            project="crowdai-circle",
             entity="redtachyon",
             sync_tensorboard=True,
             config=config,
