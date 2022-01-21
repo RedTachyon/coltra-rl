@@ -263,12 +263,16 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def reset(self, **kwargs) -> ObsDict:
 
         for (name, value) in kwargs.items():
-            if name == "save_path":
-                self.string_channel.send_string(name, value)
-                continue
+            # if name == "save_path":
+            #     self.string_channel.send_string(name, value)
+            #     continue
+
             if name == "mode":
                 value = Mode.from_string(value).value
-            self.param_channel.set_float_parameter(name, value)
+            if isinstance(value, str):
+                self.string_channel.send_string(name, value)
+            else:
+                self.param_channel.set_float_parameter(name, value)
 
         self.unity.reset()
 
