@@ -180,7 +180,13 @@ if __name__ == "__main__":
 
             # Upload to wandb
 
-            wandb.log({"dashboard": wandb.Image(dashboard_path, caption=f"Dashboard {'det' if d else 'rng'} {i}")})
+            wandb.log(
+                {
+                    "dashboard": wandb.Image(
+                        dashboard_path, caption=f"Dashboard {'det' if d else 'rng'} {i}"
+                    )
+                }
+            )
 
             frame_size = renders.shape[1:3]
 

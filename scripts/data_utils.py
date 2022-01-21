@@ -288,7 +288,9 @@ def set_size(*args):
     plt.rcParams["figure.figsize"] = args
 
 
-def make_dashboard(data: Trajectory, size: int = 3, show: bool = False, save_path: Optional[str] = None):
+def make_dashboard(
+    data: Trajectory, size: int = 3, show: bool = False, save_path: Optional[str] = None
+):
     UNIT_SIZE = size
     GRID = (4, 8)
 
@@ -382,4 +384,3 @@ def make_dashboard(data: Trajectory, size: int = 3, show: bool = False, save_pat
 
     if save_path is not None:
         plt.savefig(save_path)
-
