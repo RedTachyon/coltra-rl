@@ -295,8 +295,6 @@ def make_dashboard(
     GRID = (4, 8)
 
     # set_size(8 * UNIT_SIZE, 4 * UNIT_SIZE)
-    x = np.arange(1, 10)
-
     velocity = get_speed(data)
 
     accel = get_acceleration(data, norm=True)
