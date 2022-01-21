@@ -26,6 +26,7 @@ class QMLPConfig(BaseConfig):
 
     initializer: str = "kaiming_uniform"
 
+
 class OptimizerKwargs(BaseConfig):
     lr: float = 1e-4
     betas: Tuple[float, float] = (0.9, 0.999)
@@ -93,5 +94,3 @@ class RelationConfig(BaseConfig):
     vec_hidden_layers: List[int] = [32, 32]
     rel_hidden_layers: List[int] = [32, 32]
     com_hidden_layers: List[int] = [32, 32]
-
-

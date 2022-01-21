@@ -314,7 +314,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             self.virtual_display.stop()
         self.unity.close()
 
-
     def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
         if self.virtual_display:
             img = self.virtual_display.grab()

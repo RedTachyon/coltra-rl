@@ -6,6 +6,7 @@ import cv2
 import torch
 import wandb
 import yaml
+from matplotlib import pyplot as plt
 from typarse import BaseParser
 
 from coltra.agents import CAgent, Agent
@@ -17,6 +18,8 @@ from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
+
+import data_utils as du
 
 
 class Parser(BaseParser):
@@ -72,8 +75,10 @@ if __name__ == "__main__":
         workers = trainer_config["workers"]
 
         # Initialize the environment
-        env = UnitySimpleCrowdEnv.get_venv(workers, file_name=args.env, no_graphics=True)
-        env.reset(save_trajectory=0.)
+        env = UnitySimpleCrowdEnv.get_venv(
+            workers, file_name=args.env, no_graphics=True
+        )
+        env.reset(save_trajectory=0.0)
 
         # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
@@ -135,15 +140,28 @@ if __name__ == "__main__":
             virtual_display=(1600, 900),
             no_graphics=False,
         )
+        env_config["evaluation_mode"] = 1.0
 
         os.mkdir(os.path.join(trainer.path, "trajectories"))
         os.mkdir(os.path.join(trainer.path, "videos"))
+        os.mkdir(os.path.join(trainer.path, "images"))
 
         for i in range(6):
             d = i > 0
             print(f"Recording {'' if d else 'non'}deterministic video number {i}")
-            trajectory_path = os.path.join(trainer.path, "trajectories", f"trajectory_{'det' if d else 'rnd'}_{i}.json")
-            env.reset(save_path=trajectory_path)
+            trajectory_path = os.path.join(
+                trainer.path,
+                "trajectories",
+                f"trajectory_{'det' if d else 'rnd'}_{i}.json",
+            )
+
+            dashboard_path = os.path.join(
+                trainer.path,
+                "images",
+                f"dashboard_{'det' if d else 'rnd'}_{i}.png",
+            )
+
+            env.reset(save_path=trajectory_path, **env_config)
 
             renders, _ = collect_renders(
                 agents,
@@ -154,10 +172,22 @@ if __name__ == "__main__":
                 deterministic=d,
             )
 
+            # Generate the dashboard
+            trajectory = du.read_trajectory(trajectory_path)
+
+            plt.clf()
+            du.make_dashboard(trajectory, save_path=dashboard_path)
+
+            # Upload to wandb
+
+            wandb.log({"dashboard": wandb.Image(dashboard_path, caption=f"Dashboard {'det' if d else 'rng'} {i}")})
+
             frame_size = renders.shape[1:3]
 
             print("Recording a video")
-            video_path = os.path.join(trainer.path, "videos", f"video_{'det' if d else 'rnd'}_{i}.webm")
+            video_path = os.path.join(
+                trainer.path, "videos", f"video_{'det' if d else 'rnd'}_{i}.webm"
+            )
             out = cv2.VideoWriter(
                 video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
             )
@@ -172,9 +202,11 @@ if __name__ == "__main__":
 
             print("Video uploaded to wandb")
 
-            trajectory = wandb.Artifact(name=f"trajectory_{'det' if d else 'rnd'}_{i}", type="json")
-            trajectory.add_file(trajectory_path)
-            wandb.log_artifact(trajectory)
+            trajectory_artifact = wandb.Artifact(
+                name=f"trajectory_{'det' if d else 'rnd'}_{i}", type="json"
+            )
+            trajectory_artifact.add_file(trajectory_path)
+            wandb.log_artifact(trajectory_artifact)
 
     finally:
         print("Cleaning up")

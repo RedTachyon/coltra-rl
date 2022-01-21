@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     # Initialize the environment
     env = UnitySimpleCrowdEnv.get_venv(workers, file_name=args.env, no_graphics=True)
-    env.reset(save_trajectory=0.)
+    env.reset(save_trajectory=0.0)
 
     # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         virtual_display=(1600, 900),
         no_graphics=False,
     )
-    env.reset(save_trajectory=1.)
+    env.reset(save_trajectory=1.0)
 
     renders, _ = collect_renders(
         agents,
