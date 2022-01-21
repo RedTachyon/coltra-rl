@@ -3,6 +3,7 @@ import os
 from typing import Optional, Type
 
 import cv2
+import numpy as np
 import torch
 import wandb
 import yaml
@@ -30,6 +31,7 @@ class Parser(BaseParser):
     name: str
     model_type: str = "relation"
     dynamics: Optional[str] = None
+    observer: Optional[str] = None
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
 
@@ -40,6 +42,7 @@ class Parser(BaseParser):
         "name": "Name of the tb directory to store the logs",
         "model_type": "Type of the information that a model has access to",
         "dynamics": "Type of dynamics to use",
+        "observer": "Type of observer to use",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
     }
@@ -51,6 +54,7 @@ class Parser(BaseParser):
         "name": "n",
         "model_type": "mt",
         "dynamics": "d",
+        "observer": "o",
         "start_dir": "sd",
         "start_idx": "si",
     }
@@ -74,6 +78,12 @@ if __name__ == "__main__":
                 "Wrong dynamics type passed."
             )
             config["environment"]["dynamics"] = args.dynamics
+
+        if args.observer is not None:
+            assert args.observer in ("Absolute", "Relative", "RotRelative"), ValueError(
+                "Wrong observer type passed."
+            )
+            config["environment"]["observer"] = args.observer
 
         trainer_config = config["trainer"]
         model_config = config["model"]
@@ -177,7 +187,7 @@ if __name__ == "__main__":
             env.reset(save_path=trajectory_path, **env_config)
             print(f"Collecting data for {'' if d else 'non'}deterministic video number {i}")
 
-            renders, _ = collect_renders(
+            renders, returns = collect_renders(
                 agents,
                 env,
                 num_steps=trainer_config["steps"],
@@ -185,6 +195,8 @@ if __name__ == "__main__":
                 env_kwargs=env_config,
                 deterministic=d,
             )
+
+            print(f"Mean return: {np.mean(returns)}")
 
             # Generate the dashboard
             print("Generating dashboard")

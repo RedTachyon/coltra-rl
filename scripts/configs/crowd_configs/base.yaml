@@ -63,9 +63,9 @@ environment:
   radius: 5.0
   sight_agents: 15.0
 
-  comfort_speed: 1.5
+  comfort_speed: 1.0
   comfort_speed_weight: -0.5
-  comfort_speed_exponent: 2.0
+  comfort_speed_exponent: 1.0
 
   comfort_distance: 0.0
   comfort_distance_weight: 0.0
