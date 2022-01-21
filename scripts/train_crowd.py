@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
         env.close()
 
-        print("Training complete. Collecting renders")
+        print("Training complete. Evaluation starting.")
 
         env = UnitySimpleCrowdEnv(
             file_name=args.env,
@@ -157,10 +157,11 @@ if __name__ == "__main__":
         os.mkdir(os.path.join(trainer.path, "images"))
 
         sns.set()
+        UNIT_SIZE = 3
+        plt.rcParams['figure.figsize'] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
 
         for i in range(6):
             d = i == 0
-            print(f"Recording {'' if d else 'non'}deterministic video number {i}")
             trajectory_path = os.path.join(
                 trainer.path,
                 "trajectories",
@@ -174,6 +175,7 @@ if __name__ == "__main__":
             )
 
             env.reset(save_path=trajectory_path, **env_config)
+            print(f"Collecting data for {'' if d else 'non'}deterministic video number {i}")
 
             renders, _ = collect_renders(
                 agents,
@@ -185,13 +187,14 @@ if __name__ == "__main__":
             )
 
             # Generate the dashboard
+            print("Generating dashboard")
             trajectory = du.read_trajectory(trajectory_path)
 
             plt.clf()
             du.make_dashboard(trajectory, save_path=dashboard_path)
 
             # Upload to wandb
-
+            print("Uploading dashboard")
             wandb.log(
                 {
                     "dashboard": wandb.Image(

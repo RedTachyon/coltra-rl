@@ -291,10 +291,10 @@ def set_size(*args):
 def make_dashboard(
     data: Trajectory, size: int = 3, show: bool = False, save_path: Optional[str] = None
 ):
-    UNIT_SIZE = size
+    # UNIT_SIZE = size
     GRID = (4, 8)
 
-    set_size(8 * UNIT_SIZE, 4 * UNIT_SIZE)
+    # set_size(8 * UNIT_SIZE, 4 * UNIT_SIZE)
     x = np.arange(1, 10)
 
     velocity = get_speed(data)
