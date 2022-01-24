@@ -32,6 +32,7 @@ class Parser(BaseParser):
     model_type: str = "relation"
     dynamics: Optional[str] = None
     observer: Optional[str] = None
+    project: Optional[str] = None
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
 
@@ -43,6 +44,7 @@ class Parser(BaseParser):
         "model_type": "Type of the information that a model has access to",
         "dynamics": "Type of dynamics to use",
         "observer": "Type of observer to use",
+        "project": "Type of project to use",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
     }
@@ -55,6 +57,7 @@ class Parser(BaseParser):
         "model_type": "mt",
         "dynamics": "d",
         "observer": "o",
+        "project": "p",
         "start_dir": "sd",
         "start_idx": "si",
     }
@@ -116,7 +119,7 @@ if __name__ == "__main__":
         model_config["num_actions"] = action_size
 
         wandb.init(
-            project="crowdai-circle",
+            project="crowdai" if args.project is None else args.project,
             entity="redtachyon",
             sync_tensorboard=True,
             config=config,
@@ -240,6 +243,8 @@ if __name__ == "__main__":
             )
             trajectory_artifact.add_file(trajectory_path)
             wandb.log_artifact(trajectory_artifact)
+
+        env.close()
 
     finally:
         print("Cleaning up")

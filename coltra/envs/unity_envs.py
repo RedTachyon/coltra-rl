@@ -115,6 +115,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self,
         file_name: Optional[str] = None,
         virtual_display: Optional[tuple[int, int]] = None,
+        worker_id: Optional[int] = None,
         **kwargs,
     ):
         super().__init__()
@@ -137,7 +138,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         kwargs["side_channels"].append(self.param_channel)
         kwargs["side_channels"].append(self.string_channel)
 
-        worker_id = find_free_worker(500)
+        if worker_id is None:
+            worker_id = find_free_worker(500)
+
+        print(f"Using worker id {worker_id}")
         self.unity = UnityEnvironment(
             file_name=file_name, worker_id=worker_id, **kwargs
         )
@@ -340,11 +344,14 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def get_venv(
         cls, workers: int = 8, file_name: Optional[str] = None, *args, **kwargs
     ) -> SubprocVecEnv:
+        base_worker_id = find_free_worker(500)
+        # print(f"Using worker id {worker_id}")
         venv = SubprocVecEnv(
             [
                 cls.get_env_creator(
                     file_name=file_name,
                     seed=i,
+                    worker_id=base_worker_id + i,
                     *args,
                     **kwargs,
                 )
@@ -352,3 +359,4 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             ]
         )
         return venv
+
