@@ -8,6 +8,7 @@ import torch
 import wandb
 import yaml
 from matplotlib import pyplot as plt
+from mlagents_envs.exception import UnityEnvironmentException
 from typarse import BaseParser
 import seaborn as sns
 
@@ -253,3 +254,5 @@ if __name__ == "__main__":
             print("Env closed")
         except NameError:
             print("Env wasn't created. Exiting coltra")
+        except UnityEnvironmentException:
+            print("Env already closed. Exiting coltra")
