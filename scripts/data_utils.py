@@ -334,7 +334,6 @@ def make_dashboard(
     ### VELOCITY ###
     ################
 
-    plt.title("Acceleration histogram")
     ax = plt.subplot2grid(GRID, (0, 2), rowspan=2, colspan=3)
 
     # plot_velocity_profile(data, use_ste=True)
