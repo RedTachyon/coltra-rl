@@ -274,18 +274,18 @@ class CrowdPPOptimizer:
         ep_lens = get_episode_lengths(dones.numpy(), shape)
 
         # Episode length metrics
-        metrics[f"{agent_id}/episode_len_mean"] = np.mean(ep_lens)
-        metrics[f"{agent_id}/episode_len_median"] = np.median(ep_lens)
-        metrics[f"{agent_id}/episode_len_min"] = np.min(ep_lens)
-        metrics[f"{agent_id}/episode_len_max"] = np.max(ep_lens)
-        metrics[f"{agent_id}/episode_len_std"] = np.std(ep_lens)
+        metrics[f"{agent_id}/mean_episode_len"] = np.mean(ep_lens)
+        metrics[f"{agent_id}/median_episode_len"] = np.median(ep_lens)
+        metrics[f"{agent_id}/min_episode_len"] = np.min(ep_lens)
+        metrics[f"{agent_id}/max_episode_len"] = np.max(ep_lens)
+        metrics[f"{agent_id}/std_episode_len"] = np.std(ep_lens)
 
         # Episode reward metrics
-        metrics[f"{agent_id}/episode_reward_mean"] = np.mean(ep_rewards)
-        metrics[f"{agent_id}/episode_reward_median"] = np.median(ep_rewards)
-        metrics[f"{agent_id}/episode_reward_min"] = np.min(ep_rewards)
-        metrics[f"{agent_id}/episode_reward_max"] = np.max(ep_rewards)
-        metrics[f"{agent_id}/episode_reward_std"] = np.std(ep_rewards)
+        metrics[f"{agent_id}/mean_episode_reward"] = np.mean(ep_rewards)
+        metrics[f"{agent_id}/median_episode_reward"] = np.median(ep_rewards)
+        metrics[f"{agent_id}/min_episode_reward"] = np.min(ep_rewards)
+        metrics[f"{agent_id}/max_episode_reward"] = np.max(ep_rewards)
+        metrics[f"{agent_id}/std_episode_reward"] = np.std(ep_rewards)
 
         # Other metrics
         metrics[f"meta/episodes_this_iter"] = dones.sum().item()
