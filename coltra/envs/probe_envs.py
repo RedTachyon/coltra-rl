@@ -13,9 +13,10 @@ import wandb
 
 class ConstRewardEnv(MultiAgentEnv):
     def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
-        super().__init__(seed)
+        super().__init__()
         self.num_agents = num_agents
         self.active_agents = [f"Agent{i}" for i in range(num_agents)]
+        self.rng = np.random.default_rng(seed)
 
         self.obs_vector_size = 1
         self.action_vector_size = 1
@@ -56,9 +57,10 @@ class ConstRewardEnv(MultiAgentEnv):
 
 class ObsDependentRewardEnv(MultiAgentEnv):
     def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
-        super().__init__(seed)
+        super().__init__()
         self.num_agents = num_agents
         self.active_agents = [f"Agent{i}" for i in range(num_agents)]
+        self.rng = np.random.default_rng(seed)
 
         self.obs_vector_size = 1
         self.action_vector_size = 1
@@ -108,9 +110,10 @@ class ObsDependentRewardEnv(MultiAgentEnv):
 
 class ActionDependentRewardEnv(MultiAgentEnv):
     def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
-        super().__init__(seed)
+        super().__init__()
         self.num_agents = num_agents
         self.active_agents = [f"Agent{i}" for i in range(num_agents)]
+        self.rng = np.random.default_rng(seed)
 
         self.obs_vector_size = 1
         self.action_vector_size = 1
@@ -155,10 +158,11 @@ class StateActionDependentRewardEnv(MultiAgentEnv):
     def __init__(
         self, num_agents: int = 1, ep_end_prob: float = 0.1, seed: Optional[int] = None
     ):
-        super().__init__(seed)
+        super().__init__()
         self.num_agents = num_agents
         self.ep_end_prob = ep_end_prob
         self.active_agents = [f"Agent{i}" for i in range(num_agents)]
+        self.rng = np.random.default_rng(seed)
 
         self.obs_vector_size = 1
         self.action_vector_size = 1

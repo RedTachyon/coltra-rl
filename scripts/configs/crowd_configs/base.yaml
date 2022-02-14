@@ -58,13 +58,13 @@ environment:
 
   # Reward coefficients
   potential: 1.0
-  goal: 1.0
+  goal: 10.0
   collision: -0.05
   radius: 5.0
-  sight_agents: 15.0
+  sight_agents: 12.0
 
-  comfort_speed: 1.0
-  comfort_speed_weight: -0.5
+  comfort_speed: 1.5
+  comfort_speed_weight: -0.01
   comfort_speed_exponent: 1.0
 
   comfort_distance: 0.0

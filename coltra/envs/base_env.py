@@ -216,10 +216,9 @@ class MultiAgentEnv(gym.Env):
     and most interactions are communicated through that API (actions, states, etc)
     """
 
-    def __init__(self, seed: Optional[int] = None, **kwargs):
+    def __init__(self, **kwargs):
         self.config = {}
         self.active_agents: List = []
-        self.rng = np.random.default_rng(seed)
 
     def reset(self, *args, **kwargs) -> ObsDict:
         """

@@ -249,6 +249,7 @@ if __name__ == "__main__":
 
     finally:
         print("Cleaning up")
+        wandb.finish(0)
         try:
             env.close()  # pytype: disable=name-error
             print("Env closed")
