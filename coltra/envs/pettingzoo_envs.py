@@ -8,12 +8,15 @@ from coltra.buffers import Observation
 from coltra.envs import MultiAgentEnv, SubprocVecEnv
 from coltra.envs.base_env import VecEnv, ActionDict, StepReturn, ObsDict
 
+def sigmoid(x: np.ndarray):
+    return 1.0 / (1.0 + np.exp(-x))
 
 class PettingZooEnv(MultiAgentEnv):
-    def __init__(self, env_creator: Callable[..., ParallelEnv], **kwargs):
+    def __init__(self, env_creator: Callable[..., ParallelEnv], sigmoid: bool = False, **kwargs):
         super().__init__()
         self.pz_env = env_creator(**kwargs)
         self.active_agents = self.pz_env.possible_agents
+        self.sigmoid = sigmoid
 
         agent_name = self.pz_env.possible_agents[0]
         self.action_space = self.pz_env.action_spaces[agent_name]
@@ -42,10 +45,14 @@ class PettingZooEnv(MultiAgentEnv):
                 agent_id: action_dict[agent_id].discrete for agent_id in action_dict
             }
         else:
-            action = {
-                agent_id: action_dict[agent_id].continuous for agent_id in action_dict
-            }
-
+            if self.sigmoid:
+                action = {
+                    agent_id: sigmoid(action_dict[agent_id].continuous) for agent_id in action_dict
+                }
+            else:
+                action = {
+                    agent_id: action_dict[agent_id].continuous for agent_id in action_dict
+                }
         obs, reward, done, info = self.pz_env.step(action)
 
         if all(done.values()):
