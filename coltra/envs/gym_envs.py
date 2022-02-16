@@ -29,7 +29,7 @@ class MultiGymEnv(MultiAgentEnv):
         wrappers: Optional[list[Type[Wrapper]]] = None,
         **kwargs
     ):
-        super().__init__(seed)
+        super().__init__()
         if wrappers is None:
             wrappers = []
         if "Bullet" in env_name:

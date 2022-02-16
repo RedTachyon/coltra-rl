@@ -36,6 +36,7 @@ class Parser(BaseParser):
     project: Optional[str] = None
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
+    speed_coeff: Optional[float] = None
 
     _help = {
         "config": "Config file for the coltra",
@@ -48,6 +49,7 @@ class Parser(BaseParser):
         "project": "Type of project to use",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
+        "speed_coeff": "Reward weighing parameter",
     }
 
     _abbrev = {
@@ -61,6 +63,7 @@ class Parser(BaseParser):
         "project": "p",
         "start_dir": "sd",
         "start_idx": "si",
+        "speed_coeff": "sc",
     }
 
 
@@ -89,6 +92,8 @@ if __name__ == "__main__":
             )
             config["environment"]["observer"] = args.observer
 
+        if args.speed_coeff is not None:
+            config["environment"]["comfort_speed_weight"] = args.speed_coeff
         trainer_config = config["trainer"]
         model_config = config["model"]
         env_config = config["environment"]
