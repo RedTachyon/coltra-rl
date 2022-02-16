@@ -1,4 +1,4 @@
-import multiprocessing
+import multiprocessing as mp
 from collections import OrderedDict
 from typing import Sequence, Any, Dict, List, Callable, Union, Optional
 
@@ -11,7 +11,11 @@ from .base_env import VecEnv, CloudpickleWrapper
 from .base_env import MultiAgentEnv
 
 
-def _worker(remote, parent_remote, env_fn_wrapper):
+def _worker(
+    remote: mp.connection.Connection,
+    parent_remote: mp.connection.Connection,
+    env_fn_wrapper: CloudpickleWrapper,
+):
     parent_remote.close()
     env = env_fn_wrapper.var()
     while True:
@@ -51,9 +55,7 @@ def _worker(remote, parent_remote, env_fn_wrapper):
             elif cmd == "envs":
                 remote.send(env)
             else:
-                raise NotImplementedError(
-                    f"`{cmd}` is not implemented in the worker"
-                )
+                raise NotImplementedError(f"`{cmd}` is not implemented in the worker")
         except EOFError:
             break
 
@@ -83,7 +85,11 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
            Defaults to 'forkserver' on available platforms, and 'spawn' otherwise.
     """
 
-    def __init__(self, env_fns: List[Callable], start_method: Optional[str] = None):
+    def __init__(
+        self,
+        env_fns: list[Callable[[], MultiAgentEnv]],
+        start_method: Optional[str] = None,
+    ):
         self.waiting = False
         self.closed = False
         n_envs = len(env_fns)
@@ -92,11 +98,9 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
             # Fork is not a thread safe method (see issue #217)
             # but is more user friendly (does not require to wrap the code in
             # a `if __name__ == "__main__":`)
-            forkserver_available = (
-                "forkserver" in multiprocessing.get_all_start_methods()
-            )
+            forkserver_available = "forkserver" in mp.get_all_start_methods()
             start_method = "forkserver" if forkserver_available else "spawn"
-        ctx = multiprocessing.get_context(start_method)
+        ctx = mp.get_context(start_method)
 
         self.remotes, self.work_remotes = zip(
             *[ctx.Pipe(duplex=True) for _ in range(n_envs)]

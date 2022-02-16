@@ -359,4 +359,3 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             ]
         )
         return venv
-

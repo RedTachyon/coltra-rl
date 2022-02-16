@@ -81,9 +81,12 @@ if __name__ == "__main__":
             config = yaml.load(f.read(), yaml.Loader)
 
         if args.dynamics is not None:
-            assert args.dynamics in ("CartesianVelocity", "CartesianAcceleration", "PolarVelocity", "PolarAcceleration"), ValueError(
-                "Wrong dynamics type passed."
-            )
+            assert args.dynamics in (
+                "CartesianVelocity",
+                "CartesianAcceleration",
+                "PolarVelocity",
+                "PolarAcceleration",
+            ), ValueError("Wrong dynamics type passed.")
             config["environment"]["dynamics"] = args.dynamics
 
         if args.observer is not None:
@@ -177,7 +180,7 @@ if __name__ == "__main__":
 
         sns.set()
         UNIT_SIZE = 3
-        plt.rcParams['figure.figsize'] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
+        plt.rcParams["figure.figsize"] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
 
         for i in range(6):
             d = i == 0
@@ -194,7 +197,9 @@ if __name__ == "__main__":
             )
 
             env.reset(save_path=trajectory_path, **env_config)
-            print(f"Collecting data for {'' if d else 'non'}deterministic video number {i}")
+            print(
+                f"Collecting data for {'' if d else 'non'}deterministic video number {i}"
+            )
 
             renders, returns = collect_renders(
                 agents,
