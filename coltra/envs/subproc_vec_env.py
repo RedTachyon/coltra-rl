@@ -52,7 +52,7 @@ def _worker(remote, parent_remote, env_fn_wrapper):
                 remote.send(env)
             else:
                 raise NotImplementedError(
-                    "`{}` is not implemented in the worker".format(cmd)
+                    f"`{cmd}` is not implemented in the worker"
                 )
         except EOFError:
             break
