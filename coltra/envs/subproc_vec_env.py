@@ -72,7 +72,7 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
 
         Only 'forkserver' and 'spawn' start methods are thread-safe,
         which is important when TensorFlow sessions or other non thread-safe
-        libraries are used in the parent (see issue #217). However, compared to
+        libraries are used in the parent (see issue #217 @ SB3). However, compared to
         'fork' they incur a small start-up cost and have restrictions on
         global variables. With those methods, users must wrap the code in an
         ``if __name__ == "__main__":`` block.

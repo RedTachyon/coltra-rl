@@ -1,5 +1,6 @@
 import itertools
 import os
+from logging import ERROR
 from typing import Optional, Type
 
 import cv2
@@ -9,6 +10,7 @@ import wandb
 import yaml
 from matplotlib import pyplot as plt
 from mlagents_envs.exception import UnityEnvironmentException
+from mlagents_envs.logging_util import get_logger, set_log_level
 from typarse import BaseParser
 import seaborn as sns
 
@@ -24,6 +26,7 @@ from coltra.models.raycast_models import LeeModel
 
 import data_utils as du
 
+set_log_level(ERROR)
 
 class Parser(BaseParser):
     config: str = "configs/nocollision.yaml"
