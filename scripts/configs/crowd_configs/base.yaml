@@ -64,7 +64,7 @@ environment:
   sight_agents: 12.0
 
   comfort_speed: 1.5
-  comfort_speed_weight: -0.01
+  comfort_speed_weight: -0.75
   comfort_speed_exponent: 1.0
 
   comfort_distance: 0.0

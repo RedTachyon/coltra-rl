@@ -220,7 +220,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         stats = self.stats_channel.parse_info(clear=step)
         # stats = parse_side_message(self.stats_channel.last_msg)
         for key in stats:
-            info_dict["m_" + key] = stats[key]
+            info_dict[key if key.startswith("e_") else "m_" + key] = stats[key]
 
         return obs_dict, reward_dict, done_dict, info_dict
 
