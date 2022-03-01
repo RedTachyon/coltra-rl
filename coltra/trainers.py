@@ -136,16 +136,16 @@ class PPOCrowdTrainer(Trainer):
 
             # Write remaining metrics to tensorboard
             extra_metric = {
-                f"crowd/time_data_collection": data_time,
-                f"crowd/total_time": end_time,
+                f"meta/time_data_collection": data_time,
+                f"meta/total_time": end_time,
             }
 
             for key in collector_metrics:
                 extra_metric[f"stats/mean_{key}"] = np.mean(collector_metrics[key])
-                extra_metric[f"stats/min_{key}"] = np.min(collector_metrics[key])
-                extra_metric[f"stats/max_{key}"] = np.max(collector_metrics[key])
-                extra_metric[f"stats/std_{key}"] = np.std(collector_metrics[key])
-                extra_metric[f"stats/median_{key}"] = np.median(collector_metrics[key])
+                extra_metric[f"stats_extra/min_{key}"] = np.min(collector_metrics[key])
+                extra_metric[f"stats_extra/max_{key}"] = np.max(collector_metrics[key])
+                extra_metric[f"stats_extra/std_{key}"] = np.std(collector_metrics[key])
+                extra_metric[f"stats_extra/median_{key}"] = np.median(collector_metrics[key])
 
                 # extra_metric[f"stats/{key}_100"] = np.mean(collector_metrics[key][:100])
                 # extra_metric[f"stats/{key}_l100"] = np.mean(

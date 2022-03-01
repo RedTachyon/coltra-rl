@@ -11,6 +11,7 @@ from coltra.agents import Agent
 from coltra.buffers import Observation, Action
 
 AgentName = str
+AgentNameStub = str
 PolicyName = str
 
 
@@ -19,7 +20,7 @@ class PolicyNameError(Exception):
 
 
 class MacroAgent(abc.ABC):
-    policy_mapping: Dict[AgentName, PolicyName]
+    policy_mapping: Dict[AgentNameStub, PolicyName]
 
     def get_policy_name(self, agent_name: AgentName) -> PolicyName:
         policy_mapping = {
@@ -205,8 +206,8 @@ class HomogeneousGroup(MacroAgent):
         weights_path = os.path.join(base_path, "saved_weights", f"weights_{idx}")
         weights = torch.load(weights_path, map_location=self.agent.model.device)
         self.agent.model.load_state_dict(weights)
-
-
+#
+#
 # class HeterogeneousGroup(MacroAgent):
 #     """
 #     A "macroagent" combining several individual agents
@@ -214,40 +215,35 @@ class HomogeneousGroup(MacroAgent):
 #
 #     def __init__(
 #         self,
-#         agents: Dict[str, Agent],
-#         policy_mapper: Callable[[str], str] = lambda x: x,
+#         agents: dict[PolicyName, Agent],
+#         policy_mapping: Optional[dict[AgentNameStub, PolicyName]] = None,
 #     ):
 #         super().__init__()
-#         self.agents = {key: HomogeneousGroup(agent) for key, agent in agents.items()}
-#         self.policy_mapper = policy_mapper
+#         self.agents: dict[PolicyName, MacroAgent] = {key: HomogeneousGroup(agent) for key, agent in agents.items()}
+#         self.policy_mapping = policy_mapping or {"": "agent"}
+#
+#         self.policy_names = list(set(self.policy_mapping.values()))
 #
 #     def act(
 #         self,
-#         obs_dict: Dict[str, Observation],
+#         obs_dict: dict[str, Observation],
 #         deterministic: bool = False,
 #         get_value: bool = False,
 #     ):
 #
-#         policy_obs: Dict[str, Observation] = {}
+#         policy_obs: dict[PolicyName, dict[AgentName, Observation]] = {}
 #
-#         for key, obs in obs_dict:
-#             policy_name = self.policy_mapper(key)
-#             policy_obs.setdefault(policy_name, {})[key] = obs
+#         for agent_id, obs in obs_dict:
+#             policy_name = self.get_policy_name(agent_id)
+#             policy_obs.setdefault(policy_name, {})[agent_id] = obs
 #
-#         assert set(policy_obs.keys()).issubset(self.agents.keys())
-#         # TODO: Reconsider variable names here
-#
-#         all_actions = {}
-#         all_extras = {}
-#         states = ()  # TODO: fix for recurrent policies
-#
-#         for policy_name, obs in policy_obs:
+#         actions = {}
+#         extras = {}
+#         for policy_name, policy_obs_dict in policy_obs:
 #             agent = self.agents[policy_name]
-#             actions_dict, states, extra = agent.act(obs, deterministic, get_value)
+#             policy_actions, states, extra = agent.act(policy_obs_dict, deterministic, get_value)
+#             actions = {**actions, **policy_actions}
+#             for extra_dict in extra:
+#                 extras.setdefault(policy_name, []).append(extra_dict)
 #
-#             all_actions.update(actions_dict)
-#
-#             for key, extra_dict in extra:
-#                 all_extras.setdefault(key, {}).update(extra_dict)
-#
-#         return all_actions, states, all_extras
+#         # TODO: coalesce the different extras into a single dict
