@@ -28,6 +28,7 @@ import data_utils as du
 
 set_log_level(ERROR)
 
+
 class Parser(BaseParser):
     config: str = "configs/nocollision.yaml"
     iters: int = 500

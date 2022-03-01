@@ -220,8 +220,11 @@ class StateActionDependentRewardEnv(MultiAgentEnv):
         venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
+
 class EpisodicMetricEnv(MultiAgentEnv):
-    def __init__(self, num_agents: int = 1, ep_len: int = 2, seed: Optional[int] = None):
+    def __init__(
+        self, num_agents: int = 1, ep_len: int = 2, seed: Optional[int] = None
+    ):
         super().__init__()
         self.num_agents = num_agents
         self.active_agents = [f"Agent{i}" for i in range(num_agents)]
@@ -282,6 +285,7 @@ class EpisodicMetricEnv(MultiAgentEnv):
     def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
         venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
+
 
 probe_env_classes = [
     ConstRewardEnv,

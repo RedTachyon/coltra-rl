@@ -206,6 +206,8 @@ class HomogeneousGroup(MacroAgent):
         weights_path = os.path.join(base_path, "saved_weights", f"weights_{idx}")
         weights = torch.load(weights_path, map_location=self.agent.model.device)
         self.agent.model.load_state_dict(weights)
+
+
 #
 #
 # class HeterogeneousGroup(MacroAgent):

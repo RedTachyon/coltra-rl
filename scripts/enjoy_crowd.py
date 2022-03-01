@@ -14,6 +14,7 @@ from coltra.groups import HomogeneousGroup
 
 set_log_level(ERROR)
 
+
 class Parser(BaseParser):
     config: str = "configs/nocollision.yaml"
     iters: int = 500
@@ -89,7 +90,6 @@ if __name__ == "__main__":
         for _ in trange(args.iters):
             action, _, _ = group.act(obs, deterministic=False)
             obs, _, _, _ = env.step(action)
-
 
     finally:
         print("Cleaning up")

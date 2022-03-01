@@ -145,7 +145,9 @@ class PPOCrowdTrainer(Trainer):
                 extra_metric[f"stats_extra/min_{key}"] = np.min(collector_metrics[key])
                 extra_metric[f"stats_extra/max_{key}"] = np.max(collector_metrics[key])
                 extra_metric[f"stats_extra/std_{key}"] = np.std(collector_metrics[key])
-                extra_metric[f"stats_extra/median_{key}"] = np.median(collector_metrics[key])
+                extra_metric[f"stats_extra/median_{key}"] = np.median(
+                    collector_metrics[key]
+                )
 
                 # extra_metric[f"stats/{key}_100"] = np.mean(collector_metrics[key][:100])
                 # extra_metric[f"stats/{key}_l100"] = np.mean(

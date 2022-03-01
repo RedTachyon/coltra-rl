@@ -7,8 +7,8 @@ import numpy as np
 
 from coltra.buffers import Observation
 from coltra.utils import parse_agent_name
-from .base_env import VecEnv, CloudpickleWrapper
-from .base_env import MultiAgentEnv
+from coltra.envs.base_env import VecEnv, CloudpickleWrapper
+from coltra.envs.base_env import MultiAgentEnv
 
 
 def _worker(
