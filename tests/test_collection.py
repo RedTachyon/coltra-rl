@@ -27,7 +27,7 @@ def test_const_reward():
 
     assert all(data.done)
     assert env.render() == 0
-    assert stats["stat"].shape == (100,)
+    assert stats["m_stat"].shape == (100,)
 
     assert isinstance(data.obs.vector, Tensor)
     assert isinstance(data.action.continuous, Tensor)

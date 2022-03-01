@@ -141,11 +141,18 @@ class PPOCrowdTrainer(Trainer):
             }
 
             for key in collector_metrics:
-                extra_metric[f"stats/mean_{key}"] = np.mean(collector_metrics[key])
-                extra_metric[f"stats_extra/min_{key}"] = np.min(collector_metrics[key])
-                extra_metric[f"stats_extra/max_{key}"] = np.max(collector_metrics[key])
-                extra_metric[f"stats_extra/std_{key}"] = np.std(collector_metrics[key])
-                extra_metric[f"stats_extra/median_{key}"] = np.median(
+                if key.startswith("m_"):
+                    section = "stats"
+                elif key.startswith("e_"):
+                    section = "episode"
+                else:
+                    raise ValueError(f"Unknown metric type: {key}")
+                metric_name = key[2:]
+                extra_metric[f"{section}/mean_{metric_name}"] = np.mean(collector_metrics[key])
+                extra_metric[f"{section}_extra/min_{metric_name}"] = np.min(collector_metrics[key])
+                extra_metric[f"{section}_extra/max_{metric_name}"] = np.max(collector_metrics[key])
+                extra_metric[f"{section}_extra/std_{metric_name}"] = np.std(collector_metrics[key])
+                extra_metric[f"{section}_extra/median_{metric_name}"] = np.median(
                     collector_metrics[key]
                 )
 

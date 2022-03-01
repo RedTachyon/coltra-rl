@@ -75,7 +75,7 @@ def collect_crowd_data(
         }
 
         for key in all_metrics:
-            metrics.setdefault(key[2:], []).append(all_metrics[key])
+            metrics.setdefault(key, []).append(all_metrics[key])
 
         memory.append(obs_dict, action_dict, reward_dict, values_dict, done_dict)
 

@@ -36,4 +36,4 @@ def test_collect():
     data = data[agents.policy_name]
 
     assert data.obs.vector.shape == (8 * 10 * 500, 1)
-    assert stats["stat"].shape == (500 * 8,)
+    assert stats["m_stat"].shape == (500 * 8,)
