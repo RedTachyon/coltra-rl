@@ -7,7 +7,7 @@ import numpy as np
 from coltra.buffers import Observation, Action
 from coltra.utils import np_float
 from coltra.envs.base_env import MultiAgentEnv
-from coltra.envs.subproc_vec_env import VecEnv, SubprocVecEnv
+from coltra.envs.subproc_vec_env import SubprocVecEnv
 
 
 def import_bullet():
