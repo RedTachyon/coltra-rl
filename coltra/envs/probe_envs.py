@@ -4,11 +4,9 @@ from gym.spaces import Box, Discrete
 import numpy as np
 
 from coltra.buffers import Observation, Action
-from .base_env import MultiAgentEnv
-from .subproc_vec_env import SubprocVecEnv
-from ..utils import np_float
-
-import wandb
+from coltra.envs.base_env import MultiAgentEnv
+from coltra.envs.subproc_vec_env import SubprocVecEnv
+from coltra.utils import np_float
 
 
 class ConstRewardEnv(MultiAgentEnv):
