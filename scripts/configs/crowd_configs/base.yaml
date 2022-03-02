@@ -60,10 +60,13 @@ environment:
   potential: 1.0
   goal: 10.0
   collision: -0.05
+  step_reward: -0.005
   radius: 5.0
   sight_agents: 12.0
 
-  comfort_speed: 1.5
+  goal_speed_threshold: 0.1
+
+  comfort_speed: 1.33
   comfort_speed_weight: -0.75
   comfort_speed_exponent: 1.0
 
