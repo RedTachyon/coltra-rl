@@ -62,6 +62,9 @@ environment:
   collision: -0.05
   step_reward: -0.005
 
+  standstill_weight: -0.1
+  stanstill_exponent: 1.0
+
   goal_speed_threshold: 0.1
 
   comfort_speed: 1.33
