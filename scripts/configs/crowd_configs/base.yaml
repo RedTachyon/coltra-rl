@@ -61,8 +61,6 @@ environment:
   goal: 10.0
   collision: -0.05
   step_reward: -0.005
-  radius: 5.0
-  sight_agents: 12.0
 
   goal_speed_threshold: 0.1
 
@@ -72,6 +70,16 @@ environment:
 
   comfort_distance: 0.0
   comfort_distance_weight: 0.0
+
+  e_s: 2.23
+  e_w: 1.26
+
+  sight_radius: 5.0
+  sight_agents: 12.0
+
+  spawn_noise_scale: 0.5
+  spawn_scale: 4.0
+
 
   evaluation_mode: 0.0
 
