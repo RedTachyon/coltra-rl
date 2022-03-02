@@ -54,7 +54,7 @@ model:
 
 environment:
   agents: 12
-  mode: random
+  mode: circle
 
   # Reward coefficients
   potential: 1.0
@@ -80,7 +80,7 @@ environment:
   sight_radius: 5.0
   sight_agents: 12.0
 
-  spawn_noise_scale: 0.5
+  spawn_noise_scale: 0.3
   spawn_scale: 4.0
 
 

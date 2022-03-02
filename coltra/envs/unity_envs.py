@@ -214,8 +214,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             raise ValueError("This shouldn't happen, check it")
         done_dict["__all__"] = all(done_dict.values())
 
-        info_dict["final_obs"] = ter_obs_dict
-        info_dict["final_rewards"] = ter_reward_dict
+        # info_dict["final_obs"] = ter_obs_dict
+        # info_dict["final_rewards"] = ter_reward_dict
 
         stats = self.stats_channel.parse_info(clear=step)
         # stats = parse_side_message(self.stats_channel.last_msg)
