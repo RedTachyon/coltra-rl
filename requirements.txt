@@ -26,3 +26,4 @@ cloudpickle~=2.0.0
 pillow~=8.4.0
 setuptools~=58.0.4
 pyvirtualdisplay~=2.2
+optuna~=2.10.0

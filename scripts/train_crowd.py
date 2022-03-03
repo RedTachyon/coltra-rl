@@ -176,7 +176,7 @@ if __name__ == "__main__":
             virtual_display=(1600, 900),
             no_graphics=False,
         )
-        # env_config["evaluation_mode"] = 1.0
+        env_config["evaluation_mode"] = 1.0
         env.reset(**env_config)
 
         os.mkdir(os.path.join(trainer.path, "trajectories"))

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, Union
 
 import numpy as np
+import optuna
 import torch
 import yaml
 from torch.utils.tensorboard import SummaryWriter
@@ -90,7 +91,8 @@ class PPOCrowdTrainer(Trainer):
         disable_tqdm: bool = False,
         save_path: Optional[str] = None,
         collect_kwargs: Optional[dict[str, Any]] = None,
-    ):
+        trial: Optional[optuna.Trial] = None,
+    ) -> float:
 
         if save_path is None:
             save_path = self.path  # Can still be None
@@ -98,6 +100,7 @@ class PPOCrowdTrainer(Trainer):
         print(f"Begin coltra, logged in {self.path}")
         timer = Timer()
         step_timer = Timer()
+        mean_reward = 0.0
 
         if save_path:
             self.agents.save(save_path)
@@ -163,6 +166,16 @@ class PPOCrowdTrainer(Trainer):
                 # extra_metric[f"stats/{key}_l1"] = np.mean(collector_metrics[key][-2])
 
             write_dict(extra_metric, step, self.writer)
+
+            mean_reward = metrics["crowd/mean_episode_reward"]
+
+            if trial is not None:
+                trial.report(mean_reward, step)
+                if trial.should_prune():
+                    print("Trial was pruned at step {}".format(step))
+                    raise optuna.TrialPruned()
+
+        return mean_reward
 
 
 # class PPOMultiPolicyTrainer(Trainer):

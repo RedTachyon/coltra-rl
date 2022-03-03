@@ -24,7 +24,7 @@ trainer:
     eps: 0.2
     target_kl: 0.03
     entropy_coeff: 0.0
-    entropy_decay_time: 100
+    entropy_decay_time: 500
     min_entropy: 0.0
     value_coeff: 1.0
 
@@ -54,20 +54,20 @@ model:
 
 environment:
   agents: 12
-  mode: json
+  mode: circle
 
   # Reward coefficients
   potential: 1.0
   goal: 10.0
   collision: -0.05
-  step_reward: 0.0
+  step_reward: -0.005
 
-  standstill_weight: 0.0
-  stanstill_exponent: 0.0
+  standstill_weight: -0.1
+  stanstill_exponent: 1.0
 
-  goal_speed_threshold: 10.0
+  goal_speed_threshold: 0.1
 
-  comfort_speed: 1.5
+  comfort_speed: 1.33
   comfort_speed_weight: -0.75
   comfort_speed_exponent: 1.0
 
@@ -80,7 +80,7 @@ environment:
   sight_radius: 5.0
   sight_agents: 12.0
 
-  spawn_noise_scale: 0.0
+  spawn_noise_scale: 0.3
   spawn_scale: 8.0
 
 
