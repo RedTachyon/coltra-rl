@@ -1,10 +1,10 @@
 ---
 trainer:
   steps: 200
-  workers: 4
+  workers: 8
 
   tensorboard_name:
-  save_freq: 10
+  save_freq: 50
 
   PPOConfig:
     optimizer: adam
@@ -62,10 +62,10 @@ environment:
   collision: -0.05
   step_reward: -0.005
 
-  standstill_weight: -0.1
+  standstill_weight: -0.0
   stanstill_exponent: 1.0
 
-  goal_speed_threshold: 0.1
+  goal_speed_threshold: 10.1
 
   comfort_speed: 1.33
   comfort_speed_weight: -0.75
