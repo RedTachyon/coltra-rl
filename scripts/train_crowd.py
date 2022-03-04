@@ -187,23 +187,29 @@ if __name__ == "__main__":
         UNIT_SIZE = 3
         plt.rcParams["figure.figsize"] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
 
+        mode = "circle"
         for i in range(6):
-            d = i == 0
+            idx = i % 3
+            d = idx == 0
+            if i == 3:
+                mode = "json"
+                env_config["mode"] = "json"
+
             trajectory_path = os.path.join(
                 trainer.path,
                 "trajectories",
-                f"trajectory_{'det' if d else 'rnd'}_{i}.json",
+                f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}.json",
             )
 
             dashboard_path = os.path.join(
                 trainer.path,
                 "images",
-                f"dashboard_{'det' if d else 'rnd'}_{i}.png",
+                f"dashboard_{mode}_{'det' if d else 'rnd'}_{idx}.png",
             )
 
             env.reset(save_path=trajectory_path, **env_config)
             print(
-                f"Collecting data for {'' if d else 'non'}deterministic video number {i}"
+                f"Collecting data for {'' if d else 'non'}deterministic {mode} video number {idx}"
             )
 
             renders, returns = collect_renders(
@@ -229,7 +235,7 @@ if __name__ == "__main__":
             wandb.log(
                 {
                     "dashboard": wandb.Image(
-                        dashboard_path, caption=f"Dashboard {'det' if d else 'rng'} {i}"
+                        dashboard_path, caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}"
                     )
                 }
             )
@@ -238,7 +244,7 @@ if __name__ == "__main__":
 
             print("Recording a video")
             video_path = os.path.join(
-                trainer.path, "videos", f"video_{'det' if d else 'rnd'}_{i}.webm"
+                trainer.path, "videos", f"video_{mode}_{'det' if d else 'rnd'}_{i}.webm"
             )
             out = cv2.VideoWriter(
                 video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
@@ -250,12 +256,12 @@ if __name__ == "__main__":
 
             print(f"Video saved to {video_path}")
 
-            wandb.log({f"video_{'det' if d else 'rnd'}_{i}": wandb.Video(video_path)})
+            wandb.log({f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)})
 
             print("Video uploaded to wandb")
 
             trajectory_artifact = wandb.Artifact(
-                name=f"trajectory_{'det' if d else 'rnd'}_{i}", type="json"
+                name=f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}", type="json"
             )
             trajectory_artifact.add_file(trajectory_path)
             wandb.log_artifact(trajectory_artifact)
