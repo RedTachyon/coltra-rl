@@ -1,6 +1,7 @@
 import copy
 import os
 import datetime
+import shortuuid
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, Union
 
@@ -45,6 +46,7 @@ class PPOCrowdTrainer(Trainer):
         agents: HomogeneousGroup,
         env: Union[MultiAgentEnv, VecEnv],
         config: Dict[str, Any],
+        use_uuid: bool = False,
     ):
         super().__init__(agents, env, config)
 
@@ -67,6 +69,8 @@ class PPOCrowdTrainer(Trainer):
         self.writer: Optional[SummaryWriter]
         if self.config.tensorboard_name:
             dt_string = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            if use_uuid:
+                dt_string += "_" + shortuuid.uuid()
             path = (
                 Path.home() / "tb_logs" / f"{self.config.tensorboard_name}_{dt_string}"
             )
@@ -92,7 +96,7 @@ class PPOCrowdTrainer(Trainer):
         save_path: Optional[str] = None,
         collect_kwargs: Optional[dict[str, Any]] = None,
         trial: Optional[optuna.Trial] = None,
-    ) -> float:
+    ) -> dict[str, float]:
 
         if save_path is None:
             save_path = self.path  # Can still be None
@@ -100,7 +104,7 @@ class PPOCrowdTrainer(Trainer):
         print(f"Begin coltra, logged in {self.path}")
         timer = Timer()
         step_timer = Timer()
-        mean_reward = 0.0
+        metrics = {}
 
         if save_path:
             self.agents.save(save_path)
@@ -151,10 +155,18 @@ class PPOCrowdTrainer(Trainer):
                 else:
                     raise ValueError(f"Unknown metric type: {key}")
                 metric_name = key[2:]
-                extra_metric[f"{section}/mean_{metric_name}"] = np.mean(collector_metrics[key])
-                extra_metric[f"{section}_extra/min_{metric_name}"] = np.min(collector_metrics[key])
-                extra_metric[f"{section}_extra/max_{metric_name}"] = np.max(collector_metrics[key])
-                extra_metric[f"{section}_extra/std_{metric_name}"] = np.std(collector_metrics[key])
+                extra_metric[f"{section}/mean_{metric_name}"] = np.mean(
+                    collector_metrics[key]
+                )
+                extra_metric[f"{section}_extra/min_{metric_name}"] = np.min(
+                    collector_metrics[key]
+                )
+                extra_metric[f"{section}_extra/max_{metric_name}"] = np.max(
+                    collector_metrics[key]
+                )
+                extra_metric[f"{section}_extra/std_{metric_name}"] = np.std(
+                    collector_metrics[key]
+                )
                 extra_metric[f"{section}_extra/median_{metric_name}"] = np.median(
                     collector_metrics[key]
                 )
@@ -175,7 +187,7 @@ class PPOCrowdTrainer(Trainer):
                     print("Trial was pruned at step {}".format(step))
                     raise optuna.TrialPruned()
 
-        return mean_reward
+        return metrics
 
 
 # class PPOMultiPolicyTrainer(Trainer):

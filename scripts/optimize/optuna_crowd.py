@@ -1,35 +1,40 @@
 import numpy as np
 import optuna
+from optuna.integration import WeightsAndBiasesCallback
 import torch
 import yaml
 from typarse import BaseParser
 import wandb
 
+from coltra import PPOCrowdTrainer, CAgent, HomogeneousGroup
 from coltra.envs import UnitySimpleCrowdEnv
+from coltra.models import RelationModel
 
-data_x = np.linspace(0, 1, 1000)
-data_y: np.ndarray = 2*data_x + 5 + np.random.randn(1000) * 0.1
 CUDA = torch.cuda.is_available()
 
-# TODO: Finish optuna optimization
 
 class Parser(BaseParser):
+    env: str
     worker_id: int = 0
-    n_trials: int = 1000
+    n_trials: int = 50
+    optuna_name: str = "optuna"
 
-    _abbrev = {
-        'worker_id': 'w',
-        'n_trials': 'n'
-    }
+    _abbrev = {"env": "e", "worker_id": "w", "n_trials": "n", "optuna_name": "o"}
 
     _help = {
-        'worker_id': 'Worker ID to start from',
-        'n_trials': 'Number of trials'
+        "env": "Path to the environment",
+        "worker_id": "Worker ID to start from",
+        "n_trials": "Number of trials",
+        "optuna_name": "Name of the optuna study",
     }
 
-def objective(trial: optuna.Trial, worker_id: int) -> float:
+
+def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     # Get some parameters
     lr = trial.suggest_loguniform("lr", 1e-5, 1e-3)
+    n_episodes = trial.suggest_int("n_episodes", 1, 5)
+
+    steps = n_episodes * 200
 
     optuna_PPO_kwargs = {
         # "OptimizerKwargs": {
@@ -56,13 +61,19 @@ def objective(trial: optuna.Trial, worker_id: int) -> float:
 
     LAYER_IDX = list(range(len(LAYER_OPTIONS)))
 
-    vec_hidden_layer_sizes = trial.suggest_categorical("vec_hidden_layer_sizes", LAYER_IDX)
+    vec_hidden_layer_sizes = trial.suggest_categorical(
+        "vec_hidden_layer_sizes", LAYER_IDX
+    )
     vec_hidden_layer_sizes = LAYER_OPTIONS[vec_hidden_layer_sizes]
 
-    rel_hidden_layer_sizes = trial.suggest_categorical("rel_hidden_layer_sizes", LAYER_IDX)
+    rel_hidden_layer_sizes = trial.suggest_categorical(
+        "rel_hidden_layer_sizes", LAYER_IDX
+    )
     rel_hidden_layer_sizes = LAYER_OPTIONS[rel_hidden_layer_sizes]
 
-    com_hidden_layer_sizes = trial.suggest_categorical("com_hidden_layer_sizes", LAYER_IDX)
+    com_hidden_layer_sizes = trial.suggest_categorical(
+        "com_hidden_layer_sizes", LAYER_IDX
+    )
     com_hidden_layer_sizes = LAYER_OPTIONS[com_hidden_layer_sizes]
 
     optuna_model_kwargs = {
@@ -79,6 +90,7 @@ def objective(trial: optuna.Trial, worker_id: int) -> float:
 
     # Update the config
     config["trainer"]["PPOConfig"]["OptimizerKwargs"]["lr"] = lr
+    config["trainer"]["steps"] = steps
 
     for key, value in optuna_PPO_kwargs:
         config["trainer"]["PPOConfig"][key] = value
@@ -89,6 +101,23 @@ def objective(trial: optuna.Trial, worker_id: int) -> float:
     config["trainer"]["tensorboard_name"] = f"trial {trial.number}"
     config["trainer"]["PPOConfig"]["use_gpu"] = CUDA
 
+    env = UnitySimpleCrowdEnv.get_venv(
+        file_name=path,
+        workers=config["trainer"]["workers"],
+        worker_id=worker_id,
+        no_graphics=True,
+    )
+    env.reset(save_trajectory=0.0)
+
+    # Initialize the agent
+    obs_size = env.observation_space.shape[0]
+    buffer_size = env.get_attr("obs_buffer_size")[0]
+    action_size = env.action_space.shape[0]
+
+    config["model"]["input_size"] = obs_size
+    config["model"]["rel_input_size"] = buffer_size
+    config["model"]["num_actions"] = action_size
+
     wandb.init(
         project="optuna-sweep",
         entity="redtachyon",
@@ -97,15 +126,44 @@ def objective(trial: optuna.Trial, worker_id: int) -> float:
         name=f"trial{trial.number}",
     )
 
-    env = UnitySimpleCrowdEnv.get_venv(workers=8, worker_id=worker_id)
+    model = RelationModel(config["model"], action_space=env.action_space)
+    agent = CAgent(model)
+    agents = HomogeneousGroup(agent)
 
-    return 0.0
+    if CUDA:
+        agent.cuda()
+
+    trainer = PPOCrowdTrainer(
+        agents=agents,
+        env=env,
+        config=config["trainer"],
+    )
+
+    final_metrics = trainer.train(
+        num_iterations=1000,
+        disable_tqdm=False,
+        save_path=trainer.path,
+        collect_kwargs=config["environment"],
+        trial=trial,
+    )
+
+    env.close()
+
+    mean_reward = final_metrics["crowd/mean_episode_reward"]
+    wandb.finish()
+
+    return mean_reward
 
 
 if __name__ == "__main__":
     args = Parser()
-    study = optuna.create_study(direction="minimize", pruner=optuna.pruners.HyperbandPruner())
-    study.optimize(lambda trial: objective(trial, args.worker_id), n_trials=1000)
+
+    study = optuna.create_study(
+        direction="maximize", pruner=optuna.pruners.HyperbandPruner()
+    )
+    study.optimize(
+        lambda trial: objective(trial, args.worker_id, args.env), n_trials=args.n_trials
+    )
 
     print("Best params:", study.best_params)
     print("Best value:", study.best_value)
