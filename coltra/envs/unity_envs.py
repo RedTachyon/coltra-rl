@@ -342,7 +342,12 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
     @classmethod
     def get_venv(
-        cls, workers: int = 8, file_name: Optional[str] = None, base_worker_id: Optional[int] = None, *args, **kwargs
+        cls,
+        workers: int = 8,
+        file_name: Optional[str] = None,
+        base_worker_id: Optional[int] = None,
+        *args,
+        **kwargs,
     ) -> SubprocVecEnv:
         if base_worker_id is None:
             base_worker_id = find_free_worker(500)

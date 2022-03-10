@@ -4,7 +4,7 @@ import optuna
 import yaml
 
 data_x = np.linspace(0, 1, 1000)
-data_y: np.ndarray = 2*data_x + 5 + np.random.randn(1000) * 0.1
+data_y: np.ndarray = 2 * data_x + 5 + np.random.randn(1000) * 0.1
 
 
 def objective(trial: optuna.Trial) -> float:
@@ -13,7 +13,7 @@ def objective(trial: optuna.Trial) -> float:
     b = trial.suggest_uniform("b", -10, 10)
 
     # Calculate the loss
-    loss: np.ndarray = np.mean((a*data_x + b - data_y)**2)
+    loss: np.ndarray = np.mean((a * data_x + b - data_y) ** 2)
 
     return float(loss)
 

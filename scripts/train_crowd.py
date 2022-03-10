@@ -235,7 +235,8 @@ if __name__ == "__main__":
             wandb.log(
                 {
                     "dashboard": wandb.Image(
-                        dashboard_path, caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}"
+                        dashboard_path,
+                        caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}",
                     )
                 }
             )
@@ -256,7 +257,9 @@ if __name__ == "__main__":
 
             print(f"Video saved to {video_path}")
 
-            wandb.log({f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)})
+            wandb.log(
+                {f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)}
+            )
 
             print("Video uploaded to wandb")
 
