@@ -158,9 +158,8 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
 if __name__ == "__main__":
     args = Parser()
 
-    study = optuna.create_study(
-        direction="maximize", pruner=optuna.pruners.HyperbandPruner()
-    )
+    study = optuna.load_study(storage=f"sqlite:///{args.optuna_name}.db", study_name=args.optuna_name)
+
     study.optimize(
         lambda trial: objective(trial, args.worker_id, args.env), n_trials=args.n_trials
     )

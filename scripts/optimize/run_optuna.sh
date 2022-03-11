@@ -1,1 +1,2 @@
-CUDA_VISIBLE_DEVICES=0 python train_crowd.py -c configs/crowd_configs/base.yaml -i 500 -e ../builds/crowd-v5/crowd.x86_64 -n car_vel -d CartesianVelocity -o Absolute -p crowdai-timing
+CUDA_VISIBLE_DEVICES=0 python optuna_crowd.py -e ../builds/crowd-v5/crowd.x86_64 -w 0 -n 50 -o optuna&
+sleep 3
