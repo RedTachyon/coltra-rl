@@ -207,7 +207,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         renders, returns = collect_renders(
             agents,
             env,
-            num_steps=config["steps"],
+            num_steps=200,
             disable_tqdm=False,
             env_kwargs=config["environment"],
             deterministic=d,
