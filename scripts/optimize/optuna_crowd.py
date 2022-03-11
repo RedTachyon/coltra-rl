@@ -1,4 +1,5 @@
 import os
+from logging import ERROR
 
 import cv2
 import numpy as np
@@ -7,6 +8,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import torch
 import yaml
+from mlagents_envs.logging_util import set_log_level
 from typarse import BaseParser
 import wandb
 
@@ -16,6 +18,7 @@ from coltra.models import RelationModel
 import data_utils_optimize as du
 
 CUDA = torch.cuda.is_available()
+set_log_level(ERROR)
 
 
 class Parser(BaseParser):
@@ -45,13 +48,13 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         # "OptimizerKwargs": {
         #     "lr": lr,
         # },
-        "gamma": trial.suggest_loguniform("gamma", 0.9, 0.9999),
+        "gamma": 1-trial.suggest_loguniform("1-gamma", 1e-4, 1e-1),
         "gae_lambda": trial.suggest_uniform("gae_lambda", 0.8, 1.0),
         "eps": trial.suggest_uniform("eps", 0.05, 0.2),
         "target_kl": trial.suggest_uniform("target_kl", 0.01, 0.05),
         "entropy_coeff": trial.suggest_loguniform("entropy_coeff", 0.01, 0.05),
         "ppo_epochs": trial.suggest_int("ppo_epochs", 5, 20),
-        "minibatch_size": trial.suggest_int("minibatch_size", 512, 4096),
+        "minibatch_size": trial.suggest_categorical("minibatch_size", [512, 1024, 2048, 4096]),
     }
 
     activation = trial.suggest_categorical("activation", ["relu", "leaky_relu", "tanh"])
@@ -97,10 +100,10 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     config["trainer"]["PPOConfig"]["OptimizerKwargs"]["lr"] = lr
     config["trainer"]["steps"] = steps
 
-    for key, value in optuna_PPO_kwargs:
+    for key, value in optuna_PPO_kwargs.items():
         config["trainer"]["PPOConfig"][key] = value
 
-    for key, value in optuna_model_kwargs:
+    for key, value in optuna_model_kwargs.items():
         config["model"][key] = value
 
     config["trainer"]["tensorboard_name"] = f"trial {trial.number}"
@@ -109,7 +112,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     env = UnitySimpleCrowdEnv.get_venv(
         file_name=path,
         workers=config["trainer"]["workers"],
-        worker_id=worker_id,
+        base_worker_id=worker_id,
         no_graphics=True,
     )
     env.reset(save_trajectory=0.0)

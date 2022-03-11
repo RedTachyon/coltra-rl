@@ -19,9 +19,9 @@ class Parser(BaseParser):
 if __name__ == "__main__":
     args = Parser()
 
-    if exists(args.name):
+    if exists(f"./{args.name}.db"):
         if args.force:
-            os.remove(args.name)
+            os.remove(f"./{args.name}.db")
         else:
             raise Exception(
                 f"Study {args.name} already exists. Use -f to force overwriting."
