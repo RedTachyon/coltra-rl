@@ -13,7 +13,7 @@ import wandb
 from coltra import PPOCrowdTrainer, CAgent, HomogeneousGroup, collect_renders
 from coltra.envs import UnitySimpleCrowdEnv
 from coltra.models import RelationModel
-import data_utils as du
+import data_utils_optimize as du
 
 CUDA = torch.cuda.is_available()
 
@@ -90,7 +90,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
 
     # Read the main config
 
-    with open("config.yml", "r") as f:
+    with open("base.yaml", "r") as f:
         config = yaml.load(f.read(), Loader=yaml.Loader)
 
     # Update the config
