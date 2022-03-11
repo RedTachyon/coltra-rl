@@ -106,7 +106,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     for key, value in optuna_model_kwargs.items():
         config["model"][key] = value
 
-    config["trainer"]["tensorboard_name"] = f"trial {trial.number}"
+    config["trainer"]["tensorboard_name"] = f"trial{trial.number}"
     config["trainer"]["PPOConfig"]["use_gpu"] = CUDA
 
     env = UnitySimpleCrowdEnv.get_venv(
