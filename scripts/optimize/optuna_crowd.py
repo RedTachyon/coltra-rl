@@ -1,14 +1,19 @@
+import os
+
+import cv2
 import numpy as np
 import optuna
-from optuna.integration import WeightsAndBiasesCallback
+from matplotlib import pyplot as plt
+import seaborn as sns
 import torch
 import yaml
 from typarse import BaseParser
 import wandb
 
-from coltra import PPOCrowdTrainer, CAgent, HomogeneousGroup
+from coltra import PPOCrowdTrainer, CAgent, HomogeneousGroup, collect_renders
 from coltra.envs import UnitySimpleCrowdEnv
 from coltra.models import RelationModel
+import data_utils as du
 
 CUDA = torch.cuda.is_available()
 
@@ -137,6 +142,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         agents=agents,
         env=env,
         config=config["trainer"],
+        use_uuid=True
     )
 
     final_metrics = trainer.train(
@@ -150,6 +156,110 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     env.close()
 
     mean_reward = final_metrics["crowd/mean_episode_reward"]
+
+
+    # EVALUATION
+    env = UnitySimpleCrowdEnv(
+        file_name=args.env,
+        virtual_display=(1600, 900),
+        no_graphics=False,
+        worker_id=worker_id,
+    )
+    config["environment"]["evaluation_mode"] = 1.0
+    env.reset(**config["environment"])
+
+    os.mkdir(os.path.join(trainer.path, "trajectories"))
+    os.mkdir(os.path.join(trainer.path, "videos"))
+    os.mkdir(os.path.join(trainer.path, "images"))
+
+    sns.set()
+    UNIT_SIZE = 3
+    plt.rcParams["figure.figsize"] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
+
+    mode = "circle"
+    for i in range(4):
+        idx = i % 2
+        d = idx == 0
+        if i == 2:
+            mode = "json"
+            config["environment"]["mode"] = "json"
+
+        trajectory_path = os.path.join(
+            trainer.path,
+            "trajectories",
+            f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}.json",
+        )
+
+        dashboard_path = os.path.join(
+            trainer.path,
+            "images",
+            f"dashboard_{mode}_{'det' if d else 'rnd'}_{idx}.png",
+        )
+
+        env.reset(save_path=trajectory_path, **config["environment"])
+        print(
+            f"Collecting data for {'' if d else 'non'}deterministic {mode} video number {idx}"
+        )
+
+        renders, returns = collect_renders(
+            agents,
+            env,
+            num_steps=config["steps"],
+            disable_tqdm=False,
+            env_kwargs=config["environment"],
+            deterministic=d,
+        )
+
+        print(f"Mean return: {np.mean(returns)}")
+
+        # Generate the dashboard
+        print("Generating dashboard")
+        trajectory = du.read_trajectory(trajectory_path)
+
+        plt.clf()
+        du.make_dashboard(trajectory, save_path=dashboard_path)
+
+        # Upload to wandb
+        print("Uploading dashboard")
+        wandb.log(
+            {
+                "dashboard": wandb.Image(
+                    dashboard_path,
+                    caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}",
+                )
+            }
+        )
+
+        frame_size = renders.shape[1:3]
+
+        print("Recording a video")
+        video_path = os.path.join(
+            trainer.path, "videos", f"video_{mode}_{'det' if d else 'rnd'}_{i}.webm"
+        )
+        out = cv2.VideoWriter(
+            video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
+        )
+        for frame in renders[..., ::-1]:
+            out.write(frame)
+
+        out.release()
+
+        print(f"Video saved to {video_path}")
+
+        wandb.log(
+            {f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)}
+        )
+
+        print("Video uploaded to wandb")
+
+        trajectory_artifact = wandb.Artifact(
+            name=f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}", type="json"
+        )
+        trajectory_artifact.add_file(trajectory_path)
+        wandb.log_artifact(trajectory_artifact)
+
+    env.close()
+
     wandb.finish()
 
     return mean_reward
