@@ -185,6 +185,7 @@ class PPOCrowdTrainer(Trainer):
                 trial.report(mean_reward, step)
                 if trial.should_prune():
                     print("Trial was pruned at step {}".format(step))
+                    self.env.close()
                     raise optuna.TrialPruned()
 
         return metrics

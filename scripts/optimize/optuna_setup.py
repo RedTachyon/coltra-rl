@@ -30,6 +30,6 @@ if __name__ == "__main__":
     study = optuna.create_study(
         storage=f"sqlite:///{args.name}.db",
         study_name=args.name,
-        pruner=optuna.pruners.HyperbandPruner(),
+        pruner=None,
         direction="maximize",
     )
