@@ -1,6 +1,6 @@
 ---
 trainer:
-  steps: 800
+  steps: 200
   workers: 2
 
   tensorboard_name:
@@ -9,7 +9,7 @@ trainer:
   PPOConfig:
     optimizer: adam
     OptimizerKwargs:
-      lr: 0.00005
+      lr: 2e-4
       betas: !!python/tuple [0.9, 0.999]
       eps: 1.0e-07
       weight_decay: 0
@@ -17,19 +17,19 @@ trainer:
 
     gamma: 0.99
     eta: 0.0
-    gae_lambda: 0.95
+    gae_lambda: 0.9056
 
     advantage_normalization: true
 
-    eps: 0.2
-    target_kl: 0.03
+    eps: 0.08
+    target_kl: 0.02
     entropy_coeff: 0.0
     entropy_decay_time: 500
     min_entropy: 0.0
     value_coeff: 1.0
 
-    ppo_epochs: 10
-    minibatch_size: 1024
+    ppo_epochs: 20
+    minibatch_size: 2048
 
     use_gpu:
 

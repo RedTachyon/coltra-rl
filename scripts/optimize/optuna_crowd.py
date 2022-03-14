@@ -52,9 +52,8 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         "gae_lambda": trial.suggest_uniform("gae_lambda", 0.8, 1.0),
         "eps": trial.suggest_uniform("eps", 0.05, 0.2),
         "target_kl": trial.suggest_uniform("target_kl", 0.01, 0.05),
-        "entropy_coeff": trial.suggest_loguniform("entropy_coeff", 0.01, 0.05),
-        "ppo_epochs": trial.suggest_int("ppo_epochs", 5, 20),
-        "minibatch_size": trial.suggest_categorical("minibatch_size", [512, 1024, 2048, 4096]),
+        "entropy_coeff": trial.suggest_uniform("entropy_coeff", 0, 0.05),
+        "ppo_epochs": trial.suggest_int("ppo_epochs", 15, 40),
     }
 
     activation = trial.suggest_categorical("activation", ["relu", "leaky_relu", "tanh"])
@@ -68,28 +67,52 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     ]
 
     LAYER_IDX = list(range(len(LAYER_OPTIONS)))
+    #
+    # vec_hidden_layer_sizes = trial.suggest_categorical(
+    #     "vec_hidden_layer_sizes", LAYER_IDX
+    # )
+    # vec_hidden_layer_sizes = LAYER_OPTIONS[vec_hidden_layer_sizes]
+    #
+    # rel_hidden_layer_sizes = trial.suggest_categorical(
+    #     "rel_hidden_layer_sizes", LAYER_IDX
+    # )
+    # rel_hidden_layer_sizes = LAYER_OPTIONS[rel_hidden_layer_sizes]
+    #
+    # com_hidden_layer_sizes = trial.suggest_categorical(
+    #     "com_hidden_layer_sizes", LAYER_IDX
+    # )
+    # com_hidden_layer_sizes = LAYER_OPTIONS[com_hidden_layer_sizes]
+    #
+    # optuna_model_kwargs = {
+    #     "vec_hidden_layer_sizes": vec_hidden_layer_sizes,
+    #     "rel_hidden_layer_sizes": rel_hidden_layer_sizes,
+    #     "com_hidden_layer_sizes": com_hidden_layer_sizes,
+    #     "activation": activation,
+    # }
 
-    vec_hidden_layer_sizes = trial.suggest_categorical(
-        "vec_hidden_layer_sizes", LAYER_IDX
-    )
-    vec_hidden_layer_sizes = LAYER_OPTIONS[vec_hidden_layer_sizes]
 
-    rel_hidden_layer_sizes = trial.suggest_categorical(
-        "rel_hidden_layer_sizes", LAYER_IDX
+    vec_hidden_layers = trial.suggest_categorical(
+        "vec_hidden_layers", LAYER_IDX
     )
-    rel_hidden_layer_sizes = LAYER_OPTIONS[rel_hidden_layer_sizes]
+    vec_hidden_layers = LAYER_OPTIONS[vec_hidden_layers]
 
-    com_hidden_layer_sizes = trial.suggest_categorical(
-        "com_hidden_layer_sizes", LAYER_IDX
+    rel_hidden_layers = trial.suggest_categorical(
+        "rel_hidden_layers", LAYER_IDX
     )
-    com_hidden_layer_sizes = LAYER_OPTIONS[com_hidden_layer_sizes]
+    rel_hidden_layers = LAYER_OPTIONS[rel_hidden_layers]
+
+    com_hidden_layers = trial.suggest_categorical(
+        "com_hidden_layers", LAYER_IDX
+    )
+    com_hidden_layers = LAYER_OPTIONS[com_hidden_layers]
 
     optuna_model_kwargs = {
-        "vec_hidden_layer_sizes": vec_hidden_layer_sizes,
-        "rel_hidden_layer_sizes": rel_hidden_layer_sizes,
-        "com_hidden_layer_sizes": com_hidden_layer_sizes,
+        "vec_hidden_layers": vec_hidden_layers,
+        "rel_hidden_layers": rel_hidden_layers,
+        "com_hidden_layers": com_hidden_layers,
         "activation": activation,
     }
+
 
     # Read the main config
 
