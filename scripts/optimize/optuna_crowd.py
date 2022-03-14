@@ -150,7 +150,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     config["model"]["num_actions"] = action_size
 
     wandb.init(
-        project="optuna-sweep",
+        project="optuna-sweep-fixed",
         entity="redtachyon",
         sync_tensorboard=True,
         config=config,
