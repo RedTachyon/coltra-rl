@@ -40,7 +40,7 @@ class Parser(BaseParser):
 def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     # Get some parameters
     lr = trial.suggest_loguniform("lr", 1e-5, 1e-2)
-    n_episodes = trial.suggest_int("n_episodes", 1, 5)
+    n_episodes = 1
 
     steps = n_episodes * 200
 
