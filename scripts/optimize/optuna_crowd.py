@@ -154,7 +154,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         entity="redtachyon",
         sync_tensorboard=True,
         config=config,
-        name=f"trial{trial.number}",
+        name=f"trial{trial.number}-abs",
     )
 
     model = RelationModel(config["model"], action_space=env.action_space)
