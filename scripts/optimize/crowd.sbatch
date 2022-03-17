@@ -18,8 +18,7 @@ module purge
 module load pytorch-gpu/py3/1.8.1
 
 
-COLTRA=$WORK/coltra-rl
-PROJECT=$COLTRA/scripts
+
 no_proxy=admin,localhost,127.0.0.1
 
 source $HOME/.bashrc
@@ -31,7 +30,4 @@ set -x
 unset HTTP_PROXY
 unset HTTPS_PROXY
 
-srun python $PROJECT/optimize/optuna_crowd.py -e $COLTRA/builds/crowd-v5/crowd.x86_64 -w 0 -n 1 -o test &
-sleep 5
-srun python $PROJECT/optimize/optuna_crowd.py -e $COLTRA/builds/crowd-v5/crowd.x86_64 -w 10 -n 1 -o test &
-wait
+srun bash run_optuna.sh
