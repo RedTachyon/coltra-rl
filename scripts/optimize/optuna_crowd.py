@@ -150,11 +150,11 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     config["model"]["num_actions"] = action_size
 
     wandb.init(
-        project="optuna-sweep-fixed",
+        project="jeanzay-debug",
         entity="redtachyon",
         sync_tensorboard=True,
         config=config,
-        name=f"trial{trial.number}-abs",
+        name=f"trial{trial.number}",
     )
 
     model = RelationModel(config["model"], action_space=env.action_space)
@@ -187,8 +187,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     # EVALUATION
     env = UnitySimpleCrowdEnv(
         file_name=args.env,
-        virtual_display=(1600, 900),
-        no_graphics=False,
+        no_graphics=True,
         worker_id=worker_id+5,
     )
     config["environment"]["evaluation_mode"] = 1.0
@@ -241,43 +240,44 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         # Generate the dashboard
         print("Generating dashboard")
         print("Skipping dashboard")
-        # trajectory = du.read_trajectory(trajectory_path)
-        #
-        # plt.clf()
-        # du.make_dashboard(trajectory, save_path=dashboard_path)
+        trajectory = du.read_trajectory(trajectory_path)
+
+        plt.clf()
+        du.make_dashboard(trajectory, save_path=dashboard_path)
 
         # Upload to wandb
-        # print("Uploading dashboard")
-        # wandb.log(
-        #     {
-        #         "dashboard": wandb.Image(
-        #             dashboard_path,
-        #             caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}",
-        #         )
-        #     }
-        # )
-
-        frame_size = renders.shape[1:3]
-
-        print("Recording a video")
-        video_path = os.path.join(
-            trainer.path, "videos", f"video_{mode}_{'det' if d else 'rnd'}_{i}.webm"
-        )
-        out = cv2.VideoWriter(
-            video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
-        )
-        for frame in renders[..., ::-1]:
-            out.write(frame)
-
-        out.release()
-
-        print(f"Video saved to {video_path}")
-
+        print("Uploading dashboard")
         wandb.log(
-            {f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)}
+            {
+                "dashboard": wandb.Image(
+                    dashboard_path,
+                    caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}",
+                )
+            }
         )
 
-        print("Video uploaded to wandb")
+        print("Skipping video")
+        # frame_size = renders.shape[1:3]
+        #
+        # print("Recording a video")
+        # video_path = os.path.join(
+        #     trainer.path, "videos", f"video_{mode}_{'det' if d else 'rnd'}_{i}.webm"
+        # )
+        # out = cv2.VideoWriter(
+        #     video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
+        # )
+        # for frame in renders[..., ::-1]:
+        #     out.write(frame)
+        #
+        # out.release()
+        #
+        # print(f"Video saved to {video_path}")
+        #
+        # wandb.log(
+        #     {f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)}
+        # )
+        #
+        # print("Video uploaded to wandb")
 
         trajectory_artifact = wandb.Artifact(
             name=f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}", type="json"
