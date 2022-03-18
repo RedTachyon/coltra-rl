@@ -44,4 +44,4 @@ if __name__ == '__main__':
         print(f"Trial {idx}")
         for i in range(args.n_trials):
             print(f"Run {i}")
-            objective(trial, args.worker_id, args.env)
+            objective(trial, i, args.worker_id, args.env)
