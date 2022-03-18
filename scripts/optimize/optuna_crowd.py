@@ -37,7 +37,7 @@ class Parser(BaseParser):
     }
 
 
-def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
+def objective(trial: optuna.trial.BaseTrial, worker_id: int, path: str) -> float:
     # Get some parameters
     lr = trial.suggest_loguniform("lr", 1e-5, 1e-2)
     n_episodes = 1
@@ -149,12 +149,14 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     config["model"]["rel_input_size"] = buffer_size
     config["model"]["num_actions"] = action_size
 
+    config["trial_num"] = trial.number
+
     wandb.init(
-        project="optuna-sweep-fixed",
+        project="mcmes-retraining",
         entity="redtachyon",
         sync_tensorboard=True,
         config=config,
-        name=f"trial{trial.number}-abs",
+        name=f"trial{trial.number}",
     )
 
     model = RelationModel(config["model"], action_space=env.action_space)
@@ -203,10 +205,10 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     plt.rcParams["figure.figsize"] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
 
     mode = "circle"
-    for i in range(4):
-        idx = i % 2
+    for i in range(10):
+        idx = i % 5
         d = idx == 0
-        if i == 2:
+        if i == 5:
             mode = "json"
             config["environment"]["mode"] = "json"
 

@@ -87,5 +87,5 @@ environment:
   evaluation_mode: 0.0
 
   dynamics: "CartesianVelocity"  # CartesianVelocity, CartesianAcceleration, PolarVelocity, PolarAcceleration
-  observer: "Absolute"  # Relative, RotRelative, Absolute
+  observer: "RotRelative"  # Relative, RotRelative, Absolute
 
