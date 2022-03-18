@@ -14,7 +14,7 @@ slow:
 125, 107, 114, 132, 119, 22, 26, 36
 """
 class Parser(BaseParser):
-    env: str
+    env: str = "/home/ariel/projects/coltra-rl/builds/crowd-v5/crowd.x86_64"
     worker_id: int = 0
     n_trials: int = 10
     optuna_name: str = "egocentric"
