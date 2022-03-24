@@ -30,4 +30,4 @@ set -x
 unset HTTP_PROXY
 unset HTTPS_PROXY
 
-srun bash run_optuna.sh
+srun bash run_optuna.sh polacc
