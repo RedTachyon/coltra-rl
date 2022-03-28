@@ -13,6 +13,10 @@
 ##SBATCH --exclusive
 #SBATCH -A nbk@gpu
 
+# Environment variables imported:
+# CONFIG -- path to the config yaml
+# OPTUNA -- name of the optuna database
+# WANDB -- name of the wandb project
 
 module purge
 module load pytorch-gpu/py3/1.8.1
@@ -30,4 +34,4 @@ set -x
 unset HTTP_PROXY
 unset HTTPS_PROXY
 
-srun bash run_optuna.sh polacc
+srun bash run_optuna.sh $CONFIG $OPTUNA $WANDB

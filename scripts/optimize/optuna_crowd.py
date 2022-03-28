@@ -23,21 +23,34 @@ set_log_level(ERROR)
 
 class Parser(BaseParser):
     env: str
+    config: str = "base.yaml"
     worker_id: int = 0
     n_trials: int = 50
     optuna_name: str = "optuna"
+    wandb_project: str = "jeanzay-sweep"
 
-    _abbrev = {"env": "e", "worker_id": "w", "n_trials": "n", "optuna_name": "o"}
+    _abbrev = {
+        "env": "e",
+        "config": "c",
+        "worker_id": "w",
+        "n_trials": "n",
+        "optuna_name": "o",
+        "wandb_project": "wp",
+    }
 
     _help = {
         "env": "Path to the environment",
+        "config": "Path to the config file",
         "worker_id": "Worker ID to start from",
         "n_trials": "Number of trials",
         "optuna_name": "Name of the optuna study",
+        "wandb_project": "Name of the wandb project",
     }
 
 
-def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
+def objective(
+    trial: optuna.Trial, worker_id: int, path: str, config_path: str, wandb_project: str
+) -> float:
     # Get some parameters
     lr = trial.suggest_loguniform("lr", 1e-5, 1e-2)
     n_episodes = 1
@@ -48,7 +61,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         # "OptimizerKwargs": {
         #     "lr": lr,
         # },
-        "gamma": 1-trial.suggest_loguniform("1-gamma", 1e-4, 1e-1),
+        "gamma": 1 - trial.suggest_loguniform("1-gamma", 1e-4, 1e-1),
         "gae_lambda": trial.suggest_uniform("gae_lambda", 0.8, 1.0),
         "eps": trial.suggest_uniform("eps", 0.05, 0.2),
         "target_kl": trial.suggest_uniform("target_kl", 0.01, 0.05),
@@ -67,43 +80,14 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     ]
 
     LAYER_IDX = list(range(len(LAYER_OPTIONS)))
-    #
-    # vec_hidden_layer_sizes = trial.suggest_categorical(
-    #     "vec_hidden_layer_sizes", LAYER_IDX
-    # )
-    # vec_hidden_layer_sizes = LAYER_OPTIONS[vec_hidden_layer_sizes]
-    #
-    # rel_hidden_layer_sizes = trial.suggest_categorical(
-    #     "rel_hidden_layer_sizes", LAYER_IDX
-    # )
-    # rel_hidden_layer_sizes = LAYER_OPTIONS[rel_hidden_layer_sizes]
-    #
-    # com_hidden_layer_sizes = trial.suggest_categorical(
-    #     "com_hidden_layer_sizes", LAYER_IDX
-    # )
-    # com_hidden_layer_sizes = LAYER_OPTIONS[com_hidden_layer_sizes]
-    #
-    # optuna_model_kwargs = {
-    #     "vec_hidden_layer_sizes": vec_hidden_layer_sizes,
-    #     "rel_hidden_layer_sizes": rel_hidden_layer_sizes,
-    #     "com_hidden_layer_sizes": com_hidden_layer_sizes,
-    #     "activation": activation,
-    # }
 
-
-    vec_hidden_layers = trial.suggest_categorical(
-        "vec_hidden_layers", LAYER_IDX
-    )
+    vec_hidden_layers = trial.suggest_categorical("vec_hidden_layers", LAYER_IDX)
     vec_hidden_layers = LAYER_OPTIONS[vec_hidden_layers]
 
-    rel_hidden_layers = trial.suggest_categorical(
-        "rel_hidden_layers", LAYER_IDX
-    )
+    rel_hidden_layers = trial.suggest_categorical("rel_hidden_layers", LAYER_IDX)
     rel_hidden_layers = LAYER_OPTIONS[rel_hidden_layers]
 
-    com_hidden_layers = trial.suggest_categorical(
-        "com_hidden_layers", LAYER_IDX
-    )
+    com_hidden_layers = trial.suggest_categorical("com_hidden_layers", LAYER_IDX)
     com_hidden_layers = LAYER_OPTIONS[com_hidden_layers]
 
     optuna_model_kwargs = {
@@ -113,10 +97,9 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         "activation": activation,
     }
 
-
     # Read the main config
 
-    with open("base.yaml", "r") as f:
+    with open(config_path, "r") as f:
         config = yaml.load(f.read(), Loader=yaml.Loader)
 
     # Update the config
@@ -150,7 +133,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
     config["model"]["num_actions"] = action_size
 
     wandb.init(
-        project="jeanzay-sweep",
+        project=wandb_project,
         entity="redtachyon",
         sync_tensorboard=True,
         config=config,
@@ -165,10 +148,7 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
         agent.cuda()
 
     trainer = PPOCrowdTrainer(
-        agents=agents,
-        env=env,
-        config=config["trainer"],
-        use_uuid=True
+        agents=agents, env=env, config=config["trainer"], use_uuid=True
     )
 
     final_metrics = trainer.train(
@@ -183,12 +163,11 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
 
     mean_reward = final_metrics["crowd/mean_episode_reward"]
 
-
     # EVALUATION
     env = UnitySimpleCrowdEnv(
         file_name=args.env,
         no_graphics=True,
-        worker_id=worker_id+5,
+        worker_id=worker_id + 5,
     )
     config["environment"]["evaluation_mode"] = 1.0
     env.reset(**config["environment"])
@@ -295,10 +274,15 @@ def objective(trial: optuna.Trial, worker_id: int, path: str) -> float:
 if __name__ == "__main__":
     args = Parser()
 
-    study = optuna.load_study(storage=f"sqlite:///{args.optuna_name}.db", study_name=args.optuna_name)
+    study = optuna.load_study(
+        storage=f"sqlite:///{args.optuna_name}.db", study_name=args.optuna_name
+    )
 
     study.optimize(
-        lambda trial: objective(trial, args.worker_id, args.env), n_trials=args.n_trials
+        lambda trial: objective(
+            trial, args.worker_id, args.env, args.config, args.wandb_project
+        ),
+        n_trials=args.n_trials,
     )
 
     print("Best params:", study.best_params)
