@@ -1,5 +1,6 @@
 COLTRA=$WORK/coltra-rl
 PROJECT=$COLTRA/scripts
+export WANDB_CACHE_DIR=$WORK/wandb-cache
 
 CONFIG=${1:-config/base.yaml}
 OPTUNA=${2:-optuna}
