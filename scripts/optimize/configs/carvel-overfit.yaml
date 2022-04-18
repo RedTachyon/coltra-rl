@@ -80,12 +80,12 @@ environment:
   sight_radius: 5.0
   sight_agents: 12.0
 
-  spawn_noise_scale: 0.3
+  spawn_noise_scale: 0.0
   spawn_scale: 8.0
 
 
   evaluation_mode: 0.0
 
-  dynamics: "CartesianVelocity"  # CartesianVelocity, CartesianAcceleration, PolarVelocity, PolarAcceleration
-  observer: "Relative"  # Relative, RotRelative, Absolute
+  dynamics: "PolarAcceleration"  # CartesianVelocity, CartesianAcceleration, PolarVelocity, PolarAcceleration
+  observer: "RotRelative"  # Relative, RotRelative, Absolute
 
