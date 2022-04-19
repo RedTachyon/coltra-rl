@@ -1,3 +1,4 @@
+WORK=/gpfswork/rech/nbk/utu66tc
 COLTRA=$WORK/coltra-rl
 PROJECT=$COLTRA/scripts
 export WANDB_CACHE_DIR=$WORK/wandb-cache

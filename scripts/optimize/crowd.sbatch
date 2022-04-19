@@ -21,17 +21,9 @@
 module purge
 module load pytorch-gpu/py3/1.8.1
 
-
-
-no_proxy=admin,localhost,127.0.0.1
-
 source $HOME/.bashrc
 conda activate coltra
 
 wandb offline
-
-set -x
-unset HTTP_PROXY
-unset HTTPS_PROXY
 
 srun bash run_optuna.sh $CONFIG $OPTUNA $WANDB
