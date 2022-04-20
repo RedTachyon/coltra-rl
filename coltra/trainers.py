@@ -72,7 +72,7 @@ class PPOCrowdTrainer(Trainer):
             if use_uuid:
                 dt_string += "_" + shortuuid.uuid()
             path = (
-                Path("/gpfswork/rech/nbk/utu66tc")
+                Path.home()
                 / "tb_logs"
                 / f"{self.config.tensorboard_name}_{dt_string}"
             )
