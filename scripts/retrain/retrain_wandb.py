@@ -121,7 +121,7 @@ def train_crowd(config: dict, args: Parser):
     for i in range(6):
         idx = i % 3
         d = idx == 0
-        if i == 2:
+        if i == 3:
             mode = "json"
             config["environment"]["mode"] = "json"
 

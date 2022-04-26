@@ -3,19 +3,6 @@ from typing import List, Tuple, Optional, Type
 from typarse import BaseConfig
 
 
-class MLPConfig(BaseConfig):
-    input_size: int = 0  # Must be set
-
-    beta: bool = False
-    mode: Optional[str] = "logstd"
-
-    activation: str = "leaky_relu"
-    sigma0: float = 1.0
-
-    hidden_sizes: List[int] = [64, 64]
-
-    initializer: str = "kaiming_uniform"
-
 
 class QMLPConfig(BaseConfig):
     input_size: int = 0  # Must be set
@@ -80,6 +67,20 @@ class LeeConfig(BaseConfig):
     conv_filters: int = 2
 
 
+class MLPConfig(BaseConfig):
+    input_size: int = 0  # Must be set
+
+    beta: bool = False
+    mode: Optional[str] = "logstd"
+
+    activation: str = "leaky_relu"
+    sigma0: float = 1.0
+
+    hidden_sizes: List[int] = [64, 64]
+
+    initializer: str = "kaiming_uniform"
+
+
 class RelationConfig(BaseConfig):
     input_size: int = 7
     rel_input_size: int = 4
@@ -94,3 +95,7 @@ class RelationConfig(BaseConfig):
     vec_hidden_layers: List[int] = [32, 32]
     rel_hidden_layers: List[int] = [32, 32]
     com_hidden_layers: List[int] = [32, 32]
+
+
+class RayRelationConfig(BaseConfig):
+    pass

@@ -10,8 +10,13 @@ from torch import nn, Tensor
 from torch.nn import functional as F
 
 from coltra.buffers import Observation
-from .base_models import FCNetwork, BaseModel
-from ..configs import LeeConfig
+from coltra.models.base_models import FCNetwork, BaseModel
+from coltra.configs import LeeConfig
+
+
+class RayNetwork(nn.Module):
+    def __init__(self, input_size: int = 4):
+        pass
 
 
 class LeeNetwork(nn.Module):

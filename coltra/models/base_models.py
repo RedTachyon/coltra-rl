@@ -159,3 +159,20 @@ class FCNetwork(nn.Module):
                 x = self.activation(x)
 
         return x
+
+
+class ActorCriticModel(BaseModel):
+    def __init__(self, config: dict, action_space: Space):
+        super().__init__(config, action_space)
+
+    def forward(self, x: Observation, state: Tuple, get_value: bool) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
+        pass
+
+    def value(self, x: Observation, state: Tuple) -> Tensor:
+        pass
+
+    def latent(self, x: Observation, state: Tuple) -> Tensor:
+        pass
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
+        pass

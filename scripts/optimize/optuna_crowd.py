@@ -1,3 +1,4 @@
+import copy
 import os
 from logging import ERROR
 
@@ -48,72 +49,9 @@ class Parser(BaseParser):
     }
 
 
-def objective(
-    trial: optuna.Trial, worker_id: int, path: str, config_path: str, wandb_project: str
-) -> float:
-    # Get some parameters
-    lr = trial.suggest_loguniform("lr", 1e-5, 1e-2)
-    n_episodes = 1
+def train_one(trial: optuna.Trial, worker_id: int, path: str, config: dict, wandb_project: str):
 
-    steps = n_episodes * 200
-
-    optuna_PPO_kwargs = {
-        # "OptimizerKwargs": {
-        #     "lr": lr,
-        # },
-        "gamma": 1 - trial.suggest_loguniform("1-gamma", 1e-4, 1e-1),
-        "gae_lambda": trial.suggest_uniform("gae_lambda", 0.8, 1.0),
-        "eps": trial.suggest_uniform("eps", 0.05, 0.2),
-        "target_kl": trial.suggest_uniform("target_kl", 0.01, 0.05),
-        "entropy_coeff": trial.suggest_uniform("entropy_coeff", 0, 0.05),
-        "ppo_epochs": trial.suggest_int("ppo_epochs", 15, 40),
-    }
-
-    activation = trial.suggest_categorical("activation", ["relu", "leaky_relu", "tanh"])
-
-    LAYER_OPTIONS = [
-        [32, 32],
-        [64, 64],
-        [128, 128],
-        [32, 32, 32],
-        [64, 64, 64],
-    ]
-
-    LAYER_IDX = list(range(len(LAYER_OPTIONS)))
-
-    vec_hidden_layers = trial.suggest_categorical("vec_hidden_layers", LAYER_IDX)
-    vec_hidden_layers = LAYER_OPTIONS[vec_hidden_layers]
-
-    rel_hidden_layers = trial.suggest_categorical("rel_hidden_layers", LAYER_IDX)
-    rel_hidden_layers = LAYER_OPTIONS[rel_hidden_layers]
-
-    com_hidden_layers = trial.suggest_categorical("com_hidden_layers", LAYER_IDX)
-    com_hidden_layers = LAYER_OPTIONS[com_hidden_layers]
-
-    optuna_model_kwargs = {
-        "vec_hidden_layers": vec_hidden_layers,
-        "rel_hidden_layers": rel_hidden_layers,
-        "com_hidden_layers": com_hidden_layers,
-        "activation": activation,
-    }
-
-    # Read the main config
-
-    with open(config_path, "r") as f:
-        config = yaml.load(f.read(), Loader=yaml.Loader)
-
-    # Update the config
-    config["trainer"]["PPOConfig"]["OptimizerKwargs"]["lr"] = lr
-    config["trainer"]["steps"] = steps
-
-    for key, value in optuna_PPO_kwargs.items():
-        config["trainer"]["PPOConfig"][key] = value
-
-    for key, value in optuna_model_kwargs.items():
-        config["model"][key] = value
-
-    config["trainer"]["tensorboard_name"] = f"trial{trial.number}"
-    config["trainer"]["PPOConfig"]["use_gpu"] = CUDA
+    config = copy.deepcopy(config)
 
     env = UnitySimpleCrowdEnv.get_venv(
         file_name=path,
@@ -236,27 +174,6 @@ def objective(
         )
 
         print("Skipping video")
-        # frame_size = renders.shape[1:3]
-        #
-        # print("Recording a video")
-        # video_path = os.path.join(
-        #     trainer.path, "videos", f"video_{mode}_{'det' if d else 'rnd'}_{i}.webm"
-        # )
-        # out = cv2.VideoWriter(
-        #     video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
-        # )
-        # for frame in renders[..., ::-1]:
-        #     out.write(frame)
-        #
-        # out.release()
-        #
-        # print(f"Video saved to {video_path}")
-        #
-        # wandb.log(
-        #     {f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)}
-        # )
-        #
-        # print("Video uploaded to wandb")
 
         trajectory_artifact = wandb.Artifact(
             name=f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}", type="json"
@@ -269,6 +186,83 @@ def objective(
     wandb.finish()
 
     return mean_reward
+
+def objective(
+    trial: optuna.Trial, worker_id: int, path: str, config_path: str, wandb_project: str
+) -> float:
+    # Get some parameters
+    lr = trial.suggest_loguniform("lr", 1e-5, 1e-2)
+    n_episodes = 1
+
+    steps = n_episodes * 200
+
+    optuna_PPO_kwargs = {
+        # "OptimizerKwargs": {
+        #     "lr": lr,
+        # },
+        "gamma": 1 - trial.suggest_loguniform("1-gamma", 1e-4, 1e-1),
+        "gae_lambda": trial.suggest_uniform("gae_lambda", 0.8, 1.0),
+        "eps": trial.suggest_uniform("eps", 0.05, 0.2),
+        "target_kl": trial.suggest_uniform("target_kl", 0.01, 0.05),
+        "entropy_coeff": trial.suggest_uniform("entropy_coeff", 0, 0.05),
+        "ppo_epochs": trial.suggest_int("ppo_epochs", 15, 40),
+    }
+
+    activation = trial.suggest_categorical("activation", ["relu", "leaky_relu", "tanh"])
+
+    LAYER_OPTIONS = [
+        [32, 32],
+        [64, 64],
+        [128, 128],
+        [32, 32, 32],
+        [64, 64, 64],
+    ]
+
+    LAYER_IDX = list(range(len(LAYER_OPTIONS)))
+
+    vec_hidden_layers = trial.suggest_categorical("vec_hidden_layers", LAYER_IDX)
+    vec_hidden_layers = LAYER_OPTIONS[vec_hidden_layers]
+
+    rel_hidden_layers = trial.suggest_categorical("rel_hidden_layers", LAYER_IDX)
+    rel_hidden_layers = LAYER_OPTIONS[rel_hidden_layers]
+
+    com_hidden_layers = trial.suggest_categorical("com_hidden_layers", LAYER_IDX)
+    com_hidden_layers = LAYER_OPTIONS[com_hidden_layers]
+
+    optuna_model_kwargs = {
+        "vec_hidden_layers": vec_hidden_layers,
+        "rel_hidden_layers": rel_hidden_layers,
+        "com_hidden_layers": com_hidden_layers,
+        "activation": activation,
+    }
+
+    # Read the main config
+
+    with open(config_path, "r") as f:
+        config = yaml.load(f.read(), Loader=yaml.Loader)
+
+    # Update the config
+    config["trainer"]["PPOConfig"]["OptimizerKwargs"]["lr"] = lr
+    config["trainer"]["steps"] = steps
+
+    for key, value in optuna_PPO_kwargs.items():
+        config["trainer"]["PPOConfig"][key] = value
+
+    for key, value in optuna_model_kwargs.items():
+        config["model"][key] = value
+
+    config["trainer"]["tensorboard_name"] = f"trial{trial.number}"
+    config["trainer"]["PPOConfig"]["use_gpu"] = CUDA
+
+    # TODO: run this several times and average the results
+
+    mean_reward = train_one(trial, worker_id, path, config, wandb_project)
+
+    return mean_reward
+
+
+
+
 
 
 if __name__ == "__main__":
