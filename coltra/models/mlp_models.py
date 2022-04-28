@@ -98,7 +98,7 @@ class MLPModel(BaseModel):
 
     def forward(
         self, x: Observation, state: Tuple = (), get_value: bool = True
-    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
 
         action_distribution: Distribution
 
@@ -157,7 +157,7 @@ class FlattenMLPModel(MLPModel):
 
     def forward(
         self, x: Observation, state: Tuple = (), get_value: bool = True
-    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
         return super().forward(self._flatten(x), state, get_value)
 
     def latent(self, x: Observation, state: Tuple = ()) -> Tensor:

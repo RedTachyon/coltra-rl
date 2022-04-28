@@ -25,7 +25,7 @@ def is_array(x: Any) -> bool:
 
 
 class Multitype:
-    _dict: Dict[str, Array]
+    _dict: dict[str, Array]
 
     @classmethod
     def stack_tensor(cls, value_list: list[Multitype], dim: int = 0):
@@ -198,7 +198,7 @@ class MemoryRecord:
         return self.apply(lambda x: x.cpu())
 
     @classmethod
-    def crowdify(cls, memory_dict: Dict[str, MemoryRecord]) -> MemoryRecord:
+    def crowdify(cls, memory_dict: dict[str, MemoryRecord]) -> MemoryRecord:
         tensor_data = memory_dict.values()
         return MemoryRecord(
             obs=Observation.cat_tensor(
@@ -234,15 +234,15 @@ class AgentMemoryBuffer:
 
 @dataclass
 class MemoryBuffer:
-    data: Dict[str, AgentMemoryBuffer] = field(default_factory=dict)
+    data: dict[str, AgentMemoryBuffer] = field(default_factory=dict)
 
     def append(
         self,
-        obs: Dict[str, Observation],
-        action: Dict[str, Action],
-        reward: Dict[str, Reward],
-        value: Dict[str, Value],
-        done: Dict[str, Done],
+        obs: dict[str, Observation],
+        action: dict[str, Action],
+        reward: dict[str, Reward],
+        value: dict[str, Value],
+        done: dict[str, Done],
     ):
 
         for agent_id in obs:  # Assume the keys are identical
@@ -264,7 +264,7 @@ class MemoryBuffer:
     #
     #         self.data.setdefault(agent_id, AgentMemoryBuffer()).append(record)
 
-    def tensorify(self) -> Dict[str, MemoryRecord]:
+    def tensorify(self) -> dict[str, MemoryRecord]:
         result = {}
         for agent_id, agent_buffer in self.data.items():  # str -> AgentMemoryBuffer
             result[agent_id] = MemoryRecord(

@@ -153,7 +153,7 @@ class RelationModel(BaseModel):
 
     def forward(
         self, x: Observation, state: Tuple = (), get_value: bool = True
-    ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
+    ) -> Tuple[Distribution, Tuple, dict[str, Tensor]]:
         action_distribution: Distribution
         if self.beta:
             [action_a, action_b] = self.policy_network(x)
@@ -200,7 +200,7 @@ class FlattenRelationModel(RelationModel):
 
     def forward(
         self, x: Observation, state: Tuple = (), get_value: bool = True
-    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
         return super().forward(self._flatten(x), state, get_value)
 
     def latent(self, x: Observation, state: Tuple = ()) -> Tensor:

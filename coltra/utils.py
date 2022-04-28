@@ -43,7 +43,7 @@ from coltra.buffers import Observation
 
 
 def write_dict(
-    metrics: Dict[str, Union[int, float]],
+    metrics: dict[str, Union[int, float]],
     step: int,
     writer: Optional[SummaryWriter] = None,
 ):
@@ -106,7 +106,7 @@ class GELU(nn.Module):
 
 def get_activation_module(act_name: str) -> Type[nn.Module]:
     """Gets an activation module by name"""
-    activations: Dict[str, Type[nn.Module]] = {
+    activations: dict[str, Type[nn.Module]] = {
         "relu": nn.ReLU,
         "relu6": nn.ReLU6,
         "elu": nn.ELU,
@@ -202,8 +202,8 @@ def get_episode_lens(done_batch: Tensor) -> Tuple[int]:
 
 
 def minibatches(
-    data: Dict[str, Tensor], batch_size: int, shuffle: bool = True
-) -> Iterator[Tuple[Tensor, Dict[str, Tensor]]]:
+    data: dict[str, Tensor], batch_size: int, shuffle: bool = True
+) -> Iterator[Tuple[Tensor, dict[str, Tensor]]]:
     batch_start = 0
     batch_end = batch_size
     data_size = len(data["dones"])
@@ -223,19 +223,19 @@ def minibatches(
         yield indices[batch_start:batch_end], batch
 
 
-def pack(dict_: Dict[str, Observation]) -> Tuple[Observation, List[str]]:
+def pack(dict_: dict[str, Observation]) -> Tuple[Observation, List[str]]:
     keys = list(dict_.keys())
     values = Observation.stack_tensor([dict_[key] for key in keys])
 
     return values, keys
 
 
-def unpack(arrays: Any, keys: List[str]) -> Dict[str, Any]:
+def unpack(arrays: Any, keys: List[str]) -> dict[str, Any]:
     value_dict = {key: arrays[i] for i, key in enumerate(keys)}
     return value_dict
 
 
-def parse_agent_name(name: str) -> Dict[str, str]:
+def parse_agent_name(name: str) -> dict[str, str]:
     parts = name.split("&")
     result = {"name": parts[0]}
     for part in parts[1:]:
@@ -278,7 +278,7 @@ def parse_segment(content: str) -> Tuple[str, np.ndarray]:
     return name, result
 
 
-def parse_ana(content: str) -> Dict:
+def parse_ana(content: str) -> dict:
     """Parse the text of the entire file, split it into segments and return a dictionary of arrays"""
     segments = split_ana(content)
     data = [parse_segment(segment) for segment in segments]
@@ -286,7 +286,7 @@ def parse_ana(content: str) -> Dict:
     return data_dict
 
 
-def read_ana(path: str) -> Dict:
+def read_ana(path: str) -> dict:
     """Same as read_ana, but handle reading the file as well"""
     with open(path, "r") as f:
         text = f.read()

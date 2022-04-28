@@ -53,7 +53,7 @@ class BaseModel(nn.Module):
     # TO IMPLEMENT
     def forward(
         self, x: Observation, state: Tuple, get_value: bool
-    ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
+    ) -> Tuple[Distribution, Tuple, dict[str, Tensor]]:
         # Output: action_dist, state, {value, whatever else}
         raise NotImplementedError
 

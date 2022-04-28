@@ -63,7 +63,7 @@ class LeeNetwork(nn.Module):
 
 
 class LeeModel(BaseModel):
-    def __init__(self, config: Dict, action_space: Space):
+    def __init__(self, config: dict, action_space: Space):
         super().__init__(config, action_space=action_space)
 
         Config = LeeConfig.clone()
@@ -89,7 +89,7 @@ class LeeModel(BaseModel):
 
     def forward(
         self, x: Observation, state: Tuple = (), get_value: bool = False
-    ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
+    ) -> Tuple[Distribution, Tuple, dict[str, Tensor]]:
 
         [action_mu, action_std] = self.policy_network(x)
         action_std = F.softplus(action_std - 0.5)

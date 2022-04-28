@@ -11,7 +11,7 @@ import uuid
 from coltra.utils import np_float
 
 
-def concat_dicts(dicts: Sequence[Dict[str, float]]) -> Dict[str, np.ndarray]:
+def concat_dicts(dicts: Sequence[dict[str, float]]) -> dict[str, np.ndarray]:
     """
     Turns a list of dictionaries, to a dictionary of arrays
     """
@@ -26,7 +26,7 @@ def concat_dicts(dicts: Sequence[Dict[str, float]]) -> Dict[str, np.ndarray]:
     return array_dict
 
 
-def parse_side_message(msg: str) -> Dict[str, np.ndarray]:
+def parse_side_message(msg: str) -> dict[str, np.ndarray]:
     """Parses a message from StatsChannel"""
     if msg == "":
         return {}
@@ -64,7 +64,7 @@ class StatsChannel(SideChannel):
         # We call this method to queue the data we want to send
         super().queue_message_to_send(msg)
 
-    def parse_info(self, clear: bool = True) -> Dict[str, np.ndarray]:
+    def parse_info(self, clear: bool = True) -> dict[str, np.ndarray]:
         dicts: Sequence = [parse_side_message(msg) for msg in self.msg_buffer]
         result = concat_dicts(dicts)
         if clear:

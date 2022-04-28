@@ -152,7 +152,7 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
             remote.send(("seed", seed + idx))
         return [remote.recv() for remote in self.remotes]
 
-    def reset(self, **kwargs) -> Dict[str, Observation]:
+    def reset(self, **kwargs) -> dict[str, Observation]:
         for remote in self.remotes:
             remote.send(("reset", kwargs))
         obs = [remote.recv() for remote in self.remotes]
@@ -223,7 +223,7 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
         return [self.remotes[i] for i in indices]
 
 
-def _gather_subproc(obs: List[Dict[str, Observation]]) -> Dict[str, Observation]:
+def _gather_subproc(obs: List[dict[str, Observation]]) -> dict[str, Observation]:
     combined_obs = {
         f"{key}&env={i}": value
         for i, s_obs in enumerate(obs)
@@ -232,14 +232,14 @@ def _gather_subproc(obs: List[Dict[str, Observation]]) -> Dict[str, Observation]
     return combined_obs
 
 
-def _flatten_scalar(values: List[Dict[str, Any]]) -> Dict[str, np.ndarray]:
+def _flatten_scalar(values: List[dict[str, Any]]) -> dict[str, np.ndarray]:
     keys = values[0].keys()
     return {k: np.array([v[k] for v in values]) for k in keys}
 
 
 def _flatten_info(
-    infos: List[Dict[str, np.ndarray]]
-) -> Dict[str, Union[np.ndarray, List]]:
+    infos: List[dict[str, np.ndarray]]
+) -> dict[str, Union[np.ndarray, List]]:
     all_metrics = {}
 
     all_keys = set([k for dictionary in infos for k in dictionary])

@@ -1,5 +1,7 @@
 import abc
 import os
+from functools import reduce
+from itertools import chain
 from typing import Dict, Callable, Tuple, Iterable, Any, Optional
 import numpy as np
 from typing import List, TypeVar
@@ -20,7 +22,7 @@ class PolicyNameError(Exception):
 
 
 class MacroAgent(abc.ABC):
-    policy_mapping: Dict[AgentNameStub, PolicyName]
+    policy_mapping: dict[AgentNameStub, PolicyName]
 
     def get_policy_name(self, agent_name: AgentName) -> PolicyName:
         policy_mapping = {
@@ -39,19 +41,19 @@ class MacroAgent(abc.ABC):
 
     @abc.abstractmethod
     def act(
-        self,
-        obs_dict: Dict[AgentName, Observation],
-        deterministic: bool = False,
-        get_value: bool = False,
-    ) -> Tuple[Dict[AgentName, Action], Tuple, Dict]:
+            self,
+            obs_dict: dict[AgentName, Observation],
+            deterministic: bool = False,
+            get_value: bool = False,
+    ) -> Tuple[dict[AgentName, Action], Tuple, dict]:
         pass
 
     @abc.abstractmethod
     def evaluate(
-        self,
-        obs_batch: Dict[PolicyName, Observation],
-        action_batch: Dict[PolicyName, Action],
-    ) -> Dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
+            self,
+            obs_batch: dict[PolicyName, Observation],
+            action_batch: dict[PolicyName, Action],
+    ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
         pass
 
     @abc.abstractmethod
@@ -68,8 +70,8 @@ class MacroAgent(abc.ABC):
 
     @abc.abstractmethod
     def value(
-        self, obs_batch: Dict[AgentName, Observation], **kwargs
-    ) -> Dict[AgentName, Tensor]:
+            self, obs_batch: dict[AgentName, Observation], **kwargs
+    ) -> dict[AgentName, Tensor]:
         pass
 
     @abc.abstractmethod
@@ -88,14 +90,14 @@ class HomogeneousGroup(MacroAgent):
         self.agent = agent
 
     def act(
-        self,
-        obs_dict: Dict[AgentName, Observation],
-        deterministic: bool = False,
-        get_value: bool = False,
+            self,
+            obs_dict: dict[AgentName, Observation],
+            deterministic: bool = False,
+            get_value: bool = False,
     ):
         obs, keys = pack(obs_dict)
         actions, states, extra = self.agent.act(
-            obs, (), deterministic, get_value=get_value
+            obs_batch=obs, state_batch=(), deterministic=deterministic, get_value=get_value
         )
 
         actions_dict = unpack(actions, keys)
@@ -114,40 +116,40 @@ class HomogeneousGroup(MacroAgent):
         self.agent.cpu()
 
     def value(
-        self, obs_batch: Dict[AgentName, Observation], **kwargs
-    ) -> Dict[str, Tensor]:
+            self, obs_batch: dict[AgentName, Observation], **kwargs
+    ) -> dict[str, Tensor]:
         obs, keys = pack(obs_batch)
         values = self.agent.value(obs)
         return unpack(values, keys)
 
-    def value_pack(self, obs_batch: Dict[AgentName, Observation], **kwargs) -> Tensor:
+    def value_pack(self, obs_batch: dict[AgentName, Observation], **kwargs) -> Tensor:
         obs, _ = pack(obs_batch)
         values = self.agent.value(obs)
         return values
 
     T = TypeVar("T")
 
-    def embed(self, value: T) -> Dict[PolicyName, T]:
+    def embed(self, value: T) -> dict[PolicyName, T]:
         return {self.policy_name: value}
 
     def evaluate(
-        self,
-        obs_batch: Dict[PolicyName, Observation],
-        action_batch: Dict[PolicyName, Action],
-    ) -> Dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
+            self,
+            obs_batch: dict[PolicyName, Observation],
+            action_batch: dict[PolicyName, Action],
+    ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
 
         obs = obs_batch[self.policy_name]
         action = action_batch[self.policy_name]
         return self.embed(self.agent.evaluate(obs, action))
 
     def embed_evaluate(
-        self, obs: Observation, action: Action
+            self, obs: Observation, action: Action
     ) -> Tuple[Tensor, Tensor, Tensor]:
         return self.evaluate(self.embed(obs), self.embed(action))[self.policy_name]
 
     def save(
-        self,
-        base_path: str,
+            self,
+            base_path: str,
     ):
         agent_fname: str = "agent.pt"
         model_fname: str = "model.pt"
@@ -208,29 +210,28 @@ class HomogeneousGroup(MacroAgent):
         self.agent.model.load_state_dict(weights)
 
 
-#
-#
 # class HeterogeneousGroup(MacroAgent):
 #     """
 #     A "macroagent" combining several individual agents
 #     """
 #
 #     def __init__(
-#         self,
-#         agents: dict[PolicyName, Agent],
-#         policy_mapping: Optional[dict[AgentNameStub, PolicyName]] = None,
+#             self,
+#             agents: dict[PolicyName, Agent],
+#             policy_mapping: Optional[dict[AgentNameStub, PolicyName]] = None,
 #     ):
 #         super().__init__()
-#         self.agents: dict[PolicyName, MacroAgent] = {key: HomogeneousGroup(agent) for key, agent in agents.items()}
+#         self.agents: dict[PolicyName, HomogeneousGroup] = {key: HomogeneousGroup(agent)
+#                                                            for key, agent in agents.items()}
 #         self.policy_mapping = policy_mapping or {"": "agent"}
 #
 #         self.policy_names = list(set(self.policy_mapping.values()))
 #
 #     def act(
-#         self,
-#         obs_dict: dict[str, Observation],
-#         deterministic: bool = False,
-#         get_value: bool = False,
+#             self,
+#             obs_dict: dict[str, Observation],
+#             deterministic: bool = False,
+#             get_value: bool = False,
 #     ):
 #
 #         policy_obs: dict[PolicyName, dict[AgentName, Observation]] = {}
@@ -240,12 +241,50 @@ class HomogeneousGroup(MacroAgent):
 #             policy_obs.setdefault(policy_name, {})[agent_id] = obs
 #
 #         actions = {}
+#         part_extras = {}  # TODO: rename this
 #         extras = {}
 #         for policy_name, policy_obs_dict in policy_obs:
 #             agent = self.agents[policy_name]
 #             policy_actions, states, extra = agent.act(policy_obs_dict, deterministic, get_value)
 #             actions = {**actions, **policy_actions}
-#             for extra_dict in extra:
-#                 extras.setdefault(policy_name, []).append(extra_dict)
+#             for extra_name, extra_dict in extra.items():
+#                 part_extras.setdefault(extra_name, []).append(extra_dict)
 #
-#         # TODO: coalesce the different extras into a single dict
+#             for key, dicts in part_extras.items():
+#                 extras[key] = reduce(lambda acc, x: x | acc, dicts)
+#
+#         return actions, (), extras
+#
+#     def evaluate(self, obs_batch: dict[PolicyName, Observation],
+#                  action_batch: dict[PolicyName, Action]) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
+#         pass
+#
+#     def parameters(self) -> Iterable[torch.nn.Parameter]:
+#         policy_params = [agent.parameters() for agent in self.agents.values()]
+#         return chain.from_iterable(policy_params)
+#
+#     def cuda(self):
+#         for agent in self.agents.values():
+#             agent.cuda()
+#
+#     def cpu(self):
+#         for agent in self.agents.values():
+#             agent.cpu()
+#
+#     def value(self, obs_batch: dict[AgentName, Observation], **kwargs) -> dict[AgentName, Tensor]:
+#         policy_obs: dict[PolicyName, dict[AgentName, Observation]] = {}
+#
+#         for agent_id, obs in obs_batch:
+#             policy_name = self.get_policy_name(agent_id)
+#             policy_obs.setdefault(policy_name, {})[agent_id] = obs
+#
+#         values = {}
+#         for policy_name, policy_obs_dict in policy_obs:
+#             agent = self.agents[policy_name]
+#             policy_values = agent.value(policy_obs_dict)
+#             values = {**values, **policy_values}
+#
+#         return values
+#
+#     def save(self, *args, **kwargs):
+#         pass

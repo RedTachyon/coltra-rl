@@ -61,7 +61,7 @@ class MultiGymEnv(MultiAgentEnv):
 
         return self._dict(obs)
 
-    def step(self, action_dict: Dict[str, Action]):
+    def step(self, action_dict: dict[str, Action]):
         action = action_dict[self.name]
         if self.is_discrete_action:
             action = action.discrete
@@ -83,7 +83,7 @@ class MultiGymEnv(MultiAgentEnv):
     def render(self, *args, **kwargs):
         return self.s_env.render(*args, **kwargs)
 
-    def _dict(self, val: Any) -> Dict[str, Any]:
+    def _dict(self, val: Any) -> dict[str, Any]:
         return {self.name: val}
 
     @classmethod

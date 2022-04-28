@@ -1,20 +1,11 @@
-from dataclasses import dataclass, field
-from typing import Dict, Callable, List, Tuple, Optional, TypeVar, Union, Any
+from typing import Tuple, Optional, Any
 
 import numpy as np
-import torch
-import torch.multiprocessing as mp
 from tqdm import trange
 
-from coltra.groups import MacroAgent, HomogeneousGroup
-from coltra.utils import pack, unpack
-from coltra.agents import Agent
-from coltra.envs import SubprocVecEnv
-
-from coltra.envs.unity_envs import UnitySimpleCrowdEnv, Mode
+from coltra.buffers import MemoryRecord, MemoryBuffer
 from coltra.envs import MultiAgentEnv
-
-from coltra.buffers import MemoryRecord, MemoryBuffer, AgentMemoryBuffer
+from coltra.groups import HomogeneousGroup
 
 
 def collect_crowd_data(
@@ -24,7 +15,7 @@ def collect_crowd_data(
     deterministic: bool = False,
     disable_tqdm: bool = True,
     env_kwargs: Optional[dict[str, Any]] = None,
-) -> Tuple[Dict[str, MemoryRecord], Dict, Tuple]:
+) -> Tuple[dict[str, MemoryRecord], dict, Tuple]:
     """
     Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
 

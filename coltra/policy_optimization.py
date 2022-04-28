@@ -67,7 +67,7 @@ class CrowdPPOptimizer:
     An optimizer for a single homogeneous crowd agent. Estimates the gradient from the whole batch (no SGD).
     """
 
-    def __init__(self, agents: HomogeneousGroup, config: Dict[str, Any]):
+    def __init__(self, agents: HomogeneousGroup, config: dict[str, Any]):
 
         self.agents = agents
 
@@ -86,11 +86,11 @@ class CrowdPPOptimizer:
 
     def train_on_data(
         self,
-        data_dict: Dict[str, MemoryRecord],
+        data_dict: dict[str, MemoryRecord],
         shape: Tuple[int, int],
         step: int = 0,
         writer: Optional[SummaryWriter] = None,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Performs a single update step with PPO on the given batch of data.
 

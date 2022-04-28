@@ -10,11 +10,11 @@ import numpy as np
 from coltra.buffers import Observation, Action, Reward, Done
 
 
-ObsDict = Dict[str, Observation]
-ActionDict = Dict[str, Action]
-RewardDict = Dict[str, Reward]
-DoneDict = Dict[str, Done]
-InfoDict = Dict[str, Any]
+ObsDict = dict[str, Observation]
+ActionDict = dict[str, Action]
+RewardDict = dict[str, Reward]
+DoneDict = dict[str, Done]
+InfoDict = dict[str, Any]
 
 StepReturn = Tuple[ObsDict, RewardDict, DoneDict, InfoDict]
 VecEnvIndices = Union[None, int, Iterable[int]]
@@ -247,14 +247,14 @@ class MultiAgentEnv(gym.Env):
         raise NotImplementedError
 
     @staticmethod
-    def pack(dict_: Dict[str, Observation]) -> Tuple[Observation, List[str]]:
+    def pack(dict_: dict[str, Observation]) -> Tuple[Observation, List[str]]:
         keys = list(dict_.keys())
         values = Observation.stack_tensor([dict_[key] for key in keys])
 
         return values, keys
 
     @staticmethod
-    def unpack(arrays: Any, keys: List[str]) -> Dict[str, Any]:
+    def unpack(arrays: Any, keys: List[str]) -> dict[str, Any]:
         value_dict = {key: arrays[i] for i, key in enumerate(keys)}
         return value_dict
 

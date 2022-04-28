@@ -30,7 +30,7 @@ class ConstRewardEnv(MultiAgentEnv):
         zero_obs = Observation(vector=np.ones((1,), dtype=np.float32))
         return {agent_id: zero_obs for agent_id in self.active_agents}
 
-    def step(self, actions: Dict[str, Action]):
+    def step(self, actions: dict[str, Action]):
         zero_obs = {
             agent_id: Observation(vector=np.ones((1,), dtype=np.float32))
             for agent_id in self.active_agents
@@ -79,7 +79,7 @@ class ObsDependentRewardEnv(MultiAgentEnv):
         self.current_obs = {agent_id: random_obs for agent_id in self.active_agents}
         return self.current_obs
 
-    def step(self, actions: Dict[str, Action]):
+    def step(self, actions: dict[str, Action]):
         obs = {
             agent_id: Observation(vector=np_float(self.rng.choice([-1, 1])))
             for agent_id in self.active_agents
@@ -128,7 +128,7 @@ class ActionDependentRewardEnv(MultiAgentEnv):
         zero_obs = Observation(vector=np.ones((1,), dtype=np.float32))
         return {agent_id: zero_obs for agent_id in self.active_agents}
 
-    def step(self, actions: Dict[str, Action]):
+    def step(self, actions: dict[str, Action]):
         zero_obs = {
             agent_id: Observation(vector=np.ones((1,), dtype=np.float32))
             for agent_id in self.active_agents
@@ -186,7 +186,7 @@ class StateActionDependentRewardEnv(MultiAgentEnv):
 
         return obs
 
-    def step(self, actions: Dict[str, Action]):
+    def step(self, actions: dict[str, Action]):
 
         reward = {
             agent_id: np.float32(
@@ -252,7 +252,7 @@ class EpisodicMetricEnv(MultiAgentEnv):
         self.current_obs = {agent_id: random_obs for agent_id in self.active_agents}
         return self.current_obs
 
-    def step(self, actions: Dict[str, Action]):
+    def step(self, actions: dict[str, Action]):
         self.time += 1
         _done = self.time >= self.ep_len
         _obs = self.time

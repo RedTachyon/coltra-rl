@@ -26,7 +26,7 @@ class Agent:
         deterministic: bool = False,
         get_value: bool = False,
         **kwargs,
-    ) -> Tuple[Action, Tuple, Dict]:
+    ) -> Tuple[Action, Tuple, dict]:
         """Return: Action, State, Extras"""
         raise NotImplementedError
 
@@ -125,7 +125,7 @@ class CAgent(Agent):  # Continuous Agent
         deterministic: bool = False,
         get_value: bool = False,
         **kwargs,
-    ) -> Tuple[Action, Tuple, Dict]:
+    ) -> Tuple[Action, Tuple, dict]:
         """Computes the action for an observation,
         passes along the state for recurrent models, and optionally the value"""
         obs_batch = obs_batch.tensor(self.model.device)
@@ -201,7 +201,7 @@ class DAgent(Agent):
         deterministic: bool = False,
         get_value: bool = False,
         **kwargs,
-    ) -> Tuple[Action, Tuple, Dict]:
+    ) -> Tuple[Action, Tuple, dict]:
 
         obs_batch = obs_batch.tensor(self.model.device)
         state_batch = tuple(s.to(self.model.device) for s in state_batch)
@@ -271,7 +271,7 @@ class ToyAgent(Agent):
         deterministic: bool = False,
         get_value: bool = False,
         **kwargs,
-    ) -> Tuple[Action, Tuple, Dict]:
+    ) -> Tuple[Action, Tuple, dict]:
         """Return: Action, State, Extras"""
         raise NotImplementedError
 
@@ -298,7 +298,7 @@ class RandomGymAgent(ToyAgent):
         deterministic: bool = False,
         get_value: bool = False,
         **kwargs,
-    ) -> Tuple[Action, Tuple, Dict]:
+    ) -> Tuple[Action, Tuple, dict]:
         batch_size = obs_batch.batch_size
 
         if isinstance(self.action_space, gym.spaces.Box):
@@ -332,7 +332,7 @@ class ConstantAgent(ToyAgent):
         deterministic: bool = False,
         get_value: bool = False,
         **kwargs,
-    ) -> Tuple[Action, Tuple, Dict]:
+    ) -> Tuple[Action, Tuple, dict]:
         batch_size = obs_batch.batch_size
 
         return (
@@ -354,7 +354,7 @@ class RandomDAgent(ToyAgent):
         deterministic: bool = False,
         get_value: bool = False,
         **kwargs,
-    ) -> Tuple[Action, Tuple, Dict]:
+    ) -> Tuple[Action, Tuple, dict]:
         batch_size = obs_batch.batch_size
 
         return (

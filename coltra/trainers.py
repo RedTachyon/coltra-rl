@@ -45,7 +45,7 @@ class PPOCrowdTrainer(Trainer):
         self,
         agents: HomogeneousGroup,
         env: Union[MultiAgentEnv, VecEnv],
-        config: Dict[str, Any],
+        config: dict[str, Any],
         use_uuid: bool = False,
     ):
         super().__init__(agents, env, config)
