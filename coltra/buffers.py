@@ -84,7 +84,7 @@ class Multitype:
             res._dict[key] = tensor
         return res
 
-    def apply(self, func: Callable[[Array], Array]):
+    def map(self, func: Callable[[Array], Array]):
         """Applies a function to each field, returns a new object"""
         res = type(self)()
         for key in self._dict.keys():
@@ -94,10 +94,10 @@ class Multitype:
         return res
 
     def cuda(self, *args, **kwargs):
-        return self.apply(lambda x: x.cuda(*args, **kwargs))
+        return self.map(lambda x: x.cuda(*args, **kwargs))
 
     def cpu(self):
-        return self.apply(lambda x: x.cpu())
+        return self.map(lambda x: x.cpu())
 
     def __getitem__(self, item: Union[str, int, slice]) -> Union[Array, Multitype]:
         if isinstance(item, str):
@@ -270,9 +270,9 @@ class MemoryBuffer:
             result[agent_id] = MemoryRecord(
                 obs=Observation.stack_tensor(agent_buffer.obs),
                 action=Action.stack_tensor(agent_buffer.action),
-                reward=torch.tensor(agent_buffer.reward),
-                value=torch.tensor(agent_buffer.value),
-                done=torch.tensor(agent_buffer.done),
+                reward=torch.as_tensor(agent_buffer.reward),
+                value=torch.as_tensor(agent_buffer.value),
+                done=torch.as_tensor(agent_buffer.done),
                 last_value=None,
             )
         return result

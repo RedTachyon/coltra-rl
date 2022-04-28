@@ -1,3 +1,3 @@
-from .mlp_models import MLPModel
+from .mlp_models import MLPModel, ImageMLPModel, RayMLPModel
 from .base_models import FCNetwork, BaseModel
-from .relational_models import RelationModel
+from .relational_models import RelationModel, RayRelationModel

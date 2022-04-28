@@ -103,7 +103,7 @@ def test_action_misshaped():
 
 def test_apply():
     obs = Observation(vector=np.ones((5, 81)), buffer=np.ones((5, 10, 4)))
-    new_obs = obs.apply(lambda x: 2 * x)
+    new_obs = obs.map(lambda x: 2 * x)
 
     assert np.allclose(new_obs.vector, 2 * np.ones((5, 81)))
     assert np.allclose(new_obs.buffer, 2 * np.ones((5, 10, 4)))

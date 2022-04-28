@@ -49,7 +49,9 @@ class Parser(BaseParser):
     }
 
 
-def train_one(trial: optuna.Trial, worker_id: int, path: str, config: dict, wandb_project: str):
+def train_one(
+    trial: optuna.Trial, worker_id: int, path: str, config: dict, wandb_project: str
+):
 
     config = copy.deepcopy(config)
 
@@ -187,6 +189,7 @@ def train_one(trial: optuna.Trial, worker_id: int, path: str, config: dict, wand
 
     return mean_reward
 
+
 def objective(
     trial: optuna.Trial, worker_id: int, path: str, config_path: str, wandb_project: str
 ) -> float:
@@ -259,10 +262,6 @@ def objective(
     mean_reward = train_one(trial, worker_id, path, config, wandb_project)
 
     return mean_reward
-
-
-
-
 
 
 if __name__ == "__main__":

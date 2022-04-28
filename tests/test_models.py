@@ -63,7 +63,7 @@ def test_empty_fc():
 
 def test_lee():
     network = LeeNetwork(
-        input_size=4, output_sizes=[2, 4], rays_input_size=126, conv_filters=2
+        input_size=4, output_sizes=(2, 4), rays_input_size=126, conv_filters=2
     )
 
     obs = Observation(vector=torch.randn(10, 4), rays=torch.randn(10, 126))

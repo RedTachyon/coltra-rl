@@ -58,7 +58,7 @@ class Sensor(Enum):
     @staticmethod
     def from_string(name: str):
         if name.startswith("StackingSensor"):
-            name = name.split('_')[-1]
+            name = name.split("_")[-1]
 
         if name.lower().startswith("buffer"):
             return Sensor.Buffer
@@ -165,7 +165,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.behavior_name = list(self.behaviors.keys())[0]
         obs_spec, action_spec = self.behaviors[self.behavior_name]
 
-        vector_spec = next(spec for spec in obs_spec if spec.name.lower().startswith("vector"))
+        vector_spec = next(
+            spec for spec in obs_spec if spec.name.lower().startswith("vector")
+        )
         obs_shape = vector_spec.shape
         action_size = action_spec.continuous_size
 
@@ -176,7 +178,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.observation_space = Box(
             low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32
         )
-        self.action_space = Box(low=-np.inf, high=np.inf, shape=(action_size,), dtype=np.float32)
+        self.action_space = Box(
+            low=-np.inf, high=np.inf, shape=(action_size,), dtype=np.float32
+        )
 
     def _get_step_info(
         self, step: bool = False
@@ -244,7 +248,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
                     Action(continuous=np.zeros(action_shape)),  # Default value
                 )
 
-                cont_action = single_action.apply(np.asarray).continuous.ravel()
+                cont_action = single_action.map(np.asarray).continuous.ravel()
 
                 all_actions.append(cont_action)
 

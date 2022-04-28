@@ -3,7 +3,6 @@ from typing import List, Tuple, Optional, Type
 from typarse import BaseConfig
 
 
-
 class QMLPConfig(BaseConfig):
     input_size: int = 0  # Must be set
 
@@ -98,4 +97,17 @@ class RelationConfig(BaseConfig):
 
 
 class RayRelationConfig(BaseConfig):
-    pass
+    input_size: int = 7
+    ray_input_size: int = 120
+    rel_input_size: int = 4
+
+    activation: str = "tanh"
+    initializer: str = "orthogonal"
+
+    sigma0: float = 1.0
+
+    beta: bool = False
+
+    vec_hidden_layers: List[int] = [32, 32]
+    rel_hidden_layers: List[int] = [32, 32]
+    com_hidden_layers: List[int] = [32, 32]

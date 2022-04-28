@@ -22,6 +22,7 @@ import data_utils_retrain as du
 CUDA = torch.cuda.is_available()
 set_log_level(ERROR)
 
+
 class Parser(BaseParser):
     env: str
     entity: str = "redtachyon"
@@ -56,7 +57,7 @@ def train_crowd(config: dict, args: Parser):
         file_name=args.env,
         workers=config["trainer"]["workers"],
         base_worker_id=args.worker_id,
-        no_graphics=True
+        no_graphics=True,
     )
 
     obs_size = env.observation_space.shape[0]
@@ -83,17 +84,14 @@ def train_crowd(config: dict, args: Parser):
         agents.cuda()
 
     trainer = PPOCrowdTrainer(
-        agents=agents,
-        env=env,
-        config=config["trainer"],
-        use_uuid=True
+        agents=agents, env=env, config=config["trainer"], use_uuid=True
     )
 
     final_metrics = trainer.train(
         num_iterations=1000,
         disable_tqdm=False,
         save_path=trainer.path,
-        collect_kwargs=config["environment"]
+        collect_kwargs=config["environment"],
     )
 
     env.close()
@@ -103,7 +101,7 @@ def train_crowd(config: dict, args: Parser):
         file_name=args.env,
         no_graphics=False,
         worker_id=args.worker_id,
-        virtual_display=(1000, 1000)
+        virtual_display=(1000, 1000),
     )
 
     config["environment"]["evaluation_mode"] = 1.0
@@ -205,7 +203,8 @@ def train_crowd(config: dict, args: Parser):
 
     wandb.finish()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     args = Parser()
     api = wandb.Api()
 
@@ -218,4 +217,3 @@ if __name__ == '__main__':
     pprint(config)
 
     train_crowd(config, args)
-

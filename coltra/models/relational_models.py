@@ -1,4 +1,6 @@
-from typing import Dict, Any, List, Tuple, Union
+from __future__ import annotations
+
+from typing import Dict, Any, List, Tuple, Union, Sequence
 
 import torch
 from gym import Space
@@ -8,30 +10,30 @@ from torch.distributions import Distribution, Normal
 from typarse import BaseConfig
 
 from coltra.buffers import Observation
-from coltra.configs import RelationConfig
+from coltra.configs import RelationConfig, RayRelationConfig
 from coltra.models.base_models import FCNetwork, BaseModel
 from coltra.utils import AffineBeta
 
 
 class RelationNetwork(nn.Module):
     def __init__(
-            self,
-            vec_input_size: int = 4,
-            rel_input_size: int = 4,
-            vec_hidden_layers: List[int] = [32, 32],
-            rel_hidden_layers: List[int] = [32, 32],
-            com_hidden_layers: List[int] = [32, 32],
-            output_sizes: List[int] = [2, 2],
-            is_policy: Union[bool, List[bool]] = [True, False],
-            activation: str = "tanh",
-            initializer: str = "kaiming_uniform",
+        self,
+        vec_input_size: int = 4,
+        rel_input_size: int = 4,
+        vec_hidden_layers: Sequence[int] = (32, 32),
+        rel_hidden_layers: Sequence[int] = (32, 32),
+        com_hidden_layers: Sequence[int] = (32, 32),
+        output_sizes: Sequence[int] = (2, 2),
+        is_policy: Union[bool, Sequence[bool]] = (True, False),
+        activation: str = "tanh",
+        initializer: str = "kaiming_uniform",
     ):
         super().__init__()
 
         *vec_hidden, vec_head = vec_hidden_layers
         self.vec_mlp = FCNetwork(
             input_size=vec_input_size,
-            output_sizes=[vec_head],
+            output_sizes=(vec_head,),
             hidden_sizes=vec_hidden,
             activation=activation,
             initializer=initializer,
@@ -41,7 +43,7 @@ class RelationNetwork(nn.Module):
         *rel_hidden, rel_head = rel_hidden_layers
         self.rel_mlp = FCNetwork(
             input_size=rel_input_size,
-            output_sizes=[rel_head],
+            output_sizes=(rel_head,),
             hidden_sizes=rel_hidden,
             activation=activation,
             initializer=initializer,
@@ -110,11 +112,11 @@ class RelationModel(BaseModel):
         self.beta = self.config.beta
 
         if self.beta:
-            heads = [self.num_actions, self.num_actions]
-            is_policy = [True, True]
+            heads = (self.num_actions, self.num_actions)
+            is_policy = (True, True)
         else:
-            heads = [self.num_actions]
-            is_policy = [True]
+            heads = (self.num_actions,)
+            is_policy = (True,)
 
         self.policy_network = RelationNetwork(
             vec_input_size=self.config.input_size,
@@ -134,7 +136,7 @@ class RelationModel(BaseModel):
             vec_hidden_layers=self.config.vec_hidden_layers,
             rel_hidden_layers=self.config.rel_hidden_layers,
             com_hidden_layers=self.config.com_hidden_layers,
-            output_sizes=[1],
+            output_sizes=(1,),
             is_policy=False,
             activation=self.config.activation,
             initializer=self.config.initializer,
@@ -144,20 +146,21 @@ class RelationModel(BaseModel):
             self.logstd = None
         else:
             self.logstd = nn.Parameter(
-                torch.tensor(self.config.sigma0)
-                * torch.ones(1, self.num_actions)
+                torch.tensor(self.config.sigma0) * torch.ones(1, self.num_actions)
             )
 
         self.config = self.config.to_dict()
 
     def forward(
-            self, x: Observation, state: Tuple = (), get_value: bool = True
+        self, x: Observation, state: Tuple = (), get_value: bool = True
     ) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
         action_distribution: Distribution
         if self.beta:
             [action_a, action_b] = self.policy_network(x)
             action_a, action_b = action_a.exp() + 1, action_b.exp() + 1
-            action_distribution = AffineBeta(action_a, action_b, self.action_low, self.action_high)
+            action_distribution = AffineBeta(
+                action_a, action_b, self.action_low, self.action_high
+            )
         else:
             [action_mu] = self.policy_network(x)
             action_std = torch.exp(self.logstd)
@@ -182,3 +185,63 @@ class RelationModel(BaseModel):
     def latent_value(self, x: Observation, state: Tuple) -> Tensor:
         latent = self.value_network.latent(x)
         return latent
+
+
+class FlattenRelationModel(RelationModel):
+    """
+    An abstraction to create models that flatten select inputs into a single vector.
+    Basically just the equivalent of `FlattenMLPModel`, I should combine them into a parametrized version.
+    Need to implement `_flatten` for any new models, and the result will be a fully connected
+    model that only has a `vector` entry, flattened according to the custom model.
+    """
+
+    def _flatten(self, obs: Observation) -> Observation:
+        raise NotImplementedError
+
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = True
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
+        return super().forward(self._flatten(x), state, get_value)
+
+    def latent(self, x: Observation, state: Tuple = ()) -> Tensor:
+        return super().latent(self._flatten(x), state)
+
+    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
+        return super().value(self._flatten(x), state)
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
+        return super().latent_value(self._flatten(x), state)
+
+
+class RayRelationModel(FlattenRelationModel):
+    def __init__(self, config: dict, action_space: Space):
+        Config: RayRelationConfig = RayRelationConfig.clone()
+        Config.update(config)
+
+        new_config = Config.to_dict()
+        new_config["input_size"] = (
+            new_config["input_size"] + new_config["ray_input_size"]
+        )
+        del new_config["ray_input_size"]
+
+        RelConfig: RelationConfig = RelationConfig.clone()
+        RelConfig.update(new_config)
+
+        super().__init__(RelConfig.to_dict(), action_space)
+
+    def _flatten(self, obs: Observation) -> Observation:
+        if not hasattr(obs, "rays"):
+            return obs
+
+        rays = obs.rays
+        if rays.shape == 1:  # no batch
+            dim = 0
+        else:  # rays.shape == 2, batch
+            dim = 1
+
+        if hasattr(obs, "vector"):
+            vector = torch.cat([obs.vector, rays], dim=dim)
+        else:
+            vector = rays
+
+        return Observation(vector=vector)

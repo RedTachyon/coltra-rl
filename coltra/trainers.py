@@ -72,9 +72,7 @@ class PPOCrowdTrainer(Trainer):
             if use_uuid:
                 dt_string += "_" + shortuuid.uuid()
             path = (
-                Path.home()
-                / "tb_logs"
-                / f"{self.config.tensorboard_name}_{dt_string}"
+                Path.home() / "tb_logs" / f"{self.config.tensorboard_name}_{dt_string}"
             )
 
             self.writer = SummaryWriter(str(path))

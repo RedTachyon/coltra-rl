@@ -6,7 +6,14 @@ import torch.nn.functional as F
 from gym import Space
 from gym.spaces import Discrete, Box
 from torch import nn, Tensor
-from torch.distributions import Distribution, Normal, Categorical, Beta, TransformedDistribution, AffineTransform
+from torch.distributions import (
+    Distribution,
+    Normal,
+    Categorical,
+    Beta,
+    TransformedDistribution,
+    AffineTransform,
+)
 from typarse import BaseConfig
 
 from coltra.buffers import Observation
@@ -16,7 +23,7 @@ from coltra.configs import MLPConfig, QMLPConfig
 
 
 class MLPModel(BaseModel):
-    def __init__(self, config: Dict, action_space: Space):
+    def __init__(self, config: dict, action_space: Space):
         super().__init__(config, action_space)
 
         Config: MLPConfig = MLPConfig.clone()
@@ -28,8 +35,11 @@ class MLPModel(BaseModel):
             self.config.input_size > 0
         ), "Model config invalid, input_size must be > 0"
 
-        assert self.config.mode in ["head", "logstd", "beta"], \
-            "Model config invalid, mode must be either 'head', 'logstd', 'beta' or None"
+        assert self.config.mode in [
+            "head",
+            "logstd",
+            "beta",
+        ], "Model config invalid, mode must be either 'head', 'logstd', 'beta' or None"
 
         self.action_mode = self.config.mode
 
@@ -39,22 +49,24 @@ class MLPModel(BaseModel):
 
         self.activation: Callable = get_activation(self.config.activation)
 
-        heads: List[int]
-        is_policy: List[bool]
+        heads: tuple[int, ...]
+        is_policy: tuple[bool, ...]
         if self.discrete:
-            heads = [self.num_actions]
-            is_policy = [True]
+            heads = (self.num_actions,)
+            is_policy = (True,)
         elif self.action_mode == "head":
-            heads = [self.num_actions, self.num_actions]
-            is_policy = [True, False]
+            heads = (self.num_actions, self.num_actions)
+            is_policy = (True, False)
         elif self.action_mode == "logstd":
-            heads = [self.num_actions]
-            is_policy = [True]
+            heads = (self.num_actions,)
+            is_policy = (True,)
         elif self.action_mode == "beta":
-            heads = [self.num_actions, self.num_actions]
-            is_policy = [True, True]
+            heads = (self.num_actions, self.num_actions)
+            is_policy = (True, True)
         else:
-            raise ValueError("Mode invalid, must be passed if the action space is discrete.")
+            raise ValueError(
+                "Mode invalid, must be passed if the action space is discrete."
+            )
 
         # Create the policy network
         self.policy_network = FCNetwork(
@@ -77,8 +89,7 @@ class MLPModel(BaseModel):
 
         if self.action_mode == "logstd":
             self.logstd = nn.Parameter(
-                torch.tensor(self.config.sigma0)
-                * torch.ones(1, self.num_actions)
+                torch.tensor(self.config.sigma0) * torch.ones(1, self.num_actions)
             )
         else:
             self.logstd = None
@@ -107,9 +118,13 @@ class MLPModel(BaseModel):
         elif self.action_mode == "beta":
             [action_a, action_b] = self.policy_network(x.vector)
             action_a, action_b = action_a.exp(), action_b.exp()
-            action_distribution = AffineBeta(action_a, action_b, self.action_low, self.action_high)
+            action_distribution = AffineBeta(
+                action_a, action_b, self.action_low, self.action_high
+            )
         else:
-            raise ValueError("Mode invalid, must be passed if the action space is discrete.")
+            raise ValueError(
+                "Mode invalid, must be passed if the action space is discrete."
+            )
 
         extra_outputs = {}
 
@@ -130,11 +145,33 @@ class MLPModel(BaseModel):
         return self.value_network.latent(x.vector)
 
 
-class ImageMLPModel(MLPModel):
-    def __init__(self, config: Dict, action_space: Space):
-        super().__init__(config, action_space)
+class FlattenMLPModel(MLPModel):
+    """
+    An abstraction to create models that flatten several inputs into a single vector.
+    Need to implement `_flatten` for any new models, and the result will be a fully connected
+    model that only has a `vector` entry, flattened according to the custom model.
+    """
 
-    def _flatten(self, obs: Observation):
+    def _flatten(self, obs: Observation) -> Observation:
+        raise NotImplementedError
+
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = True
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
+        return super().forward(self._flatten(x), state, get_value)
+
+    def latent(self, x: Observation, state: Tuple = ()) -> Tensor:
+        return super().latent(self._flatten(x), state)
+
+    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
+        return super().value(self._flatten(x), state)
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
+        return super().latent_value(self._flatten(x), state)
+
+
+class ImageMLPModel(FlattenMLPModel):
+    def _flatten(self, obs: Observation) -> Observation:
         if not hasattr(obs, "image"):
             return obs
         image: torch.Tensor = obs.image
@@ -151,19 +188,24 @@ class ImageMLPModel(MLPModel):
 
         return Observation(vector=vector)
 
-    def forward(
-        self, x: Observation, state: Tuple = (), get_value: bool = True
-    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], Dict[str, Tensor]]:
-        return super().forward(self._flatten(x), state, get_value)
 
-    def latent(self, x: Observation, state: Tuple = ()) -> Tensor:
-        return super().latent(self._flatten(x), state)
+class RayMLPModel(FlattenMLPModel):
+    def _flatten(self, obs: Observation) -> Observation:
+        if not hasattr(obs, "rays"):
+            return obs
 
-    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
-        return super().value(self._flatten(x), state)
+        rays = obs.rays
+        if rays.shape == 1:  # no batch
+            dim = 0
+        else:  # rays.shape == 2, batch
+            dim = 1
 
-    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
-        return super().latent_value(self._flatten(x), state)
+        if hasattr(obs, "vector"):
+            vector = torch.cat([obs.vector, rays], dim=dim)
+        else:
+            vector = rays
+
+        return Observation(vector=vector)
 
 
 class MLPQModel(BaseQModel):

@@ -14,16 +14,11 @@ from coltra.models.base_models import FCNetwork, BaseModel
 from coltra.configs import LeeConfig
 
 
-class RayNetwork(nn.Module):
-    def __init__(self, input_size: int = 4):
-        pass
-
-
 class LeeNetwork(nn.Module):
     def __init__(
         self,
         input_size: int = 4,
-        output_sizes: List[int] = [2, 2],
+        output_sizes: tuple[int, ...] = (2, 2),
         rays_input_size: int = 126,
         conv_filters: int = 2,
     ):
@@ -78,14 +73,14 @@ class LeeModel(BaseModel):
 
         self.policy_network = LeeNetwork(
             input_size=self.config.input_size,
-            output_sizes=[2, 2],
+            output_sizes=(2, 2),
             rays_input_size=self.config.rays_input_size,
             conv_filters=self.config.conv_filters,
         )
 
         self.value_network = LeeNetwork(
             input_size=self.config.input_size,
-            output_sizes=[1],
+            output_sizes=(1,),
             rays_input_size=self.config.rays_input_size,
             conv_filters=self.config.conv_filters,
         )

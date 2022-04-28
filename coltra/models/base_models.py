@@ -1,4 +1,6 @@
-from typing import List, Callable, Union, Tuple, Dict
+from __future__ import annotations
+
+from typing import List, Callable, Union, Tuple, Dict, Sequence
 
 import torch
 from gym import Space
@@ -19,6 +21,7 @@ class BaseModel(nn.Module):
     The output of each model is an action distribution, the next recurrent state,
     and a dictionary with any extra outputs like the value
     """
+
     input_size: int
     latent_size: int
     num_actions: int
@@ -42,7 +45,10 @@ class BaseModel(nn.Module):
         else:
             assert isinstance(self.action_space, Box)
             self.num_actions = self.action_space.shape[0]
-            self.action_low, self.action_high = torch.tensor(self.action_space.low), torch.tensor(self.action_space.high)
+            self.action_low, self.action_high = (
+                torch.tensor(self.action_space.low),
+                torch.tensor(self.action_space.high),
+            )
 
     # TO IMPLEMENT
     def forward(
@@ -105,16 +111,16 @@ class FCNetwork(nn.Module):
     def __init__(
         self,
         input_size: int,
-        output_sizes: List[int],
-        hidden_sizes: List[int],
+        output_sizes: Sequence[int],
+        hidden_sizes: Sequence[int],
         activation: str,
         initializer: str = "kaiming_uniform",
-        is_policy: Union[bool, List[bool]] = False,
+        is_policy: Union[bool, Sequence[bool]] = False,
     ):
         super().__init__()
 
         self.activation: Callable = get_activation(activation)
-        layer_sizes = [input_size] + hidden_sizes
+        layer_sizes = (input_size,) + tuple(hidden_sizes)
 
         self.hidden_layers = nn.ModuleList(
             [
@@ -159,20 +165,3 @@ class FCNetwork(nn.Module):
                 x = self.activation(x)
 
         return x
-
-
-class ActorCriticModel(BaseModel):
-    def __init__(self, config: dict, action_space: Space):
-        super().__init__(config, action_space)
-
-    def forward(self, x: Observation, state: Tuple, get_value: bool) -> Tuple[Distribution, Tuple, Dict[str, Tensor]]:
-        pass
-
-    def value(self, x: Observation, state: Tuple) -> Tensor:
-        pass
-
-    def latent(self, x: Observation, state: Tuple) -> Tensor:
-        pass
-
-    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
-        pass
