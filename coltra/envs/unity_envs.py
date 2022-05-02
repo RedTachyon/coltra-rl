@@ -24,6 +24,7 @@ from .side_channels import StatsChannel, StringChannel
 from coltra.buffers import Observation, Action
 from .subproc_vec_env import SubprocVecEnv
 from .base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
+from .spaces import ObservationSpace, ActionSpace
 from coltra.utils import find_free_worker
 
 
@@ -165,21 +166,37 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.behavior_name = list(self.behaviors.keys())[0]
         obs_spec, action_spec = self.behaviors[self.behavior_name]
 
+        # DEPRECATED
         vector_spec = next(
             spec for spec in obs_spec if spec.name.lower().startswith("vector")
         )
         obs_shape = vector_spec.shape
         action_size = action_spec.continuous_size
 
-        # self.obs_vector_size = obs_shape[0]
-        # self.obs_buffer_size = obs_spec[0].shape[-1]
-        # self.action_vector_size = action_size
+        self.obs_vector_size = obs_shape[0]
+        self.obs_buffer_size = obs_spec[0].shape[-1]
+        self.action_vector_size = action_size
 
-        self.observation_space = Box(
-            low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32
-        )
-        self.action_space = Box(
-            low=-np.inf, high=np.inf, shape=(action_size,), dtype=np.float32
+        # self.observation_space = Box(
+        #     low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32
+        # )
+        # DEPRECATED END
+
+        observations_dict = {}
+        for single_obs_spec in obs_spec:
+            name = Sensor.from_string(single_obs_spec.name).to_string()
+            observations_dict[name] = Box(
+                low=-np.inf, high=np.inf, shape=single_obs_spec.shape, dtype=np.float32
+            )
+
+        self.observation_space = ObservationSpace(observations_dict)
+
+        self.action_space = ActionSpace(
+            {
+                "continuous": Box(
+                    low=-np.inf, high=np.inf, shape=(action_size,), dtype=np.float32
+                )
+            }
         )
 
     def _get_step_info(

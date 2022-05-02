@@ -20,7 +20,7 @@ def test_beta_vector():
     Γ = get_beta_vector(T=100, α=0.9, β=np.inf)
 
     assert Γ.shape == (100,)
-    assert np.allclose(Γ, np.array([0.9 ** t for t in range(100)]))
+    assert np.allclose(Γ, np.array([0.9**t for t in range(100)]))
 
     # Hyperbolic
     Γ = get_beta_vector(T=100, α=0.9, β=1)
