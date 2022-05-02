@@ -9,6 +9,7 @@ from torch import nn, Tensor
 from torch.distributions import Distribution
 
 from coltra.buffers import Observation
+from coltra.envs.spaces import ActionSpace
 from coltra.utils import get_activation, get_initializer
 
 
@@ -29,13 +30,17 @@ class BaseModel(nn.Module):
     activation: Callable
     device: str
 
-    def __init__(self, config: dict, action_space: Space):
+    def __init__(self, config: dict, observation_space: Space, action_space: Space):
         super().__init__()
         self._stateful = False
         self.raw_config = config
         self.device = "cpu"
 
-        self.action_space = action_space
+        if isinstance(action_space, ActionSpace):
+            self.action_space = action_space.space
+        else:
+            self.action_space = action_space
+
         self.discrete = isinstance(self.action_space, Discrete)
 
         if self.discrete:
@@ -49,6 +54,8 @@ class BaseModel(nn.Module):
                 torch.tensor(self.action_space.low),
                 torch.tensor(self.action_space.high),
             )
+
+        self.observation_space = observation_space
 
     # TO IMPLEMENT
     def forward(

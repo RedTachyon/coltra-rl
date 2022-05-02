@@ -67,8 +67,6 @@ class LeeConfig(BaseConfig):
 
 
 class MLPConfig(BaseConfig):
-    input_size: int = 0  # Must be set
-
     beta: bool = False
     mode: Optional[str] = "logstd"
 
@@ -81,26 +79,6 @@ class MLPConfig(BaseConfig):
 
 
 class RelationConfig(BaseConfig):
-    input_size: int = 7
-    rel_input_size: int = 4
-
-    activation: str = "tanh"
-    initializer: str = "orthogonal"
-
-    sigma0: float = 1.0
-
-    beta: bool = False
-
-    vec_hidden_layers: List[int] = [32, 32]
-    rel_hidden_layers: List[int] = [32, 32]
-    com_hidden_layers: List[int] = [32, 32]
-
-
-class RayRelationConfig(BaseConfig):
-    input_size: int = 7
-    ray_input_size: int = 120
-    rel_input_size: int = 4
-
     activation: str = "tanh"
     initializer: str = "orthogonal"
 

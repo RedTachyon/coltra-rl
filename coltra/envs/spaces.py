@@ -13,18 +13,18 @@ class ObservationSpace(Space):
 
     def __init__(self, fields: dict[str, Space]):
         super().__init__()
-        self.fields = fields
+        self.spaces = fields
 
-        for name, space in self.fields.items():
+        for name, space in self.spaces.items():
             setattr(self, name, space)
 
     def sample(self):
         return Observation(
-            **{name: space.sample() for name, space in self.fields.items()}
+            **{name: space.sample() for name, space in self.spaces.items()}
         )
 
     def contains(self, x: Observation):
-        for name, space in self.fields.items():
+        for name, space in self.spaces.items():
             if not space.contains(getattr(x, name, None)):
                 return False
         return True
@@ -32,7 +32,7 @@ class ObservationSpace(Space):
     def __repr__(self) -> str:
         return (
             "Obs("
-            + ", ".join([str(k) + ": " + str(s) for k, s in self.fields.items()])
+            + ", ".join([str(k) + ": " + str(s) for k, s in self.spaces.items()])
             + ")"
         )
 
@@ -43,16 +43,19 @@ class ActionSpace(Space):
 
     def __init__(self, fields: dict[str, Space]):
         super().__init__()
-        self.fields = fields
+        self.spaces = fields
 
-        for name, space in self.fields.items():
+        for name, space in self.spaces.items():
             setattr(self, name, space)
 
+        # TODO: Ugly fix because I only use a single type of actions
+        self.space = list(self.spaces.values())[0]
+
     def sample(self):
-        return Action(**{name: space.sample() for name, space in self.fields.items()})
+        return Action(**{name: space.sample() for name, space in self.spaces.items()})
 
     def contains(self, x: Observation):
-        for name, space in self.fields.items():
+        for name, space in self.spaces.items():
             if not space.contains(getattr(x, name, None)):
                 return False
         return True
@@ -60,6 +63,6 @@ class ActionSpace(Space):
     def __repr__(self) -> str:
         return (
             "Action("
-            + ", ".join([str(k) + ": " + str(s) for k, s in self.fields.items()])
+            + ", ".join([str(k) + ": " + str(s) for k, s in self.spaces.items()])
             + ")"
         )

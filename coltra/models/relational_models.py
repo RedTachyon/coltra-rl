@@ -2,15 +2,18 @@ from __future__ import annotations
 
 from typing import Dict, Any, List, Tuple, Union, Sequence
 
+import numpy as np
 import torch
 from gym import Space
+from gym.spaces import Box
 from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.distributions import Distribution, Normal
 from typarse import BaseConfig
 
 from coltra.buffers import Observation
-from coltra.configs import RelationConfig, RayRelationConfig
+from coltra.configs import RelationConfig
+from coltra.envs.spaces import ObservationSpace
 from coltra.models.base_models import FCNetwork, BaseModel
 from coltra.utils import AffineBeta
 
@@ -95,10 +98,10 @@ class RelationNetwork(nn.Module):
 
 
 class RelationModel(BaseModel):
-    def __init__(self, config: dict, action_space: Space):
-        super().__init__(config, action_space=action_space)
+    def __init__(self, config: dict, observation_space: ObservationSpace, action_space: Space):
+        super().__init__(config, observation_space=observation_space, action_space=action_space)
 
-        Config = RelationConfig.clone()
+        Config: RelationConfig = RelationConfig.clone()
 
         Config.update(config)
         self.config = Config
@@ -107,7 +110,10 @@ class RelationModel(BaseModel):
         # self.discrete = False  # TODO: add support for discrete heads
         # self.std_head = self.config.std_head
         self.sigma0 = self.config.sigma0
-        self.input_size = self.config.input_size
+        self.input_size = observation_space.vector.shape[0]
+        self.rel_input_size = observation_space.buffer.shape[-1]
+
+
         self.latent_size = self.config.com_hidden_layers[-1]
         self.beta = self.config.beta
 
@@ -119,8 +125,8 @@ class RelationModel(BaseModel):
             is_policy = (True,)
 
         self.policy_network = RelationNetwork(
-            vec_input_size=self.config.input_size,
-            rel_input_size=self.config.rel_input_size,
+            vec_input_size=self.input_size,
+            rel_input_size=self.rel_input_size,
             vec_hidden_layers=self.config.vec_hidden_layers,
             rel_hidden_layers=self.config.rel_hidden_layers,
             com_hidden_layers=self.config.com_hidden_layers,
@@ -131,8 +137,8 @@ class RelationModel(BaseModel):
         )
 
         self.value_network = RelationNetwork(
-            vec_input_size=self.config.input_size,
-            rel_input_size=self.config.rel_input_size,
+            vec_input_size=self.input_size,
+            rel_input_size=self.rel_input_size,
             vec_hidden_layers=self.config.vec_hidden_layers,
             rel_hidden_layers=self.config.rel_hidden_layers,
             com_hidden_layers=self.config.com_hidden_layers,
@@ -214,20 +220,21 @@ class FlattenRelationModel(RelationModel):
 
 
 class RayRelationModel(FlattenRelationModel):
-    def __init__(self, config: dict, action_space: Space):
-        Config: RayRelationConfig = RayRelationConfig.clone()
-        Config.update(config)
+    def __init__(self, config: dict, observation_space: ObservationSpace, action_space: Space):
+        assert "rays" in observation_space.spaces, "RayRelationModel requires an observation space with rays"
 
-        new_config = Config.to_dict()
-        new_config["input_size"] = (
-            new_config["input_size"] + new_config["ray_input_size"]
-        )
-        del new_config["ray_input_size"]
+        vector_size = observation_space.vector.shape[0] if "vector" in observation_space.spaces else 0
+        image_size = np.prod(observation_space.spaces["image"].shape)
+        new_vector_size = vector_size + image_size
 
-        RelConfig: RelationConfig = RelationConfig.clone()
-        RelConfig.update(new_config)
+        other_spaces = {
+            k: v for k, v in observation_space.spaces.items() if k not in ("rays", "vector")
+        }
 
-        super().__init__(RelConfig.to_dict(), action_space)
+        new_observation_space = ObservationSpace({"vector": Box(-np.inf, np.inf, (new_vector_size,)), **other_spaces})
+
+        super().__init__(config, new_observation_space, action_space)
+
 
     def _flatten(self, obs: Observation) -> Observation:
         if not hasattr(obs, "rays"):
