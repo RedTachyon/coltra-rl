@@ -10,6 +10,7 @@ from torch import nn, Tensor
 from torch.nn import functional as F
 
 from coltra.buffers import Observation
+from coltra.envs.spaces import ObservationSpace
 from coltra.models.base_models import FCNetwork, BaseModel
 from coltra.configs import LeeConfig
 
@@ -63,8 +64,12 @@ class LeeNetwork(nn.Module):
 
 
 class LeeModel(BaseModel):
-    def __init__(self, config: dict, action_space: Space):
-        super().__init__(config, action_space=action_space)
+    def __init__(
+        self, config: dict, observation_space: ObservationSpace, action_space: Space
+    ):
+        super().__init__(
+            config, observation_space=observation_space, action_space=action_space
+        )
 
         Config = LeeConfig.clone()
 
@@ -72,16 +77,16 @@ class LeeModel(BaseModel):
         self.config = Config
 
         self.policy_network = LeeNetwork(
-            input_size=self.config.input_size,
+            input_size=observation_space["vector"].shape[0],
             output_sizes=(2, 2),
-            rays_input_size=self.config.rays_input_size,
+            rays_input_size=observation_space["rays"].shape[0],
             conv_filters=self.config.conv_filters,
         )
 
         self.value_network = LeeNetwork(
-            input_size=self.config.input_size,
+            input_size=observation_space["vector"].shape[0],
             output_sizes=(1,),
-            rays_input_size=self.config.rays_input_size,
+            rays_input_size=observation_space["rays"].shape[0],
             conv_filters=self.config.conv_filters,
         )
 

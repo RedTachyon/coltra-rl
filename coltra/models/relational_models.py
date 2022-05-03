@@ -98,8 +98,12 @@ class RelationNetwork(nn.Module):
 
 
 class RelationModel(BaseModel):
-    def __init__(self, config: dict, observation_space: ObservationSpace, action_space: Space):
-        super().__init__(config, observation_space=observation_space, action_space=action_space)
+    def __init__(
+        self, config: dict, observation_space: ObservationSpace, action_space: Space
+    ):
+        super().__init__(
+            config, observation_space=observation_space, action_space=action_space
+        )
 
         Config: RelationConfig = RelationConfig.clone()
 
@@ -112,7 +116,6 @@ class RelationModel(BaseModel):
         self.sigma0 = self.config.sigma0
         self.input_size = observation_space.vector.shape[0]
         self.rel_input_size = observation_space.buffer.shape[-1]
-
 
         self.latent_size = self.config.com_hidden_layers[-1]
         self.beta = self.config.beta
@@ -220,21 +223,32 @@ class FlattenRelationModel(RelationModel):
 
 
 class RayRelationModel(FlattenRelationModel):
-    def __init__(self, config: dict, observation_space: ObservationSpace, action_space: Space):
-        assert "rays" in observation_space.spaces, "RayRelationModel requires an observation space with rays"
+    def __init__(
+        self, config: dict, observation_space: ObservationSpace, action_space: Space
+    ):
+        assert (
+            "rays" in observation_space.spaces
+        ), "RayRelationModel requires an observation space with rays"
 
-        vector_size = observation_space.vector.shape[0] if "vector" in observation_space.spaces else 0
+        vector_size = (
+            observation_space.vector.shape[0]
+            if "vector" in observation_space.spaces
+            else 0
+        )
         image_size = np.prod(observation_space.spaces["image"].shape)
         new_vector_size = vector_size + image_size
 
         other_spaces = {
-            k: v for k, v in observation_space.spaces.items() if k not in ("rays", "vector")
+            k: v
+            for k, v in observation_space.spaces.items()
+            if k not in ("rays", "vector")
         }
 
-        new_observation_space = ObservationSpace({"vector": Box(-np.inf, np.inf, (new_vector_size,)), **other_spaces})
+        new_observation_space = ObservationSpace(
+            {"vector": Box(-np.inf, np.inf, (new_vector_size,)), **other_spaces}
+        )
 
         super().__init__(config, new_observation_space, action_space)
-
 
     def _flatten(self, obs: Observation) -> Observation:
         if not hasattr(obs, "rays"):

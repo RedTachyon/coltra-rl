@@ -37,7 +37,7 @@ class ObsVecNormWrapper(AgentWrapper):
             m_a = self._obs_var * self._obs_count
             m_b = vec_batch.var(0) * batch_count
 
-            M2 = m_a + m_b + delta**2 * self._obs_count * batch_count / tot_count
+            M2 = m_a + m_b + delta ** 2 * self._obs_count * batch_count / tot_count
 
             self._obs_mean = self._obs_mean + delta * batch_count / tot_count
             self._obs_var = M2 / tot_count
@@ -100,7 +100,7 @@ class RetNormWrapper(AgentWrapper):
             m_a = self._ret_var * self._ret_count
             m_b = returns.var() * batch_count
 
-            M2 = m_a + m_b + delta**2 * self._ret_count * batch_count / tot_count
+            M2 = m_a + m_b + delta ** 2 * self._ret_count * batch_count / tot_count
 
             self._ret_mean = self._ret_mean + delta * batch_count / tot_count
             self._ret_var = M2 / tot_count

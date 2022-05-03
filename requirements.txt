@@ -3,9 +3,8 @@ numpy>=1.18
 gym~=0.23.1
 jupyter>=1.0.0
 jupyterlab>=3.0.7
-mlagents~=0.27.0
-mlagents-envs~=0.27.0
-gym-unity>=0.24
+mlagents~=0.29.0
+mlagents-envs~=0.29.0
 PyYAML>=5.4.1
 scipy>=1.6.0
 matplotlib

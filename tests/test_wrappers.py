@@ -8,6 +8,7 @@ from gym.spaces import Box
 
 from coltra.buffers import discrete
 from coltra.envs import MultiGymEnv
+from coltra.envs.spaces import ObservationSpace
 from coltra.wrappers.env_wrappers import LastRewardWrapper
 from coltra.models import MLPModel
 from coltra.agents import CAgent
@@ -19,14 +20,17 @@ def test_reward_wrapper():
 
     ref_env = gym.make("CartPole-v1")
 
-    assert env.observation_space.shape[0] == ref_env.observation_space.shape[0] + 1
+    assert (
+        env.observation_space["vector"].shape[0]
+        == ref_env.observation_space.shape[0] + 1
+    )
 
-    env.seed(0)
-    obs = env.reset()
+    # env.seed(0)
+    obs = env.reset(seed=0)
 
     for agent_id in obs:
         assert obs[agent_id].vector[-1] == 0.0
-        assert obs[agent_id].vector.shape == env.observation_space.shape
+        assert obs[agent_id].vector.shape == env.observation_space["vector"].shape
 
     for _ in range(10):
         obs, reward, done, info = env.step(
@@ -35,7 +39,7 @@ def test_reward_wrapper():
 
         for agent_id in obs:
             assert obs[agent_id].vector[-1] == reward[agent_id] * (1 - done[agent_id])
-            assert obs[agent_id].vector.shape == env.observation_space.shape
+            assert obs[agent_id].vector.shape == env.observation_space["vector"].shape
 
 
 def test_agent_wrapper_save():
@@ -46,7 +50,8 @@ def test_agent_wrapper_save():
     agent = RetNormWrapper(
         CAgent(
             MLPModel(
-                {"input_size": 5},
+                {},
+                observation_space=ObservationSpace(vector=Box(-np.inf, np.inf, (5,))),
                 action_space=Box(
                     low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
                 ),

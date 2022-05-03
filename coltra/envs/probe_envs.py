@@ -5,6 +5,7 @@ import numpy as np
 
 from coltra.buffers import Observation, Action
 from coltra.envs.base_env import MultiAgentEnv
+from coltra.envs.spaces import ObservationSpace
 from coltra.envs.subproc_vec_env import SubprocVecEnv
 from coltra.utils import np_float
 
@@ -19,7 +20,7 @@ class ConstRewardEnv(MultiAgentEnv):
         self.obs_vector_size = 1
         self.action_vector_size = 1
 
-        self.observation_space = Box(-1, 1, (1,))
+        self.observation_space = ObservationSpace({"vector": Box(-1, 1, (1,))})
         self.action_space = Box(-1, 1, (1,))
 
     def reset(self, *args, **kwargs):
@@ -63,7 +64,7 @@ class ObsDependentRewardEnv(MultiAgentEnv):
         self.obs_vector_size = 1
         self.action_vector_size = 1
 
-        self.observation_space = Box(-1, 1, (1,))
+        self.observation_space = ObservationSpace({"vector": Box(-1, 1, (1,))})
         self.action_space = Box(-1, 1, (1,))
 
         self.current_obs = {}
@@ -116,7 +117,7 @@ class ActionDependentRewardEnv(MultiAgentEnv):
         self.obs_vector_size = 1
         self.action_vector_size = 1
 
-        self.observation_space = Box(-1, 1, (1,))
+        self.observation_space = ObservationSpace({"vector": Box(-1, 1, (1,))})
         # self.action_space = Box(-1, 1, (1,))
         self.action_space = Discrete(2)
 
@@ -165,7 +166,7 @@ class StateActionDependentRewardEnv(MultiAgentEnv):
         self.obs_vector_size = 1
         self.action_vector_size = 1
 
-        self.observation_space = Box(-1, 1, (1,))
+        self.observation_space = ObservationSpace({"vector": Box(-1, 1, (1,))})
         # self.action_space = Box(-1, 1, (1,))
         self.action_space = Discrete(2)
 
@@ -234,7 +235,7 @@ class EpisodicMetricEnv(MultiAgentEnv):
         self.obs_vector_size = 1
         self.action_vector_size = 1
 
-        self.observation_space = Box(0, self.ep_len, (1,))
+        self.observation_space = ObservationSpace({"vector": Box(0, self.ep_len, (1,))})
         self.action_space = Box(-1, 1, (1,))
 
         self.current_obs = {}

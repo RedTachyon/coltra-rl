@@ -104,7 +104,7 @@ class MLPModel(BaseModel):
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
     def forward(
-            self, x: Observation, state: Tuple = (), get_value: bool = True
+        self, x: Observation, state: Tuple = (), get_value: bool = True
     ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
 
         action_distribution: Distribution
@@ -163,7 +163,7 @@ class FlattenMLPModel(MLPModel):
         raise NotImplementedError
 
     def forward(
-            self, x: Observation, state: Tuple = (), get_value: bool = True
+        self, x: Observation, state: Tuple = (), get_value: bool = True
     ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
         return super().forward(self._flatten(x), state, get_value)
 
@@ -178,14 +178,24 @@ class FlattenMLPModel(MLPModel):
 
 
 class ImageMLPModel(FlattenMLPModel):
-    def __init__(self, config: dict, observation_space: ObservationSpace, action_space: Space):
-        assert "image" in observation_space.spaces, "ImageMLPModel requires an observation space with image"
+    def __init__(
+        self, config: dict, observation_space: ObservationSpace, action_space: Space
+    ):
+        assert (
+            "image" in observation_space.spaces
+        ), "ImageMLPModel requires an observation space with image"
 
-        vector_size = observation_space.vector.shape[0] if "vector" in observation_space.spaces else 0
+        vector_size = (
+            observation_space.vector.shape[0]
+            if "vector" in observation_space.spaces
+            else 0
+        )
         image_size = np.prod(observation_space.spaces["image"].shape)
         new_vector_size = vector_size + image_size
 
-        new_observation_space = ObservationSpace({"vector": Box(-np.inf, np.inf, (new_vector_size,))})
+        new_observation_space = ObservationSpace(
+            {"vector": Box(-np.inf, np.inf, (new_vector_size,))}
+        )
 
         super().__init__(config, new_observation_space, action_space)
 
@@ -208,14 +218,22 @@ class ImageMLPModel(FlattenMLPModel):
 
 
 class RayMLPModel(FlattenMLPModel):
-    def __init__(self, config: dict, observation_space: ObservationSpace, action_space: Space):
-        assert "rays" in observation_space.spaces, "RayMLPModel requires an observation space with rays"
+    def __init__(
+        self, config: dict, observation_space: ObservationSpace, action_space: Space
+    ):
+        assert (
+            "rays" in observation_space.spaces
+        ), "RayMLPModel requires an observation space with rays"
 
-        new_vector_size = observation_space.vector.shape[0] if "vector" in observation_space.spaces else 0 \
-                                                                                                         + np.prod(
-            observation_space.spaces["rays"].shape)
+        new_vector_size = (
+            observation_space.vector.shape[0]
+            if "vector" in observation_space.spaces
+            else 0 + np.prod(observation_space.spaces["rays"].shape)
+        )
 
-        new_observation_space = ObservationSpace({"vector": Box(-np.inf, np.inf, (new_vector_size,))})
+        new_observation_space = ObservationSpace(
+            {"vector": Box(-np.inf, np.inf, (new_vector_size,))}
+        )
 
         super().__init__(config, new_observation_space, action_space)
 

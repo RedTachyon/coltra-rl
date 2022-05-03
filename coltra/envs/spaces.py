@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from gym.spaces import Space, Box, Discrete
@@ -11,9 +13,12 @@ class ObservationSpace(Space):
     rays: Optional[Box] = None
     buffer: Optional[Box] = None
 
-    def __init__(self, fields: dict[str, Space]):
+    def __init__(self, spaces: dict[str, Space] | None = None, /, **kwargs: Space):
         super().__init__()
-        self.spaces = fields
+        if spaces is None:
+            spaces = kwargs
+
+        self.spaces = spaces
 
         for name, space in self.spaces.items():
             setattr(self, name, space)
@@ -28,6 +33,9 @@ class ObservationSpace(Space):
             if not space.contains(getattr(x, name, None)):
                 return False
         return True
+
+    def __getitem__(self, item):
+        return self.spaces[item]
 
     def __repr__(self) -> str:
         return (

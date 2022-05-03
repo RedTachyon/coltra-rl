@@ -7,6 +7,7 @@ from gym.spaces import Box, Discrete
 from torch import Tensor
 
 from coltra.agents import ConstantAgent, CAgent, DAgent, Agent
+from coltra.envs.spaces import ObservationSpace
 from coltra.wrappers import ObsVecNormWrapper
 from coltra.models.mlp_models import MLPModel
 from coltra.buffers import Observation
@@ -91,11 +92,15 @@ def test_fancy_mlp_agent():
 
     model = MLPModel(
         {
-            "input_size": 81,
-            "num_actions": 2,
             "discrete": False,
             "hidden_sizes": [32, 32],
         },
+        observation_space=ObservationSpace(
+            {
+                "vector": Box(-np.inf, np.inf, (81,)),
+                "buffer": Box(-np.inf, np.inf, (10, 4)),
+            }
+        ),
         action_space=Box(
             low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
         ),
@@ -150,11 +155,15 @@ def test_discrete_fancy_mlp_agent():
 
     model = MLPModel(
         {
-            "input_size": 81,
-            "hidden_sizes": [32, 32],
-            "num_actions": 2,
             "discrete": True,
+            "hidden_sizes": [32, 32],
         },
+        observation_space=ObservationSpace(
+            {
+                "vector": Box(-np.inf, np.inf, (81,)),
+                "buffer": Box(-np.inf, np.inf, (10, 4)),
+            }
+        ),
         action_space=Discrete(2),
     )
 
@@ -206,9 +215,9 @@ def test_saving():
 
     model = MLPModel(
         {
-            "input_size": 81,
             "hidden_sizes": [32, 32],
         },
+        observation_space=ObservationSpace({"vector": Box(-np.inf, np.inf, (81,))}),
         action_space=Box(
             low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
         ),
@@ -243,9 +252,9 @@ def test_saving_wrapper():
 
     model = MLPModel(
         {
-            "input_size": 81,
             "hidden_sizes": [32, 32],
         },
+        observation_space=ObservationSpace({"vector": Box(-np.inf, np.inf, (81,))}),
         action_space=Box(
             low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
         ),

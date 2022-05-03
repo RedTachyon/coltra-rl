@@ -211,7 +211,7 @@ def _discount_bgae(
 
     Γ_all = get_beta_vector(T + 1, α, β)
 
-    λ_all = np.array([λ**i for i in range(T)], dtype=np.float32)
+    λ_all = np.array([λ ** i for i in range(T)], dtype=np.float32)
 
     for t in range(T):
         s_rewards = rewards[:, t:]

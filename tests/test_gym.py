@@ -113,20 +113,15 @@ trainer:
     use_gpu: false
 
 model:
-  input_size:
   activation: tanh
 
   hidden_sizes: [16, 16]
   separate_value: true
 
-  rays_input_size:
-
   conv_filters:
 
   sigma0: 0.7
 
-  vec_input_size: 4
-  rel_input_size: 4
   vec_hidden_layers: [32, 32]
   rel_hidden_layers: [32, 32]
   com_hidden_layers: [32, 32]
@@ -139,32 +134,23 @@ model:
     workers = 2
 
     env = MultiGymEnv.get_venv(workers=workers, env_name="MountainCar-v0")
-    action_space = env.action_space
 
     print(f"{env.observation_space=}")
-    print(f"{action_space=}")
-
-    is_discrete_action = isinstance(action_space, gym.spaces.Discrete)
-    if is_discrete_action:
-        action_shape = action_space.n
-    else:
-        action_shape = action_space.shape[0]
+    print(f"{env.action_space=}")
 
     # Initialize the agent
-    sample_obs = next(iter(env.reset().values()))
-    obs_size = sample_obs.vector.shape[0]
-
-    model_config["input_size"] = obs_size
-    model_config["discrete"] = is_discrete_action
-    model_config["num_actions"] = action_shape
 
     model_cls = MLPModel
-    agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
+    agent_cls = CAgent if isinstance(env.action_space, gym.spaces.Box) else DAgent
 
-    model = model_cls(model_config, action_space=action_space)
+    model = model_cls(
+        model_config,
+        observation_space=env.observation_space,
+        action_space=env.action_space,
+    )
     agent = agent_cls(model)
 
     group = HomogeneousGroup(agent)
 
-    trainer = PPOCrowdTrainer(group, env, config)
+    trainer = PPOCrowdTrainer(group, env, trainer_config)
     trainer.train(2, disable_tqdm=False, save_path=None)

@@ -85,7 +85,9 @@ def test_uneven_minibatches():
 
 def test_ppo_step():
     env = ConstRewardEnv(num_agents=10)
-    model = MLPModel({"input_size": 1}, action_space=env.action_space)
+    model = MLPModel(
+        {}, observation_space=env.observation_space, action_space=env.action_space
+    )
     old_params = list([param.detach().clone() for param in model.parameters()])
     agent = CAgent(model)
     agents = HomogeneousGroup(agent)

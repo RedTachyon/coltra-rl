@@ -21,7 +21,7 @@ class JointModel(BaseModel):
         activation: str = "leaky_relu",
         copy_logstd: bool = False,
     ):
-        super().__init__(config, action_space)
+        super().__init__(config, models[0].observation_space, action_space)
         assert len(models) > 0, "JointModel needs at least 1 model"
         assert (
             len(set([model.input_size for model in models])) == 1

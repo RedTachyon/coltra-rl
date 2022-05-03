@@ -5,6 +5,7 @@ from gym import Wrapper
 import numpy as np
 
 from coltra.buffers import Observation, Action
+from coltra.envs.spaces import ObservationSpace
 from coltra.utils import np_float
 from coltra.envs.base_env import MultiAgentEnv
 from coltra.envs.subproc_vec_env import SubprocVecEnv
@@ -45,7 +46,7 @@ class MultiGymEnv(MultiAgentEnv):
         for wrapper in self.wrappers:
             self.s_env = wrapper(self.s_env)
 
-        self.observation_space = self.s_env.observation_space
+        self.observation_space = ObservationSpace(vector=self.s_env.observation_space)
         self.action_space = self.s_env.action_space
 
         self.is_discrete_action = isinstance(

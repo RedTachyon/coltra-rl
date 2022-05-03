@@ -9,7 +9,10 @@ from typarse import BaseConfig
 
 from coltra.agents import CAgent
 from coltra.buffers import Observation
+from coltra.envs.spaces import ObservationSpace
 from coltra.models import FCNetwork, MLPModel
+
+# from coltra.models.raycast_models import LeeNetwork, LeeModel
 from coltra.models.raycast_models import LeeNetwork, LeeModel
 from coltra.models.relational_models import RelationNetwork, RelationModel
 from coltra.utils import AffineBeta
@@ -75,6 +78,9 @@ def test_lee():
 
     model = LeeModel(
         {},
+        observation_space=ObservationSpace(
+            vector=Box(-np.inf, np.inf, (4,)), rays=Box(-np.inf, np.inf, (126,))
+        ),
         action_space=Box(
             low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
         ),
@@ -90,9 +96,6 @@ def test_lee():
 
 def test_relnet():
     class Config(BaseConfig):
-        input_size: int = 4
-        rel_input_size: int = 5
-
         sigma0: float = 0.0
 
         vec_hidden_layers: List[int] = [32, 32]
@@ -105,6 +108,10 @@ def test_relnet():
     config = Config.to_dict()
     model = RelationModel(
         config,
+        observation_space=ObservationSpace(
+            vector=Box(-np.inf, np.inf, shape=(4,)),
+            buffer=Box(-np.inf, np.inf, shape=(11, 5)),
+        ),
         action_space=Box(
             low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
         ),
@@ -122,10 +129,11 @@ def test_relnet():
 
 
 def test_multiple_mlps():
-    config1 = {"input_size": 3}
+    config1 = {}
 
     mlp1 = MLPModel(
         config1,
+        observation_space=ObservationSpace(vector=Box(-np.inf, np.inf, shape=(3,))),
         action_space=Box(
             low=-np.ones(1, dtype=np.float32), high=np.ones(1, dtype=np.float32)
         ),
@@ -134,21 +142,26 @@ def test_multiple_mlps():
     assert mlp1.discrete is False
     assert mlp1.policy_network.hidden_layers[0].in_features == 3
 
-    config2 = {"input_size": 5}
+    config2 = {}
 
-    mlp2 = MLPModel(config2, action_space=Discrete(2))
+    mlp2 = MLPModel(
+        config2,
+        observation_space=ObservationSpace(vector=Box(-np.inf, np.inf, shape=(5,))),
+        action_space=Discrete(2),
+    )
 
     assert mlp2.discrete is True
     assert mlp2.policy_network.hidden_layers[0].in_features == 5
 
 
 def test_beta_mlp():
-    config = {"input_size": 5, "mode": "beta"}
+    config = {"mode": "beta"}
 
     mlp = MLPModel(
         config,
+        observation_space=ObservationSpace(vector=Box(-np.inf, np.inf, shape=(5,))),
         action_space=Box(
-            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+            low=-np.ones(1, dtype=np.float32), high=np.ones(1, dtype=np.float32)
         ),
     )
 

@@ -8,6 +8,7 @@ from torch import nn
 from torch.distributions import Distribution
 
 from coltra.buffers import Observation
+from coltra.envs.spaces import ObservationSpace
 from coltra.models import MLPModel
 import pytest
 
@@ -51,16 +52,16 @@ def test_constructor(
 ):
     model = MLPModel(
         {
-            "input_size": input_size,
             "hidden_sizes": hidden_sizes1,
         },
+        observation_space=ObservationSpace(vector=Box(-np.inf, np.inf, (input_size,))),
         action_space=action_space,
     )
     model2 = MLPModel(
         {
-            "input_size": input_size,
             "hidden_sizes": hidden_sizes2,
         },
+        observation_space=ObservationSpace(vector=Box(-np.inf, np.inf, (input_size,))),
         action_space=action_space,
     )
 
@@ -117,9 +118,9 @@ def test_clone(
 ):
     model = MLPModel(
         {
-            "input_size": input_size,
             "hidden_sizes": hidden_sizes,
         },
+        observation_space=ObservationSpace(vector=Box(-np.inf, np.inf, (input_size,))),
         action_space=action_space,
     )
 

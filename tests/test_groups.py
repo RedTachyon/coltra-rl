@@ -1,6 +1,7 @@
 import numpy as np
 from gym.spaces import Box
 
+from coltra.envs.spaces import ObservationSpace
 from coltra.groups import MacroAgent, HomogeneousGroup
 from coltra.models import MLPModel
 from coltra.agents import Agent, CAgent, DAgent
@@ -12,7 +13,8 @@ def test_policy_mapping():
     group = HomogeneousGroup(
         CAgent(
             MLPModel(
-                {"input_size": 5},
+                {},
+                observation_space=ObservationSpace(vector=Box(-np.inf, np.inf, (5,))),
                 action_space=Box(
                     low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
                 ),
@@ -33,7 +35,10 @@ def test_save():
     group = HomogeneousGroup(
         CAgent(
             MLPModel(
-                {"input_size": 5},
+                {},
+                observation_space=ObservationSpace(
+                    vector=Box(-np.inf, np.inf, shape=(5,))
+                ),
                 action_space=Box(
                     low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
                 ),
