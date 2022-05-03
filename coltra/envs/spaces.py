@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Optional
 
 from gym.spaces import Space, Box, Discrete
@@ -13,7 +11,7 @@ class ObservationSpace(Space):
     rays: Optional[Box] = None
     buffer: Optional[Box] = None
 
-    def __init__(self, spaces: dict[str, Space] | None = None, /, **kwargs: Space):
+    def __init__(self, spaces: Optional[dict[str, Space]] = None, /, **kwargs: Space):
         super().__init__()
         if spaces is None:
             spaces = kwargs
