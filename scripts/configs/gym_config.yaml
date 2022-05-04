@@ -34,10 +34,6 @@ trainer:
     use_gpu:
 
 model:
-  input_size:
-  num_actions:
-  discrete:
-
   activation: leaky_relu
 
   hidden_sizes: [256, 256]
