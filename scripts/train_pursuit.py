@@ -81,17 +81,13 @@ if __name__ == "__main__":
     else:
         action_shape = action_space.shape[0]
 
-    model_config["input_size"] = np.product(observation_space.shape)
-    model_config["num_actions"] = action_shape
-    model_config["discrete"] = is_discrete_action
-
     model_cls = ImageMLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
     if args.start_dir:
         agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
-        model = model_cls(model_config, action_space)
+        model = model_cls(model_config, env.observation_space, action_space)
         agent = agent_cls(model)
 
     if args.normalize:

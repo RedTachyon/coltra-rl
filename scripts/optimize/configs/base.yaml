@@ -34,9 +34,6 @@ trainer:
     use_gpu:
 
 model:
-  input_size:
-  rel_input_size:
-
   activation: tanh
   initializer: orthogonal
 

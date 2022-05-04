@@ -64,13 +64,6 @@ def train_one(
     env.reset(save_trajectory=0.0)
 
     # Initialize the agent
-    obs_size = env.observation_space.shape[0]
-    buffer_size = env.get_attr("obs_buffer_size")[0]
-    action_size = env.action_space.shape[0]
-
-    config["model"]["input_size"] = obs_size
-    config["model"]["rel_input_size"] = buffer_size
-    config["model"]["num_actions"] = action_size
 
     wandb.init(
         project=wandb_project,
@@ -80,7 +73,7 @@ def train_one(
         name=f"trial{trial.number}",
     )
 
-    model = RelationModel(config["model"], action_space=env.action_space)
+    model = RelationModel(config["model"], observation_space=env.observation_space, action_space=env.action_space)
     agent = CAgent(model)
     agents = HomogeneousGroup(agent)
 

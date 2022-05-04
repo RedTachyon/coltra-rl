@@ -72,28 +72,14 @@ if __name__ == "__main__":
     print(f"{env.observation_space=}")
     print(f"{action_space=}")
 
-    is_discrete_action = isinstance(action_space, gym.spaces.Discrete)
-    if is_discrete_action:
-        action_shape = action_space.n
-    else:
-        action_shape = action_space.shape[0]
-
-    # Initialize the agent
-    sample_obs = next(iter(env.reset().values()))
-    obs_size = sample_obs.vector.shape[0]
-
-    model_config["input_size"] = obs_size
-    model_config["discrete"] = is_discrete_action
-    model_config["num_actions"] = action_shape
-
     model_cls = MLPModel
-    agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
+    agent_cls = CAgent if isinstance(env.action_space, gym.spaces.Box) else DAgent
 
     agent: Agent
     if args.start_dir:
         agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
-        model = model_cls(model_config, action_space)
+        model = model_cls(model_config, env.observation_space, action_space)
         agent = agent_cls(model)
 
     agents = HomogeneousGroup(agent)

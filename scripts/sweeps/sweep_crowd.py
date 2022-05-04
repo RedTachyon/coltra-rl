@@ -72,10 +72,6 @@ if __name__ == "__main__":
     buffer_size = env.get_attr("obs_buffer_size")[0]
     action_size = env.action_space.shape[0]
 
-    model_config["input_size"] = obs_size
-    model_config["rel_input_size"] = buffer_size
-    model_config["num_actions"] = action_size
-
     wandb.init(
         project="debug",
         entity="redtachyon",
@@ -92,7 +88,7 @@ if __name__ == "__main__":
     else:
         model_cls = MLPModel
 
-    model = model_cls(model_config, action_space=env.action_space)
+    model = model_cls(model_config, observation_space=env.observation_space, action_space=env.action_space)
     agent = CAgent(model)
     agents = HomogeneousGroup(agent)
 

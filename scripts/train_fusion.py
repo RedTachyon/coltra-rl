@@ -93,7 +93,7 @@ if __name__ == "__main__":
     if args.start_dir:
         agent = CAgent.load(args.start_dir, weight_idx=args.start_idx)
     else:
-        model = model_cls(model_config, env.action_space)
+        model = model_cls(model_config, env.observation_space, env.action_space)
         joint_model = JointModel(
             config={}, models=[model], action_space=env.action_space
         )

@@ -34,15 +34,10 @@ trainer:
     use_gpu:
 
 model:
-  input_size:
-  num_actions:
-  rel_input_size:
   activation: tanh
-  discrete: false
 
   hidden_sizes: [64, 64, 64]
   separate_value: true
-
 
   conv_filters: 2
 
