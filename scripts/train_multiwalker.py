@@ -81,7 +81,6 @@ if __name__ == "__main__":
     else:
         action_shape = action_space.shape[0]
 
-
     model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 

@@ -64,7 +64,6 @@ def train_crowd(config: dict, args: Parser):
     buffer_size = env.get_attr("obs_buffer_size")[0]
     action_size = env.action_space.shape[0]
 
-
     wandb.init(
         project=args.new_project,
         entity=args.entity,
@@ -73,7 +72,11 @@ def train_crowd(config: dict, args: Parser):
         sync_tensorboard=True,
     )
 
-    model = RelationModel(config["model"], observation_space=env.observation_space, action_space=env.action_space)
+    model = RelationModel(
+        config["model"],
+        observation_space=env.observation_space,
+        action_space=env.action_space,
+    )
     agent = CAgent(model)
     agents = HomogeneousGroup(agent)
 

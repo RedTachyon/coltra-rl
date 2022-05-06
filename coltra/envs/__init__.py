@@ -1,4 +1,4 @@
-from .unity_envs import UnitySimpleCrowdEnv, Mode
+from .unity_envs import UnitySimpleCrowdEnv
 from .base_env import MultiAgentEnv
 from .subproc_vec_env import SubprocVecEnv
 from .probe_envs import probe_env_classes

@@ -28,29 +28,6 @@ from .spaces import ObservationSpace, ActionSpace
 from coltra.utils import find_free_worker
 
 
-class Mode(Enum):
-    Default = -1.0
-    Random = 0.0
-    Circle = 1.0
-    Hallway = 2.0
-    Json = 3.0
-
-    @staticmethod
-    def from_string(name: str):
-        if name.lower() == "default":
-            return Mode.Default
-        if name.lower() == "random":
-            return Mode.Random
-        if name.lower() == "circle":
-            return Mode.Circle
-        if name.lower() == "hallway":
-            return Mode.Hallway
-        if name.lower() == "json":
-            return Mode.Json
-
-        raise ValueError(f"{name} is not a valid mode identifier")
-
-
 class Sensor(Enum):
     Buffer = 0
     Ray = 1
@@ -296,8 +273,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             #     self.string_channel.send_string(name, value)
             #     continue
 
-            if name == "mode":
-                value = Mode.from_string(value).value
             if isinstance(value, str):
                 self.string_channel.send_string(name, value)
             else:

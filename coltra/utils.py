@@ -347,7 +347,7 @@ class AffineBeta(torch.distributions.TransformedDistribution):
 
     @property
     def variance(self):
-        return self.base_dist.variance * self.scale ** 2
+        return self.base_dist.variance * self.scale**2
 
     def entropy(self):
         return self.base_dist.entropy() + self.scale.log()

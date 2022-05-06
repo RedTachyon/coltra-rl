@@ -73,7 +73,11 @@ def train_one(
         name=f"trial{trial.number}",
     )
 
-    model = RelationModel(config["model"], observation_space=env.observation_space, action_space=env.action_space)
+    model = RelationModel(
+        config["model"],
+        observation_space=env.observation_space,
+        action_space=env.action_space,
+    )
     agent = CAgent(model)
     agents = HomogeneousGroup(agent)
 

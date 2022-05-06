@@ -20,7 +20,6 @@ from coltra.envs import SubprocVecEnv, MultiAgentEnv
 from coltra.groups import HomogeneousGroup
 from coltra.policy_optimization import CrowdPPOptimizer
 from coltra.utils import Timer, write_dict
-from coltra.envs.unity_envs import Mode
 from coltra.envs.base_env import VecEnv
 
 
