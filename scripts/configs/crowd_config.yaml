@@ -98,7 +98,7 @@ environment:
   shared_goal: true
 
   evaluation_mode: false
-  save_path:
+  # save_path:  # This should probably be set manually
   early_finish: false
   dynamics: "PolarVelocity"
   observer: "Egocentric"
