@@ -104,6 +104,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         super().__init__()
         disable_unity_logs()
 
+        if extra_params is None:
+            extra_params = {}
+
         if virtual_display:
             from pyvirtualdisplay.smartdisplay import SmartDisplay
 
