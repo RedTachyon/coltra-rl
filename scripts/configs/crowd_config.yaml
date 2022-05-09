@@ -1,7 +1,7 @@
 ---
 trainer:
   steps: 200
-  workers: 8
+  workers: 2
 
   tensorboard_name:
   save_freq: 10
@@ -54,15 +54,51 @@ environment:
   agents: 12
   mode: default
 
-  # Reward coefficients
-  potential: 1.0
-  goal: 1.0
-  collision: 0 #-0.05
-  sight_radius: 5.0
-  sight_agents: 15.0
+  # Reward function
+  potential: 1
+  goal: 10
+  collision: -0.05
+  step_reward: -0.005
 
-  comfort_speed: 1.0
-  comfort_speed_weight: 0 # -0.1
+  standstill_weight: 0
+  standstill_exponent: 0
+  goal_speed_threshold: 0
 
-  comfort_distance: 0.0
-  comfort_distance_weight: 0.0
+  comfort_speed: 1.33
+  comfort_speed_weight: -0.75
+  comfort_speed_exponent: 1
+
+  comfort_distance: 0
+  comfort_distance_weight: 0
+
+  # Energy
+  e_s: 2.23
+  e_w: 1.26
+
+  # Observations
+  sight_radius: 10
+  sight_agents: 10
+  sight_angle: 180
+
+
+  ray_length: 10
+  ray_degrees: 90
+  ray_agent_vision: true
+  destroy_raycasts: false
+
+  # Spawn
+  spawn_noise_scale: 0.5
+  spawn_scale: 8
+
+  grid_spawn: true
+  group_spawn_scale: 1.5
+
+  enable_obstacles: true
+  shared_goal: true
+
+  evaluation_mode: false
+  save_path:
+  early_finish: true
+  dynamics: "PolarVelocity"
+  observer: "Egocentric"
+  initializer: "Corridor"

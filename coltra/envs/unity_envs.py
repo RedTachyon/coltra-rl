@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, List, Union, Dict, Optional
+from typing import Tuple, List, Union, Dict, Optional, Any
 from enum import Enum
 
 from PIL.Image import Image
@@ -13,6 +13,7 @@ from mlagents_envs.base_env import (
     ObservationSpec,
 )
 from mlagents_envs.environment import UnityEnvironment
+from mlagents_envs.exception import UnityEnvironmentException
 from mlagents_envs.side_channel.engine_configuration_channel import (
     EngineConfigurationChannel,
 )
@@ -97,6 +98,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         file_name: Optional[str] = None,
         virtual_display: Optional[tuple[int, int]] = None,
         worker_id: Optional[int] = None,
+        extra_params: Optional[dict[str, Any]] = None,
         **kwargs,
     ):
         super().__init__()
@@ -128,6 +130,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         )
         self.behaviors = {}
         # self.manager = ""
+
+        self._process_parameters(extra_params)
 
         self.unity.reset()
 
@@ -268,15 +272,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
     def reset(self, **kwargs) -> ObsDict:
 
-        for (name, value) in kwargs.items():
-            # if name == "save_path":
-            #     self.string_channel.send_string(name, value)
-            #     continue
-
-            if isinstance(value, str):
-                self.string_channel.send_string(name, value)
-            else:
-                self.param_channel.set_float_parameter(name, value)
+        self._process_parameters(kwargs)
 
         self.unity.reset()
 
@@ -303,6 +299,13 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         return obs_dict
 
+    def _process_parameters(self, params: dict[str, Any]):
+        for key, value in params.items():
+            if isinstance(value, str):
+                self.string_channel.send_string(key, value)
+            else:
+                self.param_channel.set_float_parameter(key, float(value))
+
     @property
     def current_obs(self) -> ObsDict:
         obs_dict, _, _, info_dict = self._get_step_info()
@@ -316,7 +319,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def close(self):
         if self.virtual_display:
             self.virtual_display.stop()
-        self.unity.close()
+        try:
+            self.unity.close()
+        except UnityEnvironmentException:
+            print("Trying to close Unity environment, but it was already closed")
 
     def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
         if self.virtual_display:
