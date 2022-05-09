@@ -51,7 +51,7 @@ model:
 
 
 environment:
-  agents: 12
+  num_agents: 12
   mode: "Circle"
 
   # Reward function

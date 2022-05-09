@@ -268,7 +268,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.behaviors = {
             key: value
             for key, value in behaviors.items()
-            if not key.startswith("Manager")
         }
 
         # ...but manager is used to collect stats
@@ -290,8 +289,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         for key, value in params.items():
             if isinstance(value, str):
                 self.string_channel.send_string(key, value)
-            elif isinstance(value, float):
-                self.param_channel.set_float_parameter(key, float(value))
+            else:
+                self.param_channel.set_float_parameter(key, value)
 
     @property
     def current_obs(self) -> ObsDict:
