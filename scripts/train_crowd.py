@@ -119,17 +119,6 @@ if __name__ == "__main__":
         # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
         # Initialize the agent
-        obs_size = env.observation_space.shape[0]
-        buffer_size = env.get_attr("obs_buffer_size")[0]
-        action_size = env.action_space.shape[0]
-
-        # sample_obs = next(iter(env.reset().values()))
-        # obs_size = sample_obs.vector.shape[0]
-        # ray_size = sample_obs.rays.shape[0] if sample_obs.rays is not None else None
-
-        model_config["input_size"] = obs_size
-        model_config["rel_input_size"] = buffer_size
-        model_config["num_actions"] = action_size
 
         wandb.init(
             project="crowdai" if args.project is None else args.project,
