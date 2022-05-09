@@ -99,6 +99,6 @@ environment:
 
   evaluation_mode: false
   save_path:
-  early_finish: true
+  early_finish: false
   dynamics: "PolarVelocity"
   observer: "Egocentric"
