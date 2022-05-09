@@ -25,6 +25,7 @@ from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
 
 import data_utils as du
+from coltra.utils import find_free_worker
 
 set_log_level(ERROR)
 
@@ -160,13 +161,16 @@ if __name__ == "__main__":
 
         print("Training complete. Evaluation starting.")
 
+        env_config["evaluation_mode"] = 1.0
+
+        worker_id = find_free_worker(500)
         env = UnitySimpleCrowdEnv(
             file_name=args.env,
             virtual_display=(1600, 900),
             no_graphics=False,
+            worker_id=worker_id,
             extra_params=env_config
         )
-        env_config["evaluation_mode"] = 1.0
         env.reset(**env_config)
 
         os.mkdir(os.path.join(trainer.path, "trajectories"))
@@ -269,3 +273,5 @@ if __name__ == "__main__":
             print("Env wasn't created. Exiting coltra")
         except UnityEnvironmentException:
             print("Env already closed. Exiting coltra")
+        except Exception:
+            print("Unknown error when closing the env. Exiting coltra")

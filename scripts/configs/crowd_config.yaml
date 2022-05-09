@@ -89,7 +89,7 @@ environment:
 
   # Spawn
   spawn_noise_scale: 0.3
-  spawn_scale: 8
+  spawn_scale: 4
 
   grid_spawn: true
   group_spawn_scale: 1.5
