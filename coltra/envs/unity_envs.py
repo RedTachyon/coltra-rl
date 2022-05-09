@@ -148,22 +148,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         # semi-hardcoded computation of obs/action spaces, slightly different api than gym
         self.behavior_name = list(self.behaviors.keys())[0]
         obs_spec, action_spec = self.behaviors[self.behavior_name]
-
-        # DEPRECATED
-        vector_spec = next(
-            spec for spec in obs_spec if spec.name.lower().startswith("vector")
-        )
-        obs_shape = vector_spec.shape
         action_size = action_spec.continuous_size
-
-        self.obs_vector_size = obs_shape[0]
-        self.obs_buffer_size = obs_spec[0].shape[-1]
-        self.action_vector_size = action_size
-
-        # self.observation_space = Box(
-        #     low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32
-        # )
-        # DEPRECATED END
 
         observations_dict = {}
         for single_obs_spec in obs_spec:
@@ -305,7 +290,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         for key, value in params.items():
             if isinstance(value, str):
                 self.string_channel.send_string(key, value)
-            else:
+            elif isinstance(value, float):
                 self.param_channel.set_float_parameter(key, float(value))
 
     @property
