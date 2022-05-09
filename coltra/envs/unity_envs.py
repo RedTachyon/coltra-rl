@@ -21,11 +21,11 @@ from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
 
-from .side_channels import StatsChannel, StringChannel
+from coltra.envs.side_channels import StatsChannel, StringChannel
 from coltra.buffers import Observation, Action
-from .subproc_vec_env import SubprocVecEnv
-from .base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
-from .spaces import ObservationSpace, ActionSpace
+from coltra.envs.subproc_vec_env import SubprocVecEnv
+from coltra.envs.base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
+from coltra.envs.spaces import ObservationSpace, ActionSpace
 from coltra.utils import find_free_worker, disable_unity_logs
 
 

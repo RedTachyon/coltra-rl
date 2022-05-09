@@ -4,32 +4,32 @@ trainer:
   workers: 2
 
   tensorboard_name:
-  save_freq: 10
+  save_freq: 100
 
   PPOConfig:
     optimizer: adam
     OptimizerKwargs:
-      lr: 0.00005
+      lr: 8.7e-05
       betas: !!python/tuple [0.9, 0.999]
       eps: 1.0e-07
       weight_decay: 0
       amsgrad: false
 
-    gamma: 0.99
+    gamma: 0.993
     eta: 0.0
-    gae_lambda: 0.95
+    gae_lambda: 0.891
 
     advantage_normalization: true
 
-    eps: 0.2
-    target_kl: 0.03
+    eps: 0.143
+    target_kl: 0.018
     entropy_coeff: 0.0
     entropy_decay_time: 100
     min_entropy: 0.0
     value_coeff: 1.0
 
-    ppo_epochs: 10
-    minibatch_size: 1024
+    ppo_epochs: 30
+    minibatch_size: 2048
 
     use_gpu:
 
@@ -46,13 +46,13 @@ model:
   sigma0: 0.4
 
   vec_hidden_layers: [32, 32]
-  rel_hidden_layers: [32, 32]
-  com_hidden_layers: [32, 32]
+  rel_hidden_layers: [64, 64, 64]
+  com_hidden_layers: [128, 128]
 
 
 environment:
   agents: 12
-  mode: default
+  mode: "Circle"
 
   # Reward function
   potential: 1
@@ -79,21 +79,22 @@ environment:
   sight_radius: 10
   sight_agents: 10
   sight_angle: 180
+  sight_acceleration: false
 
 
   ray_length: 10
   ray_degrees: 90
   ray_agent_vision: true
-  destroy_raycasts: false
+  destroy_raycasts: true
 
   # Spawn
-  spawn_noise_scale: 0.5
+  spawn_noise_scale: 0.3
   spawn_scale: 8
 
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: true
+  enable_obstacles: false
   shared_goal: true
 
   evaluation_mode: false
@@ -101,4 +102,3 @@ environment:
   early_finish: true
   dynamics: "PolarVelocity"
   observer: "Egocentric"
-  initializer: "Corridor"

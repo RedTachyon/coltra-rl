@@ -94,7 +94,7 @@ if __name__ == "__main__":
             config["environment"]["dynamics"] = args.dynamics
 
         if args.observer is not None:
-            assert args.observer in ("Absolute", "Relative", "RotRelative"), ValueError(
+            assert args.observer in ("Absolute", "Relative", "Egocentric"), ValueError(
                 "Wrong observer type passed."
             )
             config["environment"]["observer"] = args.observer
@@ -112,9 +112,9 @@ if __name__ == "__main__":
 
         # Initialize the environment
         env = UnitySimpleCrowdEnv.get_venv(
-            workers, file_name=args.env, no_graphics=True
+            workers, file_name=args.env, no_graphics=True, extra_params=env_config
         )
-        env.reset(save_trajectory=0.0)
+        env.reset()
 
         # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
 
@@ -187,13 +187,11 @@ if __name__ == "__main__":
         UNIT_SIZE = 3
         plt.rcParams["figure.figsize"] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
 
-        mode = "circle"
-        for i in range(6):
+        # mode = "circle"
+        mode = env_config["mode"]
+        for i in range(3):
             idx = i % 3
             d = idx == 0
-            if i == 3:
-                mode = "json"
-                env_config["mode"] = "json"
 
             trajectory_path = os.path.join(
                 trainer.path,
