@@ -289,8 +289,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         for key, value in params.items():
             if isinstance(value, str):
                 self.string_channel.send_string(key, value)
-            else:
-                self.param_channel.set_float_parameter(key, value)
+            elif isinstance(value, float) or isinstance(value, int):
+                self.param_channel.set_float_parameter(key, float(value))
 
     @property
     def current_obs(self) -> ObsDict:
