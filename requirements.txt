@@ -3,14 +3,13 @@ numpy>=1.21
 gym~=0.23.1
 jupyter>=1.0.0
 jupyterlab>=3.0.7
-mlagents~=0.28.0
 mlagents-envs~=0.28.0
 PyYAML>=5.4.1
 scipy>=1.6.0
 matplotlib
 seaborn>=0.11.1
 tensorboard>=2.7.0
-torch>=1.8.0
+torch>=1.11.0
 tqdm>=4.62.3
 ipykernel>=5.4.3
 numba>=0.55.1

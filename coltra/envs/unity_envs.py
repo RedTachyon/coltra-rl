@@ -26,7 +26,7 @@ from coltra.buffers import Observation, Action
 from .subproc_vec_env import SubprocVecEnv
 from .base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
 from .spaces import ObservationSpace, ActionSpace
-from coltra.utils import find_free_worker
+from coltra.utils import find_free_worker, disable_unity_logs
 
 
 class Sensor(Enum):
@@ -102,6 +102,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         **kwargs,
     ):
         super().__init__()
+        disable_unity_logs()
+
         if virtual_display:
             from pyvirtualdisplay.smartdisplay import SmartDisplay
 

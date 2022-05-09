@@ -17,6 +17,7 @@ import numpy as np
 
 import torch
 from mlagents_envs.exception import UnityWorkerInUseException
+from mlagents_envs.logging_util import set_log_level, ERROR
 from torch import nn
 from torch import Tensor
 import torch.nn.functional as F
@@ -354,3 +355,7 @@ class AffineBeta(torch.distributions.TransformedDistribution):
 
     def enumerate_support(self, expand=True):
         raise NotImplementedError
+
+
+def disable_unity_logs():
+    set_log_level(ERROR)
