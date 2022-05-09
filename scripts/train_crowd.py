@@ -164,6 +164,7 @@ if __name__ == "__main__":
             file_name=args.env,
             virtual_display=(1600, 900),
             no_graphics=False,
+            extra_params=env_config
         )
         env_config["evaluation_mode"] = 1.0
         env.reset(**env_config)
