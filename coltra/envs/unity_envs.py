@@ -24,7 +24,14 @@ from mlagents_envs.side_channel.environment_parameters_channel import (
 from coltra.envs.side_channels import StatsChannel, StringChannel
 from coltra.buffers import Observation, Action
 from coltra.envs.subproc_vec_env import SubprocVecEnv
-from coltra.envs.base_env import MultiAgentEnv, ObsDict, ActionDict, RewardDict, DoneDict, InfoDict
+from coltra.envs.base_env import (
+    MultiAgentEnv,
+    ObsDict,
+    ActionDict,
+    RewardDict,
+    DoneDict,
+    InfoDict,
+)
 from coltra.envs.spaces import ObservationSpace, ActionSpace
 from coltra.utils import find_free_worker, disable_unity_logs
 
@@ -268,10 +275,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         # All behavior names, except for Manager agents which do not take actions but manage the environment
         behaviors = dict(self.unity.behavior_specs)
-        self.behaviors = {
-            key: value
-            for key, value in behaviors.items()
-        }
+        self.behaviors = {key: value for key, value in behaviors.items()}
 
         # ...but manager is used to collect stats
         # self.manager = [key for key in behaviors if key.startswith("Manager")][0]

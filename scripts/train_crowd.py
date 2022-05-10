@@ -78,9 +78,12 @@ if __name__ == "__main__":
 
         args = Parser()
 
-        assert args.model_type in ("blind", "relation", "ray", "rayrelation"), ValueError(
-            "Wrong model type passed."
-        )
+        assert args.model_type in (
+            "blind",
+            "relation",
+            "ray",
+            "rayrelation",
+        ), ValueError("Wrong model type passed.")
 
         with open(args.config, "r") as f:
             config = yaml.load(f.read(), yaml.Loader)
@@ -138,7 +141,9 @@ if __name__ == "__main__":
         elif args.model_type == "rayrelation":
             model_cls = RayRelationModel
         else:
-            raise ValueError("Wrong model type passed. This should have been caught sooner")
+            raise ValueError(
+                "Wrong model type passed. This should have been caught sooner"
+            )
 
         agent: Agent
         if args.start_dir:
@@ -175,7 +180,7 @@ if __name__ == "__main__":
             virtual_display=(1600, 900),
             no_graphics=False,
             worker_id=worker_id,
-            extra_params=env_config
+            extra_params=env_config,
         )
         env.reset(**env_config)
 
