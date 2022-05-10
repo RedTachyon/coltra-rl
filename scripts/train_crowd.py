@@ -19,8 +19,8 @@ from coltra.collectors import collect_renders
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
 from coltra.models import BaseModel
-from coltra.models.mlp_models import MLPModel
-from coltra.models.relational_models import RelationModel
+from coltra.models.mlp_models import MLPModel, RayMLPModel
+from coltra.models.relational_models import RelationModel, RayRelationModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
 
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
         args = Parser()
 
-        assert args.model_type in ("blind", "relation"), ValueError(
+        assert args.model_type in ("blind", "relation", "ray", "rayrelation"), ValueError(
             "Wrong model type passed."
         )
 
@@ -131,8 +131,14 @@ if __name__ == "__main__":
 
         if args.model_type == "relation":
             model_cls = RelationModel
-        else:
+        elif args.model_type == "blind":
             model_cls = MLPModel
+        elif args.model_type == "ray":
+            model_cls = RayMLPModel
+        elif args.model_type == "rayrelation":
+            model_cls = RayRelationModel
+        else:
+            raise ValueError("Wrong model type passed. This should have been caught sooner")
 
         agent: Agent
         if args.start_dir:
