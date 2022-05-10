@@ -15,7 +15,7 @@ import seaborn as sns
 ### Data reading and processing ###
 ###################################
 
-COLORS = [
+COLORS = [  # TODO: Fix this, make it cyclic or something
     (0, 0, 0),  # black
     (0, 0, 1),  # blue
     (0, 1, 1),  # cyan
