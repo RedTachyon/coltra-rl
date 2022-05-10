@@ -85,12 +85,6 @@ if __name__ == "__main__":
     print(f"{observation_space=}")
     print(f"{action_space=}")
 
-    is_discrete_action = isinstance(action_space, gym.spaces.Discrete)
-    if is_discrete_action:
-        action_shape = action_space.n
-    else:
-        action_shape = action_space.shape[0]
-
     model_cls = MLPModel
     agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
 
