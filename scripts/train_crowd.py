@@ -35,7 +35,6 @@ class Parser(BaseParser):
     iters: int = 500
     env: str
     name: str
-    model_type: str = "relation"
     dynamics: Optional[str] = None
     observer: Optional[str] = None
     project: Optional[str] = None
@@ -48,7 +47,6 @@ class Parser(BaseParser):
         "iters": "Number of coltra iterations",
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
-        "model_type": "Type of the information that a model has access to",
         "dynamics": "Type of dynamics to use",
         "observer": "Type of observer to use",
         "project": "Type of project to use",
@@ -62,7 +60,6 @@ class Parser(BaseParser):
         "iters": "i",
         "env": "e",
         "name": "n",
-        "model_type": "mt",
         "dynamics": "d",
         "observer": "o",
         "project": "p",
@@ -78,12 +75,6 @@ if __name__ == "__main__":
 
         args = Parser()
 
-        assert args.model_type in (
-            "blind",
-            "relation",
-            "ray",
-            "rayrelation",
-        ), ValueError("Wrong model type passed.")
 
         with open(args.config, "r") as f:
             config = yaml.load(f.read(), yaml.Loader)
@@ -108,6 +99,14 @@ if __name__ == "__main__":
         trainer_config = config["trainer"]
         model_config = config["model"]
         env_config = config["environment"]
+        model_type = config["model_type"]
+
+        assert model_type in (
+            "blind",
+            "relation",
+            "ray",
+            "rayrelation",
+        ), ValueError(f"Wrong model type {model_type} in the config.")
 
         trainer_config["tensorboard_name"] = args.name
         trainer_config["PPOConfig"]["use_gpu"] = CUDA
@@ -132,13 +131,13 @@ if __name__ == "__main__":
             name=args.name,
         )
 
-        if args.model_type == "relation":
+        if model_type == "relation":
             model_cls = RelationModel
-        elif args.model_type == "blind":
+        elif model_type == "blind":
             model_cls = MLPModel
-        elif args.model_type == "ray":
+        elif model_type == "ray":
             model_cls = RayMLPModel
-        elif args.model_type == "rayrelation":
+        elif model_type == "rayrelation":
             model_cls = RayRelationModel
         else:
             raise ValueError(

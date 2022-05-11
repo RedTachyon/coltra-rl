@@ -177,6 +177,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             }
         )
 
+        self._closed = False
+
     def _get_step_info(
         self, step: bool = False
     ) -> Tuple[ObsDict, RewardDict, DoneDict, InfoDict]:
@@ -312,10 +314,11 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
     def close(self):
         if self.virtual_display:
             self.virtual_display.stop()
-        try:
-            self.unity.close()
-        except UnityEnvironmentException:
-            print("Trying to close Unity environment, but it was already closed")
+        if not self._closed:
+            try:
+                self.unity.close()
+            except UnityEnvironmentException:
+                print("Trying to close Unity environment, but it was already closed")
 
     def render(self, mode="rgb_array") -> Optional[Union[np.ndarray, Image]]:
         if self.virtual_display:

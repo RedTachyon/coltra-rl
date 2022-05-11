@@ -102,3 +102,4 @@ environment:
   early_finish: false
   dynamics: "PolarVelocity"
   observer: "Egocentric"
+model_type: "relation"

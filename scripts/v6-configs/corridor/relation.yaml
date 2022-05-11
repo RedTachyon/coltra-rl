@@ -40,7 +40,7 @@ model:
 
   beta: false
 
-  hidden_sizes: [128, 128, 128]
+  hidden_sizes: [64, 64, 64]
   separate_value: true
 
   sigma0: 0.4
@@ -51,8 +51,8 @@ model:
 
 
 environment:
-  num_agents: 12
-  mode: "Circle"
+  num_agents: 36
+  mode: "Corridor"
 
   # Reward function
   potential: 1
@@ -77,24 +77,24 @@ environment:
 
   # Observations
   sight_radius: 10
-  sight_agents: 10
+  sight_agents: 30
   sight_angle: 180
   sight_acceleration: false
 
-  rays_per_direction: 10
+
   ray_length: 10
   ray_degrees: 90
   ray_agent_vision: true
-  destroy_raycasts: false
+  destroy_raycasts: true
 
   # Spawn
-  spawn_noise_scale: 0.3
-  spawn_scale: 4
+  spawn_noise_scale: 0.5
+  spawn_scale: 6
 
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: false
+  enable_obstacles: true
   shared_goal: true
 
   evaluation_mode: false
@@ -102,4 +102,4 @@ environment:
   early_finish: false
   dynamics: "PolarVelocity"
   observer: "Egocentric"
-model_type: "ray""
+model_type: "relation"
