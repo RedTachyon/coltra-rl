@@ -265,4 +265,4 @@ class RayRelationModel(FlattenRelationModel):
         else:
             vector = rays
 
-        return Observation(vector=vector)
+        return Observation(vector=vector, buffer=obs.buffer)
