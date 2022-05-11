@@ -235,7 +235,7 @@ class RayRelationModel(FlattenRelationModel):
             if "vector" in observation_space.spaces
             else 0
         )
-        image_size = np.prod(observation_space.spaces["image"].shape)
+        image_size = np.prod(observation_space.spaces["rays"].shape)
         new_vector_size = vector_size + image_size
 
         other_spaces = {
