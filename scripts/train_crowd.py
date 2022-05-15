@@ -14,6 +14,7 @@ from mlagents_envs.logging_util import get_logger, set_log_level
 from typarse import BaseParser
 import seaborn as sns
 
+import coltra.utils
 from coltra.agents import CAgent, Agent
 from coltra.collectors import collect_renders
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
@@ -38,21 +39,17 @@ class Parser(BaseParser):
     dynamics: Optional[str] = None
     observer: Optional[str] = None
     project: Optional[str] = None
-    start_dir: Optional[str]
-    start_idx: Optional[int] = -1
-    speed_coeff: Optional[float] = None
+    wandb_run: Optional[str] = None
 
     _help = {
-        "config": "Config file for the coltra",
+        "config": "Config file for the coltra. If preceded by 'wandb:', will use wandb to fetch config.",
         "iters": "Number of coltra iterations",
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
         "dynamics": "Type of dynamics to use",
         "observer": "Type of observer to use",
         "project": "Type of project to use",
-        "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
-        "start_idx": "From which iteration we should start (only if start_dir is set)",
-        "speed_coeff": "Reward weighing parameter",
+        "wandb_run": "Name of the wandb run to fetch config from",
     }
 
     _abbrev = {
@@ -63,9 +60,7 @@ class Parser(BaseParser):
         "dynamics": "d",
         "observer": "o",
         "project": "p",
-        "start_dir": "sd",
-        "start_idx": "si",
-        "speed_coeff": "sc",
+        "wandb_run": "wr",
     }
 
 
@@ -75,9 +70,16 @@ if __name__ == "__main__":
 
         args = Parser()
 
-
         with open(args.config, "r") as f:
             config = yaml.load(f.read(), yaml.Loader)
+
+        if args.wandb_run:
+            api = wandb.Api()
+            run = api.run(args.wandb_run)
+            wandb_config = run.config
+
+            config = coltra.utils.update_dict(config, wandb_config)
+
 
         if args.dynamics is not None:
             assert args.dynamics in (
@@ -94,8 +96,7 @@ if __name__ == "__main__":
             )
             config["environment"]["observer"] = args.observer
 
-        if args.speed_coeff is not None:
-            config["environment"]["comfort_speed_weight"] = args.speed_coeff
+
         trainer_config = config["trainer"]
         model_config = config["model"]
         env_config = config["environment"]

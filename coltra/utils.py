@@ -359,3 +359,15 @@ class AffineBeta(torch.distributions.TransformedDistribution):
 
 def disable_unity_logs():
     set_log_level(ERROR)
+
+
+def update_dict(target: dict, source: dict):
+    """
+    Updates the target dictionary with the source dictionary.
+    If the target dictionary already has a key, it is overwritten.
+    """
+    for key, value in target.items():
+        if isinstance(value, dict):
+            update_dict(value, source[key])
+        else:
+            target[key] = source[key]
