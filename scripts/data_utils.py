@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from itertools import cycle
 from dataclasses import dataclass, astuple
 import json
 import os
@@ -15,7 +16,7 @@ import seaborn as sns
 ### Data reading and processing ###
 ###################################
 
-COLORS = [  # TODO: Fix this, make it cyclic or something
+COLORS = [
     (0, 0, 0),  # black
     (0, 0, 1),  # blue
     (0, 1, 1),  # cyan
@@ -186,10 +187,10 @@ def draw_trajectory(trajectory: Trajectory):
     if len(positions.shape) == 2:
         positions = np.expand_dims(positions, 0)
 
-    for agent_traj, c in zip(positions, COLORS):
+    for agent_traj, c in zip(positions, cycle(COLORS)):
         plt.plot(*agent_traj.T, c=c)
 
-    for pair, c in zip(positions[:, 0, :], COLORS):
+    for pair, c in zip(positions[:, 0, :], cycle(COLORS)):
         plt.scatter(*pair, color=c)
 
 
