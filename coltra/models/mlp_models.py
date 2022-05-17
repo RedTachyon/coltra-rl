@@ -255,6 +255,44 @@ class RayMLPModel(FlattenMLPModel):
         return Observation(vector=vector)
 
 
+class BufferMLPModel(FlattenMLPModel):
+    def __init__(
+        self, config: dict, observation_space: ObservationSpace, action_space: Space
+    ):
+        assert (
+            "buffer" in observation_space.spaces
+        ), "BufferMLPModel requires an observation space with buffer"
+
+        new_vector_size = (
+            observation_space.vector.shape[0]
+            if "vector" in observation_space.spaces
+            else 0
+        ) + observation_space.spaces["buffer"].shape[0]
+
+        new_observation_space = ObservationSpace(
+            {"vector": Box(-np.inf, np.inf, (new_vector_size,))}
+        )
+
+        super().__init__(config, new_observation_space, action_space)
+
+    def _flatten(self, obs: Observation) -> Observation:
+        if not hasattr(obs, "buffer"):
+            return obs
+        buffer: torch.Tensor = obs.buffer
+
+        if buffer.shape == 2:  # no batch
+            dim = 0
+        else:  # image.shape == 3, batch
+            dim = 1
+
+        vector = torch.flatten(buffer, start_dim=dim)
+
+        if hasattr(obs, "vector"):
+            vector = torch.cat([obs.vector, vector], dim=dim)
+
+        return Observation(vector=vector)
+
+
 class MLPQModel(BaseQModel):
     def __init__(self, config: dict, action_space: Space):
         super().__init__(config, action_space)
