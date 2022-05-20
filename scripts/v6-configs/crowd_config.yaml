@@ -34,7 +34,6 @@ trainer:
     use_gpu:
 
 model:
-
   activation: tanh
   initializer: orthogonal
 
@@ -51,7 +50,7 @@ model:
 
 
 environment:
-  num_agents: 30
+  num_agents: 12
   mode: "Circle"
 
   # Reward function
@@ -81,23 +80,25 @@ environment:
   sight_angle: 180
   sight_acceleration: false
 
-
+  destroy_raycasts: true
+  ray_agent_vision: true
+  rays_per_direction: 10
   ray_length: 10
   ray_degrees: 90
-  ray_agent_vision: true
-  destroy_raycasts: true
 
   # Spawn
   spawn_noise_scale: 0.5
-  spawn_scale: 6
+  spawn_scale: 4
 
   grid_spawn: true
   group_spawn_scale: 1.5
 
   enable_obstacles: false
+  block_scale: 3
   shared_goal: true
 
   evaluation_mode: false
+  nice_colors: true
   # save_path:  # This should probably be set manually
   early_finish: false
   dynamics: "PolarVelocity"

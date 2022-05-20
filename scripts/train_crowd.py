@@ -26,30 +26,27 @@ from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
 
 import data_utils as du
+from coltra.training_utils import evaluate
 from coltra.utils import find_free_worker
 
 set_log_level(ERROR)
 
 
 class Parser(BaseParser):
-    config: str = "configs/nocollision.yaml"
+    config: str = "v6-configs/crowd_config.yaml"
     iters: int = 500
     env: str
     name: str
-    dynamics: Optional[str] = None
-    observer: Optional[str] = None
     project: Optional[str] = None
-    wandb_run: Optional[str] = None
+    extra_config: Optional[str] = None
 
     _help = {
         "config": "Config file for the coltra. If preceded by 'wandb:', will use wandb to fetch config.",
         "iters": "Number of coltra iterations",
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
-        "dynamics": "Type of dynamics to use",
-        "observer": "Type of observer to use",
         "project": "Type of project to use",
-        "wandb_run": "Name of the wandb run to fetch config from",
+        "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
     }
 
     _abbrev = {
@@ -57,10 +54,8 @@ class Parser(BaseParser):
         "iters": "i",
         "env": "e",
         "name": "n",
-        "dynamics": "d",
-        "observer": "o",
         "project": "p",
-        "wandb_run": "wr",
+        "extra_config": "ec",
     }
 
 
@@ -70,32 +65,13 @@ if __name__ == "__main__":
 
         args = Parser()
 
-        with open(args.config, "r") as f:
-            config = yaml.load(f.read(), yaml.Loader)
-
-        if args.wandb_run:
+        if args.config.startswith("wandb:"):
             api = wandb.Api()
-            run = api.run(args.wandb_run)
-            wandb_config = run.config
-
-            config = coltra.utils.update_dict(config, wandb_config)
-
-
-        if args.dynamics is not None:
-            assert args.dynamics in (
-                "CartesianVelocity",
-                "CartesianAcceleration",
-                "PolarVelocity",
-                "PolarAcceleration",
-            ), ValueError("Wrong dynamics type passed.")
-            config["environment"]["dynamics"] = args.dynamics
-
-        if args.observer is not None:
-            assert args.observer in ("Absolute", "Relative", "Egocentric"), ValueError(
-                "Wrong observer type passed."
-            )
-            config["environment"]["observer"] = args.observer
-
+            run = api.run(args.config[6:])
+            config = run.config
+        else:
+            with open(args.config, "r") as f:
+                config = yaml.load(f.read(), yaml.Loader)
 
         trainer_config = config["trainer"]
         model_config = config["model"]
@@ -163,6 +139,14 @@ if __name__ == "__main__":
             save_path=trainer.path,
             collect_kwargs=env_config,
         )
+
+        print("Evaluating...")
+        performances = evaluate(env, agents, 10, disable_tqdm=False)
+        wandb.log({"final/episode_rewards": performances,
+                   "final/mean_episode_reward": np.mean(performances),
+                   "final/std_episode_reward": np.std(performances)}, commit=False)
+
+        wandb.log()
 
         env.close()
 
@@ -233,11 +217,11 @@ if __name__ == "__main__":
             print("Uploading dashboard")
             wandb.log(
                 {
-                    "dashboard": wandb.Image(
+                    f"dashboard_{idx}": wandb.Image(
                         dashboard_path,
                         caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}",
                     )
-                }
+                }, commit=False
             )
 
             frame_size = renders.shape[1:3]
@@ -257,7 +241,8 @@ if __name__ == "__main__":
             print(f"Video saved to {video_path}")
 
             wandb.log(
-                {f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)}
+                {f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)},
+                commit=False
             )
 
             print("Video uploaded to wandb")
@@ -268,6 +253,7 @@ if __name__ == "__main__":
             trajectory_artifact.add_file(trajectory_path)
             wandb.log_artifact(trajectory_artifact)
 
+        wandb.log({}, commit=True)
         env.close()
 
     finally:

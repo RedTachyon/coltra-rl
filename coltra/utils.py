@@ -367,6 +367,8 @@ def update_dict(target: dict, source: dict):
     If the target dictionary already has a key, it is overwritten.
     """
     for key, value in target.items():
+        if key not in source:
+            continue
         if isinstance(value, dict):
             update_dict(value, source[key])
         else:

@@ -267,7 +267,7 @@ class BufferMLPModel(FlattenMLPModel):
             observation_space.vector.shape[0]
             if "vector" in observation_space.spaces
             else 0
-        ) + observation_space.spaces["buffer"].shape[0]
+        ) + np.prod(observation_space.spaces["buffer"].shape)
 
         new_observation_space = ObservationSpace(
             {"vector": Box(-np.inf, np.inf, (new_vector_size,))}
