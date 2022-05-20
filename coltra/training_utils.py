@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 from tqdm import trange
 
@@ -11,7 +13,7 @@ def evaluate(
     n_episodes: int = 5,
     n_steps: int = 200,
     disable_tqdm: bool = False,
-    reset_kwargs: dict = None,
+    reset_kwargs: Optional[dict] = None,
 ) -> np.ndarray:
     if reset_kwargs is None:
         reset_kwargs = {}
