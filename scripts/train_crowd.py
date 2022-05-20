@@ -156,7 +156,7 @@ if __name__ == "__main__":
         worker_id = find_free_worker(500)
         env = UnitySimpleCrowdEnv(
             file_name=args.env,
-            virtual_display=(1600, 900),
+            virtual_display=(800, 800),
             no_graphics=False,
             worker_id=worker_id,
             extra_params=env_config,
