@@ -145,12 +145,8 @@ if __name__ == "__main__":
                 "Wrong model type passed. This should have been caught sooner"
             )
 
-        agent: Agent
-        if args.start_dir:
-            agent = CAgent.load(args.start_dir, weight_idx=args.start_idx)
-        else:
-            model = model_cls(model_config, env.observation_space, env.action_space)
-            agent = CAgent(model)
+        model = model_cls(model_config, env.observation_space, env.action_space)
+        agent = CAgent(model)
 
         agents = HomogeneousGroup(agent)
 
@@ -251,7 +247,7 @@ if __name__ == "__main__":
                 trainer.path, "videos", f"video_{mode}_{'det' if d else 'rnd'}_{i}.webm"
             )
             out = cv2.VideoWriter(
-                video_path, cv2.VideoWriter_fourcc(*"VP90"), 30, frame_size[::-1]
+                video_path, cv2.VideoWriter_fourcc(*"VP90"), 24, frame_size[::-1]
             )
             for frame in renders[..., ::-1]:
                 out.write(frame)
