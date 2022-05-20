@@ -51,8 +51,8 @@ model:
 
 
 environment:
-  num_agents: 36
-  mode: "Corridor"
+  num_agents: 50
+  mode: "Crossway"
 
   # Reward function
   potential: 1
@@ -78,7 +78,7 @@ environment:
   # Observations
   sight_radius: 10
   sight_agents: 30
-  sight_angle: 180
+  sight_angle: 90
   sight_acceleration: false
 
 

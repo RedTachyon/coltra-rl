@@ -40,7 +40,7 @@ model:
 
   beta: false
 
-  hidden_sizes: [64, 64, 64]
+  hidden_sizes: [128, 128, 128]
   separate_value: true
 
   sigma0: 0.4
@@ -81,7 +81,7 @@ environment:
   sight_angle: 180
   sight_acceleration: false
 
-
+  rays_per_direction: 10
   ray_length: 10
   ray_degrees: 90
   ray_agent_vision: true
@@ -102,4 +102,4 @@ environment:
   early_finish: false
   dynamics: "PolarVelocity"
   observer: "Egocentric"
-model_type: "rayrelation"
+model_type: "ray"

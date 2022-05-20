@@ -81,10 +81,10 @@ environment:
   sight_angle: 180
   sight_acceleration: false
 
-
+  rays_per_direction: 10
   ray_length: 10
   ray_degrees: 90
-  ray_agent_vision: true
+  ray_agent_vision: false
   destroy_raycasts: false
 
   # Spawn

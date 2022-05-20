@@ -51,7 +51,7 @@ model:
 
 
 environment:
-  num_agents: 36
+  num_agents: 50
   mode: "Corridor"
 
   # Reward function

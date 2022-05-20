@@ -51,8 +51,8 @@ model:
 
 
 environment:
-  num_agents: 36
-  mode: "Corridor"
+  num_agents: 50
+  mode: "Crossway"
 
   # Reward function
   potential: 1
@@ -78,14 +78,14 @@ environment:
   # Observations
   sight_radius: 10
   sight_agents: 30
-  sight_angle: 180
+  sight_angle: 90
   sight_acceleration: false
 
 
   ray_length: 10
   ray_degrees: 90
-  ray_agent_vision: true
-  destroy_raycasts: true
+  ray_agent_vision: false
+  destroy_raycasts: false
 
   # Spawn
   spawn_noise_scale: 0.5
@@ -102,4 +102,4 @@ environment:
   early_finish: false
   dynamics: "PolarVelocity"
   observer: "Egocentric"
-model_type: "relation"
+model_type: "rayrelation"

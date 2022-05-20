@@ -51,8 +51,8 @@ model:
 
 
 environment:
-  num_agents: 30
-  mode: "Circle"
+  num_agents: 50
+  mode: "Corridor"
 
   # Reward function
   potential: 1
@@ -66,7 +66,7 @@ environment:
 
   comfort_speed: 1.33
   comfort_speed_weight: -0.75
-  comfort_speed_exponent: 2
+  comfort_speed_exponent: 1
 
   comfort_distance: 0
   comfort_distance_weight: 0
@@ -77,7 +77,7 @@ environment:
 
   # Observations
   sight_radius: 10
-  sight_agents: 10
+  sight_agents: 30
   sight_angle: 180
   sight_acceleration: false
 
@@ -94,7 +94,7 @@ environment:
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: false
+  enable_obstacles: true
   shared_goal: true
 
   evaluation_mode: false

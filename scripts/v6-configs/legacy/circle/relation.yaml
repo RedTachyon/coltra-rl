@@ -81,15 +81,15 @@ environment:
   sight_angle: 180
   sight_acceleration: false
 
-
+  rays_per_direction: 10
   ray_length: 10
   ray_degrees: 90
   ray_agent_vision: true
-  destroy_raycasts: false
+  destroy_raycasts: true
 
   # Spawn
-  spawn_noise_scale: 0.3
-  spawn_scale: 4
+  spawn_noise_scale: 0.5
+  spawn_scale: 6
 
   grid_spawn: true
   group_spawn_scale: 1.5
@@ -102,4 +102,4 @@ environment:
   early_finish: false
   dynamics: "PolarVelocity"
   observer: "Egocentric"
-model_type: "rayrelation"
+model_type: "relation"
