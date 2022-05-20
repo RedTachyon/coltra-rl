@@ -142,11 +142,10 @@ if __name__ == "__main__":
 
         print("Evaluating...")
         performances = evaluate(env, agents, 10, disable_tqdm=False)
-        wandb.log({"final/episode_rewards": performances,
-                   "final/mean_episode_reward": np.mean(performances),
+        wandb.log({"final/mean_episode_reward": np.mean(performances),
                    "final/std_episode_reward": np.std(performances)}, commit=False)
 
-        wandb.log()
+        wandb.log({})
 
         env.close()
 
