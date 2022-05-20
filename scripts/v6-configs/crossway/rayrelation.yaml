@@ -1,0 +1,106 @@
+---
+trainer:
+  steps: 200
+  workers: 2
+
+  tensorboard_name:
+  save_freq: 100
+
+  PPOConfig:
+    optimizer: adam
+    OptimizerKwargs:
+      lr: 8.7e-05
+      betas: !!python/tuple [0.9, 0.999]
+      eps: 1.0e-07
+      weight_decay: 0
+      amsgrad: false
+
+    gamma: 0.993
+    eta: 0.0
+    gae_lambda: 0.891
+
+    advantage_normalization: true
+
+    eps: 0.143
+    target_kl: 0.018
+    entropy_coeff: 0.0
+    entropy_decay_time: 100
+    min_entropy: 0.0
+    value_coeff: 1.0
+
+    ppo_epochs: 30
+    minibatch_size: 2048
+
+    use_gpu:
+
+model:
+  activation: tanh
+  initializer: orthogonal
+
+  beta: false
+
+  hidden_sizes: [64, 64, 64]
+  separate_value: true
+
+  sigma0: 0.4
+
+  vec_hidden_layers: [32, 32]
+  rel_hidden_layers: [64, 64, 64]
+  com_hidden_layers: [128, 128]
+
+
+environment:
+  num_agents: 50
+  mode: "Crossway"
+
+  # Reward function
+  potential: 1
+  goal: 10
+  collision: -0.05
+  step_reward: -0.005
+
+  standstill_weight: 0
+  standstill_exponent: 0
+  goal_speed_threshold: 0
+
+  comfort_speed: 1.33
+  comfort_speed_weight: -0.75
+  comfort_speed_exponent: 1
+
+  comfort_distance: 0
+  comfort_distance_weight: 0
+
+  # Energy
+  e_s: 2.23
+  e_w: 1.26
+
+  # Observations
+  sight_radius: 10
+  sight_agents: 10
+  sight_angle: 180
+  sight_acceleration: false
+
+  destroy_raycasts: false
+  ray_agent_vision: false
+  rays_per_direction: 10
+  ray_length: 10
+  ray_degrees: 90
+
+  # Spawn
+  spawn_noise_scale: 0.5
+  spawn_scale: 4
+
+  grid_spawn: true
+  group_spawn_scale: 1.5
+
+  enable_obstacles: true
+  block_scale: 3
+  shared_goal: true
+
+  evaluation_mode: false
+  nice_colors: true
+  # save_path:  # This should probably be set manually
+  early_finish: false
+  dynamics: "PolarVelocity"
+  observer: "Egocentric"
+model_type: "rayrelation"
