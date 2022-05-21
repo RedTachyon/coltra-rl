@@ -44,14 +44,14 @@ model:
 
   sigma0: 0.4
 
-  vec_hidden_layers: [128, 128, 64]
+  vec_hidden_layers: [32, 32]
   rel_hidden_layers: [64, 64, 64]
   com_hidden_layers: [128, 128]
 
 
 environment:
   num_agents: 50
-  mode: "Crossway"
+  mode: "Corridor"
 
   # Reward function
   potential: 1
@@ -80,8 +80,8 @@ environment:
   sight_angle: 180
   sight_acceleration: false
 
-  destroy_raycasts: false
-  ray_agent_vision: false
+  destroy_raycasts: true
+  ray_agent_vision: true
   rays_per_direction: 10
   ray_length: 10
   ray_degrees: 90
@@ -93,7 +93,7 @@ environment:
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: true
+  enable_obstacles: false
   block_scale: 3
   shared_goal: true
 
@@ -103,4 +103,4 @@ environment:
   early_finish: false
   dynamics: "PolarVelocity"
   observer: "Egocentric"
-model_type: "rayrelation"
+model_type: "relation"
