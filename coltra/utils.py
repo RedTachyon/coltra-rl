@@ -366,10 +366,30 @@ def update_dict(target: dict, source: dict):
     Updates the target dictionary with the source dictionary.
     If the target dictionary already has a key, it is overwritten.
     """
-    for key, value in target.items():
-        if key not in source:
-            continue
+    for key, value in source.items():
+        if key not in target:
+            raise ValueError(f"Key {key} not found in target dictionary.")
         if isinstance(value, dict):
-            update_dict(value, source[key])
+            assert isinstance(
+                target[key], dict
+            ), f"Target value for {key} is not a dictionary but was given the value {source[key]}."
+            update_dict(target[key], source[key])
         else:
             target[key] = source[key]
+
+
+def undot_dict(d: dict) -> dict:
+    """
+    Converts a dictionary with dot notation to a nested dictionary.
+    """
+    new_dict = {}
+    for key, value in d.items():
+        keys = key.split(".")
+        if len(keys) == 1:
+            new_dict[key] = value
+        else:
+            subdict = new_dict
+            for subkey in keys[:-1]:
+                subdict = subdict.setdefault(subkey, {})
+            subdict[keys[-1]] = value
+    return dict(new_dict)

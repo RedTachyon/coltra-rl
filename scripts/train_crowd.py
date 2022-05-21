@@ -1,4 +1,5 @@
 import itertools
+import json
 import os
 from logging import ERROR
 from typing import Optional, Type
@@ -73,6 +74,16 @@ if __name__ == "__main__":
             with open(args.config, "r") as f:
                 config = yaml.load(f.read(), yaml.Loader)
 
+        if args.extra_config is not None:
+            extra_config = json.loads(args.extra_config)
+            extra_config = coltra.utils.undot_dict(extra_config)
+            coltra.utils.update_dict(target=config, source=extra_config)
+
+            from pprint import pprint
+
+            print("Extra config:")
+            pprint(extra_config)
+
         trainer_config = config["trainer"]
         model_config = config["model"]
         env_config = config["environment"]
@@ -142,8 +153,13 @@ if __name__ == "__main__":
 
         print("Evaluating...")
         performances = evaluate(env, agents, 10, disable_tqdm=False)
-        wandb.log({"final/mean_episode_reward": np.mean(performances),
-                   "final/std_episode_reward": np.std(performances)}, commit=False)
+        wandb.log(
+            {
+                "final/mean_episode_reward": np.mean(performances),
+                "final/std_episode_reward": np.std(performances),
+            },
+            commit=False,
+        )
 
         wandb.log({})
 
@@ -220,7 +236,8 @@ if __name__ == "__main__":
                         dashboard_path,
                         caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}",
                     )
-                }, commit=False
+                },
+                commit=False,
             )
 
             frame_size = renders.shape[1:3]
@@ -240,8 +257,12 @@ if __name__ == "__main__":
             print(f"Video saved to {video_path}")
 
             wandb.log(
-                {f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(video_path)},
-                commit=False
+                {
+                    f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(
+                        video_path
+                    )
+                },
+                commit=False,
             )
 
             print("Video uploaded to wandb")
