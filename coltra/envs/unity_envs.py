@@ -312,9 +312,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         return info_dict
 
     def close(self):
-        if self.virtual_display:
-            self.virtual_display.stop()
         if not self._closed:
+            if self.virtual_display:
+                self.virtual_display.stop()
             try:
                 self.unity.close()
             except UnityEnvironmentException:
