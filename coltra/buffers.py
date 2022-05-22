@@ -1,7 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, fields
-from typing import List, Dict, Union, get_type_hints, Callable, Optional, Any
+from typing import (
+    List,
+    Dict,
+    Union,
+    get_type_hints,
+    Callable,
+    Optional,
+    Any,
+    TypeVar,
+    Type,
+)
 
 import numpy as np
 
@@ -71,7 +81,7 @@ class Multitype:
                 value = _batch_size
             elif value >= 0:
                 assert (
-                    value == field_value.shape[0]
+                        value == field_value.shape[0]
                 ), "Different types have different batch sizes"
 
         return value
@@ -171,16 +181,38 @@ LogProb = Array  # float32
 Value = Array  # float32
 Done = Union[Array, bool]  # bool
 
+T = TypeVar("T", np.ndarray, torch.Tensor, Multitype)
+
+
+def concat(array_list: list[T], dim: int = 0) -> T:
+    """
+    Concatenates a list of arrays or multitypes into a single array.
+
+    Args:
+        array_list: list of arrays or multitypes
+        dim: dimension to concatenate along
+
+    Returns:
+        array or multitype
+    """
+    if len(array_list) == 0:
+        raise ValueError("Cannot concatenate an empty list")
+
+    arr = array_list[0]
+
+    if isinstance(arr, Multitype):
+        return type(arr).cat_tensor(array_list, dim=dim)
+    elif isinstance(arr, np.ndarray):
+        return np.concatenate(array_list, axis=dim)
+    elif isinstance(arr, torch.Tensor):
+        return torch.cat(array_list, dim=dim)
+
+
+R = TypeVar("R")  # Should be a subclass of Record
+
 
 @dataclass
-class MemoryRecord:
-    obs: Observation
-    action: Action
-    reward: Reward
-    value: Value
-    done: Done
-    last_value: Optional[Value]
-
+class Record:
     def apply(self, func: Callable[[Array], Array]):
         """Applies a function to each field, returns a new object"""
         kwargs = {}
@@ -188,7 +220,7 @@ class MemoryRecord:
             value = getattr(self, field_.name)
             new_field = func(value) if value is not None else None
             kwargs[field_.name] = new_field
-        res = MemoryRecord(**kwargs)
+        res = OnPolicyRecord(**kwargs)
         return res
 
     def cuda(self, *args, **kwargs):
@@ -198,32 +230,41 @@ class MemoryRecord:
         return self.apply(lambda x: x.cpu())
 
     @classmethod
-    def crowdify(cls, memory_dict: dict[str, MemoryRecord]) -> MemoryRecord:
+    def crowdify(cls, memory_dict: dict[str, R]) -> R:
+        """
+        Converts a dictionary of memory records to a single memory record.
+        """
         tensor_data = memory_dict.values()
-        return MemoryRecord(
-            obs=Observation.cat_tensor(
-                [agent_buffer.obs for agent_buffer in tensor_data]
-            ),
-            action=Action.cat_tensor(
-                [agent_buffer.action for agent_buffer in tensor_data]
-            ),
-            reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
-            value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
-            done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
-            last_value=torch.cat(
-                [agent_buffer.last_value for agent_buffer in tensor_data]
-            ),
+        return OnPolicyRecord(
+            **{
+                field_.name: concat(
+                    [getattr(agent_buffer, field_.name) for agent_buffer in tensor_data]
+                )
+                for field_ in fields(cls)
+            }
         )
 
 
 @dataclass
-class AgentMemoryBuffer:
-    obs: List[Observation] = field(default_factory=list)
-    action: List[Action] = field(default_factory=list)
-    reward: List[Reward] = field(default_factory=list)
-    value: List[Value] = field(default_factory=list)
-    done: List[Done] = field(default_factory=list)
+class OnPolicyRecord(Record):
+    obs: Observation
+    action: Action
+    reward: Reward
+    value: Value
+    done: Done
+    last_value: Optional[Value]
 
+
+@dataclass
+class DQNRecord(Record):
+    obs: Observation
+    action: Action
+    reward: Reward
+    next_obs: Observation
+
+
+@dataclass
+class AgentBuffer:
     def append(self, record):
         for field_ in fields(record):
             name = field_.name
@@ -233,20 +274,37 @@ class AgentMemoryBuffer:
 
 
 @dataclass
-class MemoryBuffer:
-    data: dict[str, AgentMemoryBuffer] = field(default_factory=dict)
+class AgentOnPolicyBuffer(AgentBuffer):
+    obs: List[Observation] = field(default_factory=list)
+    action: List[Action] = field(default_factory=list)
+    reward: List[Reward] = field(default_factory=list)
+    value: List[Value] = field(default_factory=list)
+    done: List[Done] = field(default_factory=list)
+
+
+@dataclass
+class AgentDQNBuffer(AgentBuffer):
+    obs: List[Observation] = field(default_factory=list)
+    action: List[Action] = field(default_factory=list)
+    reward: List[Reward] = field(default_factory=list)
+    next_obs: List[Observation] = field(default_factory=list)
+
+
+@dataclass
+class OnPolicyBuffer:
+    data: dict[str, AgentOnPolicyBuffer] = field(default_factory=dict)
 
     def append(
-        self,
-        obs: dict[str, Observation],
-        action: dict[str, Action],
-        reward: dict[str, Reward],
-        value: dict[str, Value],
-        done: dict[str, Done],
+            self,
+            obs: dict[str, Observation],
+            action: dict[str, Action],
+            reward: dict[str, Reward],
+            value: dict[str, Value],
+            done: dict[str, Done],
     ):
 
         for agent_id in obs:  # Assume the keys are identical
-            record = MemoryRecord(
+            record = OnPolicyRecord(
                 obs[agent_id],
                 action[agent_id],
                 reward[agent_id],
@@ -255,19 +313,12 @@ class MemoryBuffer:
                 None,
             )
 
-            self.data.setdefault(agent_id, AgentMemoryBuffer()).append(record)
+            self.data.setdefault(agent_id, AgentOnPolicyBuffer()).append(record)
 
-    # def append(self, *args):
-    #
-    #     for agent_id in args[0]:  # Assume the keys are identical
-    #         record = MemoryRecord(*args)
-    #
-    #         self.data.setdefault(agent_id, AgentMemoryBuffer()).append(record)
-
-    def tensorify(self) -> dict[str, MemoryRecord]:
+    def tensorify(self) -> dict[str, OnPolicyRecord]:
         result = {}
         for agent_id, agent_buffer in self.data.items():  # str -> AgentMemoryBuffer
-            result[agent_id] = MemoryRecord(
+            result[agent_id] = OnPolicyRecord(
                 obs=Observation.stack_tensor(agent_buffer.obs),
                 action=Action.stack_tensor(agent_buffer.action),
                 reward=torch.as_tensor(agent_buffer.reward),
@@ -277,9 +328,9 @@ class MemoryBuffer:
             )
         return result
 
-    def crowd_tensorify(self, last_value: Optional[Value] = None) -> MemoryRecord:
+    def crowd_tensorify(self, last_value: Optional[Value] = None) -> OnPolicyRecord:
         tensor_data = self.tensorify().values()
-        return MemoryRecord(
+        return OnPolicyRecord(
             obs=Observation.cat_tensor(
                 [agent_buffer.obs for agent_buffer in tensor_data]
             ),
@@ -292,17 +343,50 @@ class MemoryBuffer:
             last_value=last_value,
         )
 
-    # def crowd_tensorify(self, last_value: Optional[Value] = None) -> MemoryRecord:
-    #     tensor_data = self.tensorify().values()
-    #     return MemoryRecord(
-    #         obs=Observation.stack_tensor(
-    #             [agent_buffer.obs for agent_buffer in tensor_data]
-    #         ),
-    #         action=Action.stack_tensor(
-    #             [agent_buffer.action for agent_buffer in tensor_data]
-    #         ),
-    #         reward=torch.stack([agent_buffer.reward for agent_buffer in tensor_data]),
-    #         value=torch.stack([agent_buffer.value for agent_buffer in tensor_data]),
-    #         done=torch.stack([agent_buffer.done for agent_buffer in tensor_data]),
-    #         last_value=last_value,
-    #     )
+
+@dataclass
+class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base class?
+    data: dict[str, AgentDQNBuffer] = field(default_factory=dict)
+
+    def append(
+            self,
+            obs: dict[str, Observation],
+            action: dict[str, Action],
+            reward: dict[str, Reward],
+            next_obs: dict[str, Observation],
+    ):
+        for agent_id in obs:  # Assume the keys are identical
+            record = DQNRecord(
+                obs[agent_id],
+                action[agent_id],
+                reward[agent_id],
+                next_obs[agent_id],
+            )
+
+            self.data.setdefault(agent_id, AgentDQNBuffer()).append(record)
+
+    def tensorify(self) -> dict[str, DQNRecord]:
+        result = {}
+        for agent_id, agent_buffer in self.data.items():  # str -> AgentMemoryBuffer
+            result[agent_id] = DQNRecord(
+                obs=Observation.stack_tensor(agent_buffer.obs),
+                action=Action.stack_tensor(agent_buffer.action),
+                reward=torch.as_tensor(agent_buffer.reward),
+                next_obs=Observation.stack_tensor(agent_buffer.next_obs),
+            )
+        return result
+
+    def crowd_tensorify(self) -> DQNRecord:
+        tensor_data = self.tensorify().values()
+        return DQNRecord(
+            obs=Observation.cat_tensor(
+                [agent_buffer.obs for agent_buffer in tensor_data]
+            ),
+            action=Action.cat_tensor(
+                [agent_buffer.action for agent_buffer in tensor_data]
+            ),
+            reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
+            next_obs=Observation.cat_tensor(
+                [agent_buffer.next_obs for agent_buffer in tensor_data]
+            ),
+        )

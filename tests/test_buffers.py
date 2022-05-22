@@ -10,9 +10,9 @@ from coltra.buffers import (
     LogProb,
     Value,
     Done,
-    MemoryRecord,
-    MemoryBuffer,
-    AgentMemoryBuffer,
+    OnPolicyRecord,
+    OnPolicyBuffer,
+    AgentOnPolicyBuffer,
 )
 
 
@@ -110,7 +110,7 @@ def test_apply():
 
 
 def test_memory_buffer():
-    memory = MemoryBuffer()
+    memory = OnPolicyBuffer()
     agents = ["Agent1", "Agent2", "Agent3"]
     batch_size = 100
 
@@ -136,13 +136,13 @@ def test_memory_buffer():
 
     data = memory.tensorify()
     assert isinstance(data, dict)
-    assert isinstance(data["Agent1"], MemoryRecord)
+    assert isinstance(data["Agent1"], OnPolicyRecord)
     assert data["Agent1"].obs.vector.shape == (batch_size, 81)
     assert data["Agent1"].obs.buffer.shape == (batch_size, 10, 4)
     assert data["Agent1"].obs.batch_size == batch_size
 
     crowd_data = memory.crowd_tensorify()
-    assert isinstance(crowd_data, MemoryRecord)
+    assert isinstance(crowd_data, OnPolicyRecord)
     assert crowd_data.obs.vector.shape == (3 * batch_size, 81)
     assert crowd_data.obs.buffer.shape == (3 * batch_size, 10, 4)
     assert crowd_data.obs.batch_size == 3 * batch_size

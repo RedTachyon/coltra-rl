@@ -28,7 +28,7 @@ from coltra.buffers import (
     Done,
     Multitype,
     get_batch_size,
-    MemoryRecord,
+    OnPolicyRecord,
     Observation,
     Action,
 )
@@ -86,7 +86,7 @@ class CrowdPPOptimizer:
 
     def train_on_data(
         self,
-        data_dict: dict[str, MemoryRecord],
+        data_dict: dict[str, OnPolicyRecord],
         shape: Tuple[int, int],
         step: int = 0,
         writer: Optional[SummaryWriter] = None,
@@ -115,7 +115,7 @@ class CrowdPPOptimizer:
         agents = self.agents
         agent_id = self.agents.policy_name
         ####################################### Unpack and prepare the data #######################################
-        data = MemoryRecord.crowdify(data_dict)
+        data = OnPolicyRecord.crowdify(data_dict)
 
         if self.config.use_gpu:
             data.cuda()
