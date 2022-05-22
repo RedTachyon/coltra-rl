@@ -152,11 +152,13 @@ if __name__ == "__main__":
         )
 
         print("Evaluating...")
-        performances = evaluate(env, agents, 10, disable_tqdm=False)
+        performances, energies = evaluate(env, agents, 10, disable_tqdm=False)
         wandb.log(
             {
                 "final/mean_episode_reward": np.mean(performances),
                 "final/std_episode_reward": np.std(performances),
+                "final/mean_episode_energy": np.mean(energies),
+                "final/std_episode_energy": np.std(energies),
             },
             commit=False,
         )
@@ -275,10 +277,10 @@ if __name__ == "__main__":
 
         wandb.log({}, commit=True)
         env.close()
+        wandb.finish()
 
     finally:
         print("Cleaning up")
-        wandb.finish(0)
         try:
             env.close()  # pytype: disable=name-error
             print("Env closed")

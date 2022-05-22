@@ -14,11 +14,12 @@ def evaluate(
     n_steps: int = 200,
     disable_tqdm: bool = False,
     reset_kwargs: Optional[dict] = None,
-) -> np.ndarray:
+) -> tuple[np.ndarray, np.ndarray]:
     if reset_kwargs is None:
         reset_kwargs = {}
 
     returns = []
+    energies = []
     current_return = 0.0
     for ep in trange(n_episodes, disable=disable_tqdm):
         obs = env.reset(**reset_kwargs)
@@ -30,6 +31,7 @@ def evaluate(
             current_return += mean_reward
             if all(done.values()):
                 returns.append(current_return)
+                energies.append(info["e_energy"])
                 current_return = 0.0
                 break
-    return np.array(returns)
+    return np.array(returns), np.array(energies)
