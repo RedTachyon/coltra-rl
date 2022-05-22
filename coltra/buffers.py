@@ -81,7 +81,7 @@ class Multitype:
                 value = _batch_size
             elif value >= 0:
                 assert (
-                        value == field_value.shape[0]
+                    value == field_value.shape[0]
                 ), "Different types have different batch sizes"
 
         return value
@@ -261,6 +261,7 @@ class DQNRecord(Record):
     action: Action
     reward: Reward
     next_obs: Observation
+    done: Done
 
 
 @dataclass
@@ -288,6 +289,7 @@ class AgentDQNBuffer(AgentBuffer):
     action: List[Action] = field(default_factory=list)
     reward: List[Reward] = field(default_factory=list)
     next_obs: List[Observation] = field(default_factory=list)
+    done: List[Done] = field(default_factory=list)
 
 
 @dataclass
@@ -295,12 +297,12 @@ class OnPolicyBuffer:
     data: dict[str, AgentOnPolicyBuffer] = field(default_factory=dict)
 
     def append(
-            self,
-            obs: dict[str, Observation],
-            action: dict[str, Action],
-            reward: dict[str, Reward],
-            value: dict[str, Value],
-            done: dict[str, Done],
+        self,
+        obs: dict[str, Observation],
+        action: dict[str, Action],
+        reward: dict[str, Reward],
+        value: dict[str, Value],
+        done: dict[str, Done],
     ):
 
         for agent_id in obs:  # Assume the keys are identical
@@ -349,11 +351,12 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
     data: dict[str, AgentDQNBuffer] = field(default_factory=dict)
 
     def append(
-            self,
-            obs: dict[str, Observation],
-            action: dict[str, Action],
-            reward: dict[str, Reward],
-            next_obs: dict[str, Observation],
+        self,
+        obs: dict[str, Observation],
+        action: dict[str, Action],
+        reward: dict[str, Reward],
+        next_obs: dict[str, Observation],
+        done: dict[str, Done],
     ):
         for agent_id in obs:  # Assume the keys are identical
             record = DQNRecord(
@@ -361,6 +364,7 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
                 action[agent_id],
                 reward[agent_id],
                 next_obs[agent_id],
+                done[agent_id],
             )
 
             self.data.setdefault(agent_id, AgentDQNBuffer()).append(record)
@@ -373,6 +377,7 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
                 action=Action.stack_tensor(agent_buffer.action),
                 reward=torch.as_tensor(agent_buffer.reward),
                 next_obs=Observation.stack_tensor(agent_buffer.next_obs),
+                done=torch.as_tensor(agent_buffer.done),
             )
         return result
 
@@ -389,4 +394,5 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
             next_obs=Observation.cat_tensor(
                 [agent_buffer.next_obs for agent_buffer in tensor_data]
             ),
+            done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
         )

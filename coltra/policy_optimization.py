@@ -20,7 +20,7 @@ from coltra.utils import (
     Timer,
     write_dict,
 )
-from coltra.configs import PPOConfig
+from coltra.configs import PPOConfig, DQNConfig
 
 from coltra.buffers import (
     Reward,
@@ -30,7 +30,7 @@ from coltra.buffers import (
     get_batch_size,
     OnPolicyRecord,
     Observation,
-    Action,
+    Action, DQNRecord,
 )
 
 
@@ -87,7 +87,7 @@ class CrowdPPOptimizer:
     def train_on_data(
         self,
         data_dict: dict[str, OnPolicyRecord],
-        shape: Tuple[int, int],
+        shape: tuple[int, int],
         step: int = 0,
         writer: Optional[SummaryWriter] = None,
     ) -> dict[str, float]:
@@ -299,3 +299,23 @@ class CrowdPPOptimizer:
         write_dict(metrics, step, writer)
 
         return metrics
+
+
+# class DQNCrowdOptimizer:
+#     def __init__(self, agents: HomogeneousGroup, config: dict[str, Any]):
+#         self.agents = agents
+#
+#         Config: DQNConfig = DQNConfig.clone()
+#         Config.update(config)
+#
+#         self.config = Config
+#
+#         self.policy_optimizer = get_optimizer(self.config.optimizer)(
+#             agents.parameters(), **self.config.OptimizerKwargs.to_dict()
+#         )
+#
+#     def train_on_data(self, data: dict[str, DQNRecord],
+#                       shape: tuple[int, int],
+#                       step: int = 0,
+#                       writer: SummaryWriter = None) -> dict[str, float]:
+#

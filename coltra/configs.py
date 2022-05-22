@@ -49,6 +49,18 @@ class PPOConfig(BaseConfig):
     OptimizerKwargs: Type[OptimizerKwargs] = OptimizerKwargs.clone()
 
 
+class DQNConfig(BaseConfig):
+    batch_size: int = 128
+    gamma: float = 0.99
+    eps_start: float = 0.9
+    eps_end: float = 0.05
+    eps_decay: int = 200
+    learning_rate: float = 1e-4
+
+    optimizer: str = "adam"
+    OptimizerKwargs: Type[OptimizerKwargs] = OptimizerKwargs.clone()
+
+
 class TrainerConfig(BaseConfig):
     steps: int = 500
     workers: int = 8
