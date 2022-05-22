@@ -3,7 +3,7 @@ from typing import Tuple, Optional, Any
 import numpy as np
 from tqdm import trange
 
-from coltra.buffers import MemoryRecord, MemoryBuffer
+from coltra.buffers import OnPolicyRecord, OnPolicyBuffer
 from coltra.envs import MultiAgentEnv
 from coltra.groups import HomogeneousGroup
 
@@ -15,7 +15,7 @@ def collect_crowd_data(
     deterministic: bool = False,
     disable_tqdm: bool = True,
     env_kwargs: Optional[dict[str, Any]] = None,
-) -> Tuple[dict[str, MemoryRecord], dict, Tuple]:
+) -> Tuple[dict[str, OnPolicyRecord], dict, Tuple]:
     """
     Performs a rollout of the agents in the environment, for an indicated number of steps or episodes.
 
@@ -33,7 +33,7 @@ def collect_crowd_data(
     """
     if env_kwargs is None:
         env_kwargs = {}
-    memory = MemoryBuffer()
+    memory = OnPolicyBuffer()
 
     # reset_start: change here in case I ever need to not reset
     obs_dict = env.reset(**env_kwargs)

@@ -110,8 +110,16 @@ class BaseQModel(nn.Module):
         self.num_actions = self.action_space.n
         self.action_low, self.action_high = None, None
 
-    def forward(self, x: Observation, state: Tuple) -> Tuple[Tensor, Tuple]:
+    def forward(self, x: Observation, state: tuple) -> tuple[Tensor, tuple]:
         raise NotImplementedError
+
+    def cuda(self, *args, **kwargs):
+        super().cuda(*args, **kwargs)
+        self.device = "cuda"
+
+    def cpu(self):
+        super().cpu()
+        self.device = "cpu"
 
 
 class FCNetwork(nn.Module):

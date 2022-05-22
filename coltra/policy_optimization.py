@@ -20,7 +20,7 @@ from coltra.utils import (
     Timer,
     write_dict,
 )
-from coltra.configs import PPOConfig
+from coltra.configs import PPOConfig, DQNConfig
 
 from coltra.buffers import (
     Reward,
@@ -28,9 +28,9 @@ from coltra.buffers import (
     Done,
     Multitype,
     get_batch_size,
-    MemoryRecord,
+    OnPolicyRecord,
     Observation,
-    Action,
+    Action, DQNRecord,
 )
 
 
@@ -86,8 +86,8 @@ class CrowdPPOptimizer:
 
     def train_on_data(
         self,
-        data_dict: dict[str, MemoryRecord],
-        shape: Tuple[int, int],
+        data_dict: dict[str, OnPolicyRecord],
+        shape: tuple[int, int],
         step: int = 0,
         writer: Optional[SummaryWriter] = None,
     ) -> dict[str, float]:
@@ -115,7 +115,7 @@ class CrowdPPOptimizer:
         agents = self.agents
         agent_id = self.agents.policy_name
         ####################################### Unpack and prepare the data #######################################
-        data = MemoryRecord.crowdify(data_dict)
+        data = OnPolicyRecord.crowdify(data_dict)
 
         if self.config.use_gpu:
             data.cuda()
@@ -299,3 +299,23 @@ class CrowdPPOptimizer:
         write_dict(metrics, step, writer)
 
         return metrics
+
+
+# class DQNCrowdOptimizer:
+#     def __init__(self, agents: HomogeneousGroup, config: dict[str, Any]):
+#         self.agents = agents
+#
+#         Config: DQNConfig = DQNConfig.clone()
+#         Config.update(config)
+#
+#         self.config = Config
+#
+#         self.policy_optimizer = get_optimizer(self.config.optimizer)(
+#             agents.parameters(), **self.config.OptimizerKwargs.to_dict()
+#         )
+#
+#     def train_on_data(self, data: dict[str, DQNRecord],
+#                       shape: tuple[int, int],
+#                       step: int = 0,
+#                       writer: SummaryWriter = None) -> dict[str, float]:
+#

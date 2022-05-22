@@ -310,3 +310,8 @@ class MLPQModel(BaseQModel):
             initializer=self.config.initializer,
             is_policy=False,
         )
+
+    def forward(
+        self, obs: Observation, state: tuple = ()
+    ) -> tuple[torch.Tensor, tuple]:
+        return self.q_network(obs.vector), ()
