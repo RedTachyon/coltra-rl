@@ -317,6 +317,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
                 self.virtual_display.stop()
             try:
                 self.unity.close()
+                self._closed = True
             except UnityEnvironmentException:
                 print("Trying to close Unity environment, but it was already closed")
 

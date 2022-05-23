@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field, fields
 from typing import (
     List,
@@ -11,6 +12,7 @@ from typing import (
     Any,
     TypeVar,
     Type,
+    Sequence,
 )
 
 import numpy as np
@@ -38,7 +40,7 @@ class Multitype:
     _dict: dict[str, Array]
 
     @classmethod
-    def stack_tensor(cls, value_list: list[Multitype], dim: int = 0):
+    def stack_tensor(cls, value_list: Sequence[Multitype], dim: int = 0):
         res = cls()
         keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
         for key in keys:
@@ -53,7 +55,7 @@ class Multitype:
         return res
 
     @classmethod
-    def cat_tensor(cls, value_list: list[Multitype], dim: int = 0):
+    def cat_tensor(cls, value_list: Sequence[Multitype], dim: int = 0):
         res = cls()
         keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
         for key in keys:
@@ -246,25 +248,6 @@ class Record:
 
 
 @dataclass
-class OnPolicyRecord(Record):
-    obs: Observation
-    action: Action
-    reward: Reward
-    value: Value
-    done: Done
-    last_value: Optional[Value]
-
-
-@dataclass
-class DQNRecord(Record):
-    obs: Observation
-    action: Action
-    reward: Reward
-    next_obs: Observation
-    done: Done
-
-
-@dataclass
 class AgentBuffer:
     def append(self, record):
         for field_ in fields(record):
@@ -275,21 +258,22 @@ class AgentBuffer:
 
 
 @dataclass
-class AgentOnPolicyBuffer(AgentBuffer):
-    obs: List[Observation] = field(default_factory=list)
-    action: List[Action] = field(default_factory=list)
-    reward: List[Reward] = field(default_factory=list)
-    value: List[Value] = field(default_factory=list)
-    done: List[Done] = field(default_factory=list)
+class OnPolicyRecord(Record):
+    obs: Observation
+    action: Action
+    reward: Reward
+    value: Value
+    done: Done
+    last_value: Optional[Value]
 
 
 @dataclass
-class AgentDQNBuffer(AgentBuffer):
-    obs: List[Observation] = field(default_factory=list)
-    action: List[Action] = field(default_factory=list)
-    reward: List[Reward] = field(default_factory=list)
-    next_obs: List[Observation] = field(default_factory=list)
-    done: List[Done] = field(default_factory=list)
+class AgentOnPolicyBuffer(AgentBuffer):
+    obs: list[Observation] = field(default_factory=list)
+    action: list[Action] = field(default_factory=list)
+    reward: list[Reward] = field(default_factory=list)
+    value: list[Value] = field(default_factory=list)
+    done: list[Done] = field(default_factory=list)
 
 
 @dataclass
@@ -347,7 +331,34 @@ class OnPolicyBuffer:
 
 
 @dataclass
+class DQNRecord(Record):
+    obs: Observation
+    action: Action
+    reward: Reward
+    next_obs: Observation
+    done: Done
+
+
+@dataclass
+class AgentDQNBuffer(AgentBuffer):
+    maxlen: int = 100000
+    obs: deque[Observation] = field(default_factory=deque)
+    action: deque[Action] = field(default_factory=deque)
+    reward: deque[Reward] = field(default_factory=deque)
+    next_obs: deque[Observation] = field(default_factory=deque)
+    done: deque[Done] = field(default_factory=deque)
+
+    def __post_init__(self):
+        self.obs = deque(maxlen=self.maxlen)
+        self.action = deque(maxlen=self.maxlen)
+        self.reward = deque(maxlen=self.maxlen)
+        self.next_obs = deque(maxlen=self.maxlen)
+        self.done = deque(maxlen=self.maxlen)
+
+
+@dataclass
 class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base class?
+    maxlen: int = 100000
     data: dict[str, AgentDQNBuffer] = field(default_factory=dict)
 
     def append(
@@ -367,7 +378,9 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
                 done[agent_id],
             )
 
-            self.data.setdefault(agent_id, AgentDQNBuffer()).append(record)
+            self.data.setdefault(agent_id, AgentDQNBuffer(maxlen=self.maxlen)).append(
+                record
+            )
 
     def tensorify(self) -> dict[str, DQNRecord]:
         result = {}

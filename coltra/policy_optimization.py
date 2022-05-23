@@ -30,7 +30,8 @@ from coltra.buffers import (
     get_batch_size,
     OnPolicyRecord,
     Observation,
-    Action, DQNRecord,
+    Action,
+    DQNRecord,
 )
 
 
