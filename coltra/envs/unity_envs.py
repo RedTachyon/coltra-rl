@@ -109,6 +109,8 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         **kwargs,
     ):
         super().__init__()
+        self._closed = False
+
         disable_unity_logs()
 
         if extra_params is None:
@@ -177,7 +179,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             }
         )
 
-        self._closed = False
 
     def _get_step_info(
         self, step: bool = False
