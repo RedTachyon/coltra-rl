@@ -18,11 +18,17 @@
 # DYNAMICS
 # MODEL
 
-OBSERVER="Egocentric"
-DYNAMICS="PolarAcceleration"
-MODEL="relation"
-PROJECTNAME="DCSRL-big-debug"
-EXTRA_CONFIG='{"environment.mode":"Circle","environment.num_agents":12}' # CAREFUL - no spaces
+# OBSERVER="Egocentric"
+# DYNAMICS="PolarAcceleration"
+# MODEL="relation"
+# PROJECTNAME="DCSRL-big-debug"
+# EXTRA_CONFIG='{"environment.mode":"Circle","environment.num_agents":12}' # CAREFUL - no spaces
+
+echo $OBSERVER
+echo $DYNAMICS
+echo $MODEL
+echo $PROJECTNAME
+echo $EXTRA_CONFIG
 
 module purge
 module load pytorch-gpu/py3/1.8.1
