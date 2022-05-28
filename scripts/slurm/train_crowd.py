@@ -144,7 +144,7 @@ if __name__ == "__main__":
         if CUDA:
             agents.cuda()
 
-        trainer = PPOCrowdTrainer(agents, env, trainer_config)
+        trainer = PPOCrowdTrainer(agents, env, trainer_config, use_uuid=True)
         with open(os.path.join(trainer.path, "full_config.yaml"), "w") as f:
             yaml.dump(config, f)
 
