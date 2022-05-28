@@ -4,7 +4,7 @@
 #SBATCH --qos=qos_gpu-dev
 #SBATCH --output=logs/JobGPU%j.out # output file (%j = job ID)
 #SBATCH --error=logs/JobGPU%j.err # error file (%j = job ID)
-#SBATCH --time=00:01:00 # maximum allocation time "(HH:MM:SS)"
+#SBATCH --time=01:00:00 # maximum allocation time "(HH:MM:SS)"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --hint=nomultithread
