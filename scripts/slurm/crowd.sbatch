@@ -22,7 +22,7 @@ OBSERVER="Egocentric"
 DYNAMICS="PolarVelocity"
 MODEL="relation"
 PROJECTNAME="DCSRL-big-debug"
-EXTRA_CONFIG='{"environment.mode":"Circle","num_agents":12}'
+EXTRA_CONFIG='{"environment.mode":"Circle","environment.num_agents":12}' # CAREFUL - no spaces
 
 module purge
 module load pytorch-gpu/py3/1.8.1
