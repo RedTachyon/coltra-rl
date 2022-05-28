@@ -72,6 +72,7 @@ if __name__ == "__main__":
 
         args = Parser()
 
+        print("Extra config:")
         print(args.extra_config)
 
         config_path = f"top/{args.observer[:3]}_{args.dynamics[:3]}_{'Vel' if 'Velocity' in args.dynamics else 'Acc'}.yaml"

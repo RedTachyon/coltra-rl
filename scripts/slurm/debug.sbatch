@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=crowd-onejob
+#SBATCH --job-name=crowd-debug
 ##SBATCH --partition=gpu_p2
 #SBATCH --qos=qos_gpu-dev
 #SBATCH --output=logs/JobGPU%j.out # output file (%j = job ID)
