@@ -62,6 +62,9 @@ environment = {
 
 }
 
+total = len(observers) * len(dynamics) * len(models) * len(environment)
+i = 0
+
 for observer in observers:
     for dyn in dynamics:
         for model in models:
@@ -71,13 +74,13 @@ for observer in observers:
                 extra_config = {**models[model], **environment[env]}
                 cmd = [
                     "sbatch",
-                    f"--export=ALL,OBSERVER=\"{observer}\",DYNAMICS=\"{dyn}\",MODEL=\"{model}\",PROJECTNAME=\"{project_name}\",EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
+                    f"--export=ALL,OBSERVER={observer},DYNAMICS={dyn},MODEL={model},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
                     "crowd.sbatch",
                     # "echo.sbatch"
                 ]
                 # print(" ".join(cmd))
                 out = subprocess.run(cmd, capture_output=True)
-                print(f"Running {' '.join(cmd)}")
+                print(f"{i}/{total} Running {' '.join(cmd)}")
                 print(out.stdout.decode("utf-8"))
-                # Create the command
+                i += 1
 
