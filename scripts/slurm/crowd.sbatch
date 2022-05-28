@@ -11,7 +11,7 @@
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=12
 #SBATCH --exclusive
-#SBATCH -A ibc@gpu
+#SBATCH -A ibc@v100
 
 # Environment variables to import: (all str names)
 # OBSERVER
