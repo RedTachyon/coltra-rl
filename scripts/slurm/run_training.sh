@@ -9,9 +9,9 @@ MODEL=${3:-invalid}
 PROJECTNAME=${4:-debug}
 EXTRA_CONFIG=${5:-invalid}
 
-for i in {0..11}
+for i in {0..7}
 do
-    CUDA_VISIBLE_DEVICES=$((i/3)) python $PROJECT/slurm/train_crowd.py -e $COLTRA/builds/crowd-v6a/crowd.x86_64 -w $((i*10)) -o "$OBSERVER" -d "$DYNAMICS" -m "$MODEL" -p "$PROJECTNAME" -ec $EXTRA_CONFIG &
+    CUDA_VISIBLE_DEVICES=$((i/2)) python $PROJECT/slurm/train_crowd.py -e $COLTRA/builds/crowd-v6a/crowd.x86_64 -w $((i*10)) -o "$OBSERVER" -d "$DYNAMICS" -m "$MODEL" -p "$PROJECTNAME" -ec $EXTRA_CONFIG &
     sleep 1
 done
 wait
