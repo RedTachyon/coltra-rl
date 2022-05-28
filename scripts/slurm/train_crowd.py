@@ -69,7 +69,10 @@ if __name__ == "__main__":
     try:
         CUDA = torch.cuda.is_available()
 
+
         args = Parser()
+
+        print(args.extra_config)
 
         config_path = f"top/{args.observer[:3]}_{args.dynamics[:3]}_{'Vel' if 'Velocity' in args.dynamics else 'Acc'}.yaml"
 
