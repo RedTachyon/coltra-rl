@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=crowd-onejob
+#SBATCH --job-name=crowd-echo
 ##SBATCH --partition=gpu_p2
-#SBATCH --qos=qos_gpu-t3
+#SBATCH --qos=qos_gpu-dev
 #SBATCH --output=logs/JobGPU%j.out # output file (%j = job ID)
 #SBATCH --error=logs/JobGPU%j.err # error file (%j = job ID)
-#SBATCH --time=05:00:00 # maximum allocation time "(HH:MM:SS)"
+#SBATCH --time=00:01:00 # maximum allocation time "(HH:MM:SS)"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 ##SBATCH --hint=nomultithread
@@ -30,13 +30,3 @@ echo $DYNAMICS
 echo $MODEL
 echo $PROJECTNAME
 echo $EXTRA_CONFIG
-
-module purge
-module load pytorch-gpu/py3/1.8.1
-
-source $HOME/.bashrc
-conda activate coltra
-
-wandb offline
-
-srun bash run_training.sh $OBSERVER $DYNAMICS $MODEL $PROJECTNAME $EXTRA_CONFIG
