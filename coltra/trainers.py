@@ -46,6 +46,7 @@ class PPOCrowdTrainer(Trainer):
         env: Union[MultiAgentEnv, VecEnv],
         config: dict[str, Any],
         use_uuid: bool = False,
+        save_path: Optional[str] = None
     ):
         super().__init__(agents, env, config)
 
@@ -70,8 +71,12 @@ class PPOCrowdTrainer(Trainer):
             dt_string = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             if use_uuid:
                 dt_string += "_" + shortuuid.uuid()
+            if save_path is None:
+                root = Path.home()
+            else:
+                root = Path(save_path)
             path = (
-                Path.home() / "tb_logs" / f"{self.config.tensorboard_name}_{dt_string}"
+                root / "tb_logs" / f"{self.config.tensorboard_name}_{dt_string}"
             )
 
             self.writer = SummaryWriter(str(path))
