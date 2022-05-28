@@ -91,8 +91,9 @@ for observer in observers:
                     # "echo.sbatch"
                 ]
                 # print(" ".join(cmd))
-                # out = subprocess.run(cmd, capture_output=True)
                 print(f"{i}/{total} Running {' '.join(cmd)}")
-                # print(out.stdout.decode("utf-8"))
+
+                out = subprocess.run(cmd, capture_output=True)
+                print(out.stdout.decode("utf-8"))
                 i += 1
 
