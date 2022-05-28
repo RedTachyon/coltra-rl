@@ -27,7 +27,7 @@ trainer:
     min_entropy: 0.0
     value_coeff: 1.0
 
-    ppo_epochs: 25
+    ppo_epochs: 20
     minibatch_size: 2048
 
     use_gpu:
