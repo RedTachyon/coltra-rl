@@ -7,7 +7,7 @@
 #SBATCH --time=05:00:00 # maximum allocation time "(HH:MM:SS)"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --hint=nomultithread
+##SBATCH --hint=nomultithread
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=12
 #SBATCH --exclusive
@@ -19,7 +19,7 @@
 # MODEL
 
 OBSERVER="Egocentric"
-DYNAMICS="PolarVelocity"
+DYNAMICS="PolarAcceleration"
 MODEL="relation"
 PROJECTNAME="DCSRL-big-debug"
 EXTRA_CONFIG='{"environment.mode":"Circle","environment.num_agents":12}' # CAREFUL - no spaces
