@@ -25,42 +25,54 @@ models = {
     },
 }
 
-environment = {
-    "circle30": {
-        "environment.mode": "Circle",
-        "environment.num_agents": 30,
-        "environment.enable_obstacles": False,
-        "environment.spawn_scale": 6,
-        "trainer.workers": 1,
-    },
-    "circle12": {
-        "environment.mode": "Circle",
-        "environment.num_agents": 12,
-        "environment.enable_obstacles": False,
-        "environment.spawn_scale": 6,
-        "trainer.workers": 2,
-    },
-    "crossway50": {
-        "environment.mode": "Crossway",
-        "environment.num_agents": 50,
-        "environment.enable_obstacles": True,
-        "trainer.workers": 1,
+FLAG = 0
 
-    },
-    "corridor50": {
-        "environment.mode": "Corridor",
-        "environment.num_agents": 50,
-        "environment.enable_obstacles": True,
-        "trainer.workers": 1,
-    },
-    "random20": {
-        "environment.mode": "Random",
-        "environment.num_agents": 20,
-        "environment.enable_obstacles": False,
-        "trainer.workers": 2,
-    },
+if FLAG == 1:
+    environment = {
+        "circle30": {
+            "environment.mode": "Circle",
+            "environment.num_agents": 30,
+            "environment.enable_obstacles": False,
+            "environment.spawn_scale": 6,
+            "trainer.workers": 1,
+        },
+        "circle12": {
+            "environment.mode": "Circle",
+            "environment.num_agents": 12,
+            "environment.enable_obstacles": False,
+            "environment.spawn_scale": 6,
+            "trainer.workers": 2,
+        },
+        "crossway50": {
+            "environment.mode": "Crossway",
+            "environment.num_agents": 50,
+            "environment.enable_obstacles": True,
+            "trainer.workers": 1,
 
-}
+        },
+        "corridor50": {
+            "environment.mode": "Corridor",
+            "environment.num_agents": 50,
+            "environment.enable_obstacles": True,
+            "trainer.workers": 1,
+        },
+        "random20": {
+            "environment.mode": "Random",
+            "environment.num_agents": 20,
+            "environment.enable_obstacles": False,
+            "trainer.workers": 2,
+        },
+
+    }
+else:
+    environment = {
+        "crossway50": {
+            "environment.mode": "Crossway",
+            "environment.num_agents": 50,
+            "environment.enable_obstacles": True,
+            "trainer.workers": 1,
+        },
+    }
 
 total = len(observers) * len(dynamics) * len(models) * len(environment)
 i = 0
@@ -79,8 +91,8 @@ for observer in observers:
                     # "echo.sbatch"
                 ]
                 # print(" ".join(cmd))
-                out = subprocess.run(cmd, capture_output=True)
+                # out = subprocess.run(cmd, capture_output=True)
                 print(f"{i}/{total} Running {' '.join(cmd)}")
-                print(out.stdout.decode("utf-8"))
+                # print(out.stdout.decode("utf-8"))
                 i += 1
 
