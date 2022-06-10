@@ -1,100 +1,119 @@
 import subprocess
 import json
+from typarse import BaseParser
+
+class Parser(BaseParser):
+    dry: bool
+
+    _help = {
+        "dry": "Dry run, do not submit the job",
+    }
+    _abbrev = {
+        "dry": "d",
+    }
+
 
 def format_config(config: dict) -> str:
     base_json = json.dumps(config)
     return base_json.replace(' ', '').replace('"', '\\"')
 
+if __name__ == "__main__":
 
-observers = ["Absolute", "Relative", "Egocentric"]
-dynamics = ["CartesianVelocity", "CartesianAcceleration", "PolarVelocity", "PolarAcceleration"]
-models = {
-    "ray": {
-        "model_type": "ray",
-        "environment.destroy_raycasts": False,
-        "environment.ray_agent_vision": True,
-    },
-    "relation": {
-        "model_type": "relation",
-        "environment.destroy_raycasts": True,
-    },
-    "rayrelation": {
-        "model_type": "rayrelation",
-        "environment.destroy_raycasts": False,
-        "environment.ray_agent_vision": False,
-    },
-}
+    args = Parser()
 
-FLAG = 0
-
-if FLAG == 1:
-    environment = {
-        "circle30": {
-            "environment.mode": "Circle",
-            "environment.num_agents": 30,
-            "environment.enable_obstacles": False,
-            "environment.spawn_scale": 6,
-            "trainer.workers": 1,
+    observers = ["Absolute", "Relative", "Egocentric"]
+    dynamics = ["CartesianVelocity", "CartesianAcceleration", "PolarVelocity", "PolarAcceleration"]
+    models = {
+        "ray": {
+            "model_type": "ray",
+            "environment.destroy_raycasts": False,
+            "environment.ray_agent_vision": True,
         },
-        "circle12": {
-            "environment.mode": "Circle",
-            "environment.num_agents": 12,
-            "environment.enable_obstacles": False,
-            "environment.spawn_scale": 6,
-            "trainer.workers": 2,
+        "relation": {
+            "model_type": "relation",
+            "environment.destroy_raycasts": True,
         },
-        "crossway50": {
-            "environment.mode": "Crossway",
-            "environment.num_agents": 50,
-            "environment.enable_obstacles": True,
-            "trainer.workers": 1,
-
-        },
-        "corridor50": {
-            "environment.mode": "Corridor",
-            "environment.num_agents": 50,
-            "environment.enable_obstacles": True,
-            "trainer.workers": 1,
-        },
-        "random20": {
-            "environment.mode": "Random",
-            "environment.num_agents": 20,
-            "environment.enable_obstacles": False,
-            "trainer.workers": 2,
-        },
-
-    }
-else:
-    environment = {
-        "crossway50": {
-            "environment.mode": "Crossway",
-            "environment.num_agents": 50,
-            "environment.enable_obstacles": True,
-            "trainer.workers": 1,
+        "rayrelation": {
+            "model_type": "rayrelation",
+            "environment.destroy_raycasts": False,
+            "environment.ray_agent_vision": False,
         },
     }
 
-total = len(observers) * len(dynamics) * len(models) * len(environment)
-i = 0
+    FLAG = 0
 
-for observer in observers:
-    for dyn in dynamics:
-        for model in models:
-            for env in environment:
-                project_name = f"DCSRL-jz-{env}"
-                # project_name = f"DCSRL-jz-timing"
-                extra_config = {**models[model], **environment[env]}
-                cmd = [
-                    "sbatch",
-                    f"--export=ALL,OBSERVER={observer},DYNAMICS={dyn},MODEL={model},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
-                    "crowd.sbatch",
-                    # "echo.sbatch"
-                ]
-                # print(" ".join(cmd))
-                print(f"{i}/{total} Running {' '.join(cmd)}")
-                cmd = " ".join(cmd)
-                out = subprocess.run(cmd, shell=True, capture_output=True)
-                # out = subprocess.run(cmd, capture_output=True)
-                print(out.stdout.decode("utf-8"))
-                i += 1
+    if FLAG == 1:
+        environment = {
+            "circle30": {
+                "environment.mode": "Circle",
+                "environment.num_agents": 30,
+                "environment.enable_obstacles": False,
+                "environment.spawn_scale": 6,
+                "trainer.workers": 1,
+            },
+            "circle12": {
+                "environment.mode": "Circle",
+                "environment.num_agents": 12,
+                "environment.enable_obstacles": False,
+                "environment.spawn_scale": 6,
+                "trainer.workers": 2,
+            },
+            "crossway50": {
+                "environment.mode": "Crossway",
+                "environment.num_agents": 50,
+                "environment.enable_obstacles": True,
+                "trainer.workers": 1,
+
+            },
+            "corridor50": {
+                "environment.mode": "Corridor",
+                "environment.num_agents": 50,
+                "environment.enable_obstacles": True,
+                "trainer.workers": 1,
+            },
+            "random20": {
+                "environment.mode": "Random",
+                "environment.num_agents": 20,
+                "environment.enable_obstacles": False,
+                "trainer.workers": 2,
+            },
+
+        }
+    else:
+        environment = {
+            "crossway50": {
+                "environment.mode": "Crossway",
+                "environment.num_agents": 50,
+                "environment.enable_obstacles": True,
+                "trainer.workers": 1,
+            },
+        }
+
+    num_runs = 8
+
+    total = len(observers) * len(dynamics) * len(models) * len(environment)
+    i = 0
+
+    for observer in observers:
+        for dyn in dynamics:
+            for model in models:
+                for env in environment:
+                    project_name = f"DCSRL-jz-{env}"
+                    # project_name = f"DCSRL-jz-timing"
+                    extra_config = {**models[model], **environment[env]}
+                    cmd = [
+                        "sbatch",
+                        f"--export=ALL,NUM_RUNS={num_runs},OBSERVER={observer},DYNAMICS={dyn},MODEL={model},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
+                        "crowd.sbatch",
+                        # "echo.sbatch"
+                    ]
+                    # print(" ".join(cmd))
+                    print(f"{i}/{total} Running {' '.join(cmd)}")
+                    cmd = " ".join(cmd)
+                    if args.dry:
+                        print(cmd)
+                    else:
+                        out = subprocess.run(cmd, shell=True, capture_output=True)
+                        print(out.stdout.decode("utf-8"))
+                    i += 1
 

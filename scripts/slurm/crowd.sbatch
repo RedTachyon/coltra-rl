@@ -30,6 +30,7 @@ echo $DYNAMICS
 echo $MODEL
 echo $PROJECTNAME
 echo $EXTRA_CONFIG
+echo $NUM_RUNS
 
 module purge
 module load pytorch-gpu/py3/1.8.1
@@ -39,4 +40,4 @@ conda activate coltra
 
 wandb offline
 
-srun bash run_training.sh $OBSERVER $DYNAMICS $MODEL $PROJECTNAME $EXTRA_CONFIG
+srun bash run_training.sh $OBSERVER $DYNAMICS $MODEL $PROJECTNAME $EXTRA_CONFIG $NUM_RUNS
