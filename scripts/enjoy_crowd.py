@@ -72,15 +72,7 @@ if __name__ == "__main__":
 
         trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
-        workers = trainer_config["workers"]
-
-        # Initialize the environment
-        env = UnitySimpleCrowdEnv.get_venv(
-            workers, file_name=args.env, no_graphics=True, extra_params=env_config
-        )
-        env.reset()
-
-        agents = HomogeneousGroup.load(args.path)
+        agents = HomogeneousGroup.load(args.path, weight_idx=-1)
 
         if CUDA:
             agents.cuda()
@@ -88,8 +80,6 @@ if __name__ == "__main__":
 
         # print("Evaluating...")
         # performances, energies = evaluate(env, agents, 10, disable_tqdm=False)
-
-        env.close()
 
         # print("Training complete. Evaluation starting.")
 
