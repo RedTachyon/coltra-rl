@@ -144,3 +144,4 @@ cython_debug/
 coltra/notebooks/
 notebooks/
 builds/
+/scripts/videos/

@@ -1,47 +1,41 @@
+import json
+import json
+import os
 from logging import ERROR
 from typing import Optional
 
+import cv2
+import numpy as np
 import torch
-import wandb
 import yaml
 from mlagents_envs.exception import UnityEnvironmentException
 from mlagents_envs.logging_util import set_log_level
-from tqdm import trange
 from typarse import BaseParser
 
+import coltra.utils
+from coltra.collectors import collect_renders
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
+from coltra.utils import find_free_worker
 
 set_log_level(ERROR)
 
 
 class Parser(BaseParser):
-    config: str = "configs/nocollision.yaml"
-    iters: int = 500
-    env: Optional[str] = None
-    dynamics: Optional[str] = None
-    observer: Optional[str] = None
-    start_dir: Optional[str]
-    start_idx: Optional[int] = -1
+    path: str = "../models/corridor"
+    env: str
+    extra_config: Optional[str] = None
 
     _help = {
-        "config": "Config file for the coltra",
-        "iters": "Number of coltra iterations",
+        "path": "Path to the saved agent",
         "env": "Path to the Unity environment binary",
-        "dynamics": "Type of dynamics to use",
-        "observer": "Type of observer to use",
-        "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
-        "start_idx": "From which iteration we should start (only if start_dir is set)",
+        "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
     }
 
     _abbrev = {
         "config": "c",
-        "iters": "i",
         "env": "e",
-        "dynamics": "d",
-        "observer": "o",
-        "start_dir": "sd",
-        "start_idx": "si",
+        "extra_config": "ec",
     }
 
 
@@ -51,49 +45,96 @@ if __name__ == "__main__":
 
         args = Parser()
 
-        with open(args.config, "r") as f:
+        with open(os.path.join(args.path, "full_config.yaml"), "r") as f:
             config = yaml.load(f.read(), yaml.Loader)
 
-        if args.dynamics is not None:
-            assert args.dynamics in (
-                "CartesianVelocity",
-                "CartesianAcceleration",
-                "PolarVelocity",
-                "PolarAcceleration",
-            ), ValueError("Wrong dynamics type passed.")
-            config["environment"]["dynamics"] = args.dynamics
+        if args.extra_config is not None:
+            extra_config = json.loads(args.extra_config)
+            extra_config = coltra.utils.undot_dict(extra_config)
+            coltra.utils.update_dict(target=config, source=extra_config)
 
-        if args.observer is not None:
-            assert args.observer in ("Absolute", "Relative", "RotRelative"), ValueError(
-                "Wrong observer type passed."
-            )
-            config["environment"]["observer"] = args.observer
+            from pprint import pprint
+
+            print("Extra config:")
+            pprint(extra_config)
 
         trainer_config = config["trainer"]
         model_config = config["model"]
         env_config = config["environment"]
+        model_type = config["model_type"]
+
+        assert model_type in (
+            "blind",
+            "relation",
+            "ray",
+            "rayrelation",
+        ), ValueError(f"Wrong model type {model_type} in the config.")
+
+        trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
         workers = trainer_config["workers"]
 
         # Initialize the environment
-        env = UnitySimpleCrowdEnv(file_name=args.env, no_graphics=False, worker_id=0)
-        env.reset(save_trajectory=0.0)
+        env = UnitySimpleCrowdEnv.get_venv(
+            workers, file_name=args.env, no_graphics=True, extra_params=env_config
+        )
+        env.reset()
 
-        group = HomogeneousGroup.load(args.start_dir, weight_idx=args.start_idx)
+        agents = HomogeneousGroup.load(args.path)
 
         if CUDA:
-            group.cuda()
+            agents.cuda()
+
+
+        # print("Evaluating...")
+        # performances, energies = evaluate(env, agents, 10, disable_tqdm=False)
+
+        env.close()
+
+        # print("Training complete. Evaluation starting.")
 
         env_config["evaluation_mode"] = 1.0
 
-        obs = env.reset()
-        for _ in trange(args.iters):
-            action, _, _ = group.act(obs, deterministic=False)
-            obs, _, _, _ = env.step(action)
+        worker_id = find_free_worker(500)
+        env = UnitySimpleCrowdEnv(
+            file_name=args.env,
+            virtual_display=(800, 800),
+            no_graphics=False,
+            worker_id=worker_id,
+            extra_params=env_config,
+        )
+        env.reset(**env_config)
+
+        renders, returns = collect_renders(
+            agents,
+            env,
+            num_steps=trainer_config["steps"],
+            disable_tqdm=False,
+            env_kwargs=env_config,
+            deterministic=True,
+        )
+
+        print(f"Mean return: {np.mean(returns)}")
+
+
+        frame_size = renders.shape[1:3]
+
+        print("Recording a video")
+        video_path = os.path.join(
+            "videos", f"video.webm"
+        )
+        out = cv2.VideoWriter(
+            video_path, cv2.VideoWriter_fourcc(*"VP90"), 24, frame_size[::-1]
+        )
+        for frame in renders[..., ::-1]:
+            out.write(frame)
+
+        out.release()
+
+        env.close()
 
     finally:
         print("Cleaning up")
-        wandb.finish(0)
         try:
             env.close()  # pytype: disable=name-error
             print("Env closed")
@@ -101,3 +142,5 @@ if __name__ == "__main__":
             print("Env wasn't created. Exiting coltra")
         except UnityEnvironmentException:
             print("Env already closed. Exiting coltra")
+        except Exception:
+            print("Unknown error when closing the env. Exiting coltra")
