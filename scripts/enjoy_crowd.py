@@ -33,7 +33,7 @@ class Parser(BaseParser):
     }
 
     _abbrev = {
-        "config": "c",
+        "path": "p",
         "env": "e",
         "extra_config": "ec",
     }
