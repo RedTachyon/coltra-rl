@@ -79,29 +79,31 @@ if __name__ == "__main__":
 
     }
 
-
-    fixes = [
-        ('Egocentric', 'CartesianAcceleration', 'ray', 1),
-        ('Relative', 'PolarAcceleration', 'relation', 2),
-        ('Egocentric', 'CartesianVelocity', 'ray', 1),
-        ('Egocentric', 'CartesianVelocity', 'relation', 5),
-        ('Relative', 'PolarAcceleration', 'ray', 3),
-        ('Egocentric', 'PolarAcceleration', 'ray', 1),
-        ('Egocentric', 'PolarVelocity', 'relation', 3),
-        ('Egocentric', 'PolarAcceleration', 'relation', 1),
-        ('Absolute', 'PolarAcceleration', 'rayrelation', 1),
-        ('Relative', 'CartesianVelocity', 'relation', 1),
-        ('Relative', 'CartesianVelocity', 'ray', 1),
-        ('Absolute', 'PolarVelocity', 'ray', 1),
-        ('Absolute', 'PolarVelocity', 'relation', 2),
-        ('Absolute', 'CartesianVelocity', 'rayrelation', 1),
-        ('Relative', 'PolarVelocity', 'ray', 3),
-        ('Relative', 'CartesianAcceleration', 'relation', 1),
-        ('Absolute', 'PolarVelocity', 'rayrelation', 1),
-        ('Relative', 'PolarVelocity', 'relation', 1),
-        ('Absolute', 'PolarAcceleration', 'relation', 3),
-        ('Absolute', 'CartesianAcceleration', 'ray', 1)
-    ]
+    fixes = [('Egocentric', 'CartesianAcceleration', 'ray', 1),
+             ('Relative', 'PolarAcceleration', 'relation', 1),
+             ('Egocentric', 'CartesianAcceleration', 'relation', 2),
+             ('Egocentric', 'CartesianVelocity', 'ray', 2),
+             ('Egocentric', 'CartesianAcceleration', 'rayrelation', 1),
+             ('Egocentric', 'PolarAcceleration', 'ray', 2),
+             ('Egocentric', 'PolarVelocity', 'relation', 1),
+             ('Egocentric', 'CartesianVelocity', 'relation', 1),
+             ('Relative', 'PolarAcceleration', 'ray', 2),
+             ('Egocentric', 'CartesianVelocity', 'rayrelation', 1),
+             ('Egocentric', 'PolarAcceleration', 'rayrelation', 1),
+             ('Relative', 'CartesianVelocity', 'relation', 1),
+             ('Relative', 'CartesianVelocity', 'ray', 1),
+             ('Absolute', 'PolarVelocity', 'ray', 1),
+             ('Absolute', 'CartesianAcceleration', 'rayrelation', 1),
+             ('Absolute', 'CartesianVelocity', 'rayrelation', 1),
+             ('Absolute', 'CartesianVelocity', 'relation', 1),
+             ('Absolute', 'CartesianAcceleration', 'relation', 1),
+             ('Relative', 'CartesianVelocity', 'rayrelation', 3),
+             ('Relative', 'PolarVelocity', 'relation', 2),
+             ('Relative', 'CartesianAcceleration', 'rayrelation', 1),
+             ('Absolute', 'PolarVelocity', 'rayrelation', 1),
+             ('Relative', 'CartesianAcceleration', 'relation', 1),
+             ('Relative', 'CartesianAcceleration', 'ray', 1),
+             ('Absolute', 'PolarAcceleration', 'relation', 1)]
 
     env = "circle12"
 
