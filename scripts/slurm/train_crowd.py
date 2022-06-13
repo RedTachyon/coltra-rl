@@ -114,9 +114,23 @@ if __name__ == "__main__":
         workers = trainer_config["workers"]
 
         # Initialize the environment
-        env = UnitySimpleCrowdEnv.get_venv(
-            workers, base_worker_id=args.worker_id, file_name=args.env, no_graphics=True, extra_params=env_config
-        )
+        # env = UnitySimpleCrowdEnv.get_venv(
+        #     workers, base_worker_id=args.worker_id, file_name=args.env, no_graphics=True, extra_params=env_config
+        # )
+
+        print("Creating env")
+        if workers > 1:
+            print("Vector env")
+            env = UnitySimpleCrowdEnv.get_venv(
+                workers, base_worker_id=args.worker_id, file_name=args.env, no_graphics=True, extra_params=env_config
+            )
+        else:
+            print("Non-vector env")
+            env = UnitySimpleCrowdEnv.get_env_creator(
+                file_name=args.env, worker_id=args.worker_id, no_graphics=True, extra_params=env_config
+            )()
+
+        print("Env created")
         # env.reset(**env_config)
 
 
