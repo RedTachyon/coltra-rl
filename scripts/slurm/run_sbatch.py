@@ -1,15 +1,21 @@
 import subprocess
 import json
+from typing import Optional
+
 from typarse import BaseParser
 
 class Parser(BaseParser):
     dry: bool
+    env_id: str = "circle30"
 
     _help = {
         "dry": "Dry run, do not submit the job",
-    }
+        "env_id": "Environment name to use, from the dictionary defined in the code"
+        }
+
     _abbrev = {
         "dry": "d",
+        "env_id": "e"
     }
 
 
@@ -40,54 +46,49 @@ if __name__ == "__main__":
         },
     }
 
-    FLAG = 0
 
-    if FLAG == 1:
-        environment = {
-            "circle30": {
-                "environment.mode": "Circle",
-                "environment.num_agents": 30,
-                "environment.enable_obstacles": False,
-                "environment.spawn_scale": 6,
-                "trainer.workers": 1,
-            },
-            "circle12": {
-                "environment.mode": "Circle",
-                "environment.num_agents": 12,
-                "environment.enable_obstacles": False,
-                "environment.spawn_scale": 6,
-                "trainer.workers": 2,
-            },
-            "crossway50": {
-                "environment.mode": "Crossway",
-                "environment.num_agents": 50,
-                "environment.enable_obstacles": True,
-                "trainer.workers": 1,
+    all_envs = {
+        "circle30": {
+            "environment.mode": "Circle",
+            "environment.num_agents": 30,
+            "environment.enable_obstacles": False,
+            "environment.spawn_scale": 6,
+            "trainer.workers": 1,
+        },
+        "circle12": {
+            "environment.mode": "Circle",
+            "environment.num_agents": 12,
+            "environment.enable_obstacles": False,
+            "environment.spawn_scale": 6,
+            "trainer.workers": 2,
+        },
+        "crossway50": {
+            "environment.mode": "Crossway",
+            "environment.num_agents": 50,
+            "environment.enable_obstacles": True,
+            "trainer.workers": 1,
 
-            },
-            "corridor50": {
-                "environment.mode": "Corridor",
-                "environment.num_agents": 50,
-                "environment.enable_obstacles": True,
-                "trainer.workers": 1,
-            },
-            "random20": {
-                "environment.mode": "Random",
-                "environment.num_agents": 20,
-                "environment.enable_obstacles": False,
-                "trainer.workers": 2,
-            },
+        },
+        "corridor50": {
+            "environment.mode": "Corridor",
+            "environment.num_agents": 50,
+            "environment.enable_obstacles": True,
+            "trainer.workers": 1,
+        },
+        "random20": {
+            "environment.mode": "Random",
+            "environment.num_agents": 20,
+            "environment.enable_obstacles": False,
+            "trainer.workers": 2,
+        },
 
-        }
+    }
+
+    idx = args.env_id
+    if idx == "all":
+        environment = all_envs
     else:
-        environment = {
-            "crossway50": {
-                "environment.mode": "Crossway",
-                "environment.num_agents": 50,
-                "environment.enable_obstacles": True,
-                "trainer.workers": 1,
-            },
-        }
+        environment = {idx: all_envs[idx]}
 
     num_runs = 8
 
