@@ -140,7 +140,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         print(f"Using worker id {worker_id}")
         self.unity = UnityEnvironment(
-            file_name=file_name, worker_id=worker_id, **kwargs
+            file_name=file_name, worker_id=worker_id, additional_args=["--no-graphics"], **kwargs
         )
         self.behaviors = {}
         # self.manager = ""
