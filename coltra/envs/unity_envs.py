@@ -111,7 +111,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         super().__init__()
         self._closed = False
 
-        disable_unity_logs()
+        # disable_unity_logs()
 
         if extra_params is None:
             extra_params = {}
