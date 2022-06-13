@@ -30,7 +30,7 @@ import data_utils as du
 from coltra.training_utils import evaluate
 from coltra.utils import find_free_worker
 
-set_log_level(ERROR)
+# set_log_level(ERROR)
 
 
 class Parser(BaseParser):
