@@ -102,9 +102,15 @@ if __name__ == "__main__":
         workers = trainer_config["workers"]
 
         # Initialize the environment
-        env = UnitySimpleCrowdEnv.get_venv(
-            workers, file_name=args.env, no_graphics=True, extra_params=env_config
-        )
+        if workers > 1:
+            env = UnitySimpleCrowdEnv.get_venv(
+                workers, file_name=args.env, no_graphics=True, extra_params=env_config
+            )
+        else:
+            env = UnitySimpleCrowdEnv.get_env_creator(
+                file_name=args.env, no_graphics=True, extra_params=env_config
+            )()
+
         env.reset()
 
         # env.engine_channel.set_configuration_parameters(time_scale=100, width=100, height=100)
