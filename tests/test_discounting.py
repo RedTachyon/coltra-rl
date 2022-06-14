@@ -2,7 +2,6 @@ import numpy as np
 import torch
 from coltra.discounting import (
     discount_experience,
-    _discount_bgae,
     convert_params,
     get_beta_vector,
 )

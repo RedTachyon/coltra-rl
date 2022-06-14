@@ -1,5 +1,6 @@
 from typing import Tuple, List
 
+import numba
 import numpy as np
 from numba import njit, NumbaPerformanceWarning
 import torch
@@ -85,65 +86,30 @@ def discount_experience(
         gamma: same as γ, for whenever you need to use ascii
         eta: same as η, see above
     """
-    if not use_ugae:
-        np_last_vals = last_values.detach().cpu().numpy().astype(np.float32)
-        batch_size = np_last_vals.shape
-        np_rewards = (
-            rewards.detach()
-            .cpu()
-            .numpy()
-            .astype(np.float32)
-            .reshape(batch_size + (-1,))
-        )
-        np_values = (
-            values.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
-        )
-        np_dones = (
-            dones.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
-        )
 
+    np_last_vals = last_values.detach().cpu().numpy().astype(np.float32)
+    batch_size = np_last_vals.shape
+    np_rewards = (
+        rewards.detach()
+        .cpu()
+        .numpy()
+        .astype(np.float32)
+        .reshape(batch_size + (-1,))
+    )
+    np_values = (
+        values.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
+    )
+    np_dones = (
+        dones.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
+    )
+    if not use_ugae:
         advantages = _fast_discount_gae(
             np_rewards, np_values, np_dones, np_last_vals, γ, λ
         )
-
     else:  # UGAE
-        raise NotImplementedError
-        # np_last_vals = last_values.detach().cpu().numpy().astype(np.float32)
-        # batch_size = np_last_vals.shape
-        # np_rewards = (
-        #     rewards.detach()
-        #     .cpu()
-        #     .numpy()
-        #     .astype(np.float32)
-        #     .reshape(batch_size + (-1,))
-        # )
-        # np_values = (
-        #     values.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
-        # )
-        # np_dones = (
-        #     dones.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
-        # )
-        # full_size = dones.shape[0]
-        #
-        # ep_lens = get_episode_lengths(np_dones, (batch_size, full_size//batch_size))
-
-        # ep_len = ep_lens[0]
-        # for val in ep_lens:
-        #     assert val == ep_len, "Episodes need to be of constant length for bGAE"
-        #
-        # np_rewards = (
-        #     rewards.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
-        # )
-        # np_values = values.view((-1, ep_len)).detach().cpu().numpy().astype(np.float32)
-        # np_dones = dones.view((-1, ep_len)).detach().cpu().numpy()
-        #
-        # # rewards = rewards.cpu().numpy()
-        # # values = values.detach().cpu().numpy()
-        # # dones = dones.cpu().numpy()
-        #
-        # advantages = _discount_bgae(
-        #     np_rewards, np_values, np_dones, γ, η, λ, gamma=gamma, eta=eta
-        # )
+        advantages = _discount_bgae(
+            np_rewards, np_values, np_dones, np_last_vals, γ, η, λ
+        )
 
     advantages = torch.as_tensor(advantages, device=values.device).reshape((-1,))
     returns = advantages + values  # A = R - V
@@ -182,51 +148,114 @@ def get_beta_vector(T: int, α: float, β: float) -> np.ndarray:
     return discount
 
 
+# @njit
+# def _discount_bgae(
+#     rewards: np.ndarray,  # float tensor (T, N)
+#     values: np.ndarray,  # float tensor (T, N)
+#     dones: np.array,  # boolean tensor (T, N)
+#     γ: float,  # \in (0, 1); extreme values imply with eta = 0
+#     η: float = 0,
+#     λ: float = 0.95,  # \in [0, 1]; possible [0, \infty)
+#     *,
+#     gamma: float = None,
+#     eta: float = None
+# ) -> np.ndarray:
+#     """
+#     A numpy/numba-based CPU-optimized computation. Wrapped by discount_bgae for a Tensor interface
+#     """
+#     if gamma is not None:
+#         γ = gamma
+#     if eta is not None:
+#         η = eta
+#
+#     T = rewards.shape[1]
+#     assert T == values.shape[1]
+#
+#     α, β = convert_params(γ, η)
+#
+#     advantages = np.empty_like(rewards, dtype=np.float32)
+#
+#     Γ_all = get_beta_vector(T + 1, α, β)
+#
+#     λ_all = np.array([λ**i for i in range(T)], dtype=np.float32)
+#
+#     for t in range(T):
+#         s_rewards = rewards[:, t:]
+#         s_values = values[:, t + 1 :]
+#         old_value = values[:, t]
+#
+#         Γ_v = Γ_all[: T - t]
+#         Γ_v1 = Γ_all[1 : T - t]
+#         λ_v = λ_all[: T - t]
+#
+#         future_rewards = s_rewards @ (λ_v * Γ_v)
+#         future_values = s_values @ (np.float32(1.0 - λ) * (λ_v[:-1] * Γ_v1))
+#
+#         advantage = -old_value + future_rewards + future_values
+#         advantages[:, t] = advantage
+#
+#     return advantages
+
+@njit
+def _bgae_one_episode(rewards: np.ndarray,  # (T,)
+                      values: np.ndarray,  # (T,)
+                      α: float, β: float, λ: float) -> np.ndarray:
+    """
+    Compute the discounted advantage for one episode.
+    """
+
+    # Compute the discounted advantage
+    T = rewards.shape[0]
+    Γ = get_beta_vector(T + 1, α, β)
+    lambdas = np.array([[λ ** l for l in range(T)]], dtype=np.float32)
+    advantages = np.empty_like(rewards, dtype=np.float32)
+
+    values = np.append(values, np.float32(0))
+
+    for t in range(T):
+        t_left = T - t
+        reward_term = (lambdas[:, :t_left] * Γ[:t_left]) @ rewards[t:]
+        value_term = np.float32(1 - λ) * (lambdas[:, :t_left] * Γ[1:t_left + 1]) @ values[1:t_left + 1]
+        advantages[t] = (-values[t] + reward_term[0] + value_term[0])
+
+    return advantages
+
+
 @njit
 def _discount_bgae(
-    rewards: np.ndarray,  # float tensor (T, N)
-    values: np.ndarray,  # float tensor (T, N)
-    dones: np.array,  # boolean tensor (T, N)
-    γ: float,  # \in (0, 1); extreme values imply with eta = 0
-    η: float = 0,
-    λ: float = 0.95,  # \in [0, 1]; possible [0, \infty)
-    *,
-    gamma: float = None,
-    eta: float = None
-) -> np.ndarray:
-    """
-    A numpy/numba-based CPU-optimized computation. Wrapped by discount_bgae for a Tensor interface
-    """
-    if gamma is not None:
-        γ = gamma
-    if eta is not None:
-        η = eta
-
+        rewards: np.ndarray,  # float tensor (N, T)
+        values: np.ndarray,  # float tensor (N, T)
+        dones: np.ndarray,  # boolean tensor (N, T)
+        last_values: np.ndarray,  # float tensor (N,)
+        γ: float = 0.99,
+        η: float = 0.95,
+        λ: float = 0.95
+):
+    N = rewards.shape[0]
     T = rewards.shape[1]
-    assert T == values.shape[1]
+    advantages = np.empty_like(rewards, dtype=np.float32)
 
     α, β = convert_params(γ, η)
 
-    advantages = np.empty_like(rewards, dtype=np.float32)
+    for i in range(N):
+        rewards_i = rewards[i]
+        values_i = values[i]
+        dones_i = dones[i]
 
-    Γ_all = get_beta_vector(T + 1, α, β)
+        reward_parts = np.split(rewards_i, np.where(dones_i)[0] + 1)
+        value_parts = np.split(values_i, np.where(dones_i)[0] + 1)
 
-    λ_all = np.array([λ**i for i in range(T)], dtype=np.float32)
+        adv_parts = numba.typed.List()
 
-    for t in range(T):
-        s_rewards = rewards[:, t:]
-        s_values = values[:, t + 1 :]
-        old_value = values[:, t]
+        for rew_part, val_part in zip(reward_parts, value_parts):
+            adv_part = _bgae_one_episode(rew_part.astype(np.float32), val_part.astype(np.float32), α, β, λ)
+            adv_parts.append(adv_part)
 
-        Γ_v = Γ_all[: T - t]
-        Γ_v1 = Γ_all[1 : T - t]
-        λ_v = λ_all[: T - t]
-
-        future_rewards = s_rewards @ (λ_v * Γ_v)
-        future_values = s_values @ (np.float32(1.0 - λ) * (λ_v[:-1] * Γ_v1))
-
-        advantage = -old_value + future_rewards + future_values
-        advantages[:, t] = advantage
+        idx = 0
+        for j, adv_part in enumerate(adv_parts):
+            for k, v in enumerate(adv_part):
+                advantages[i, idx] = v
+                idx += 1
 
     return advantages
 
