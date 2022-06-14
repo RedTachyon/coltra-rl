@@ -38,7 +38,7 @@ def test_multigym_single():
     assert isinstance(obs[name], Observation)
     assert isinstance(obs[name].vector, np.ndarray)
 
-    action = {key: Action(discrete=env.action_space.sample()) for key in obs}
+    action = {key: env.action_space.sample() for key in obs}
 
     obs, reward, done, info = env.step(action)
     assert isinstance(obs, dict)

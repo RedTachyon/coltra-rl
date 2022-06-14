@@ -34,7 +34,7 @@ def test_reward_wrapper():
 
     for _ in range(10):
         obs, reward, done, info = env.step(
-            {agent_id: discrete(env.action_space.sample()) for agent_id in obs}
+            {agent_id: env.action_space.sample() for agent_id in obs}
         )
 
         for agent_id in obs:
