@@ -26,7 +26,7 @@ from coltra.models.relational_models import RelationModel, RayRelationModel
 from coltra.trainers import PPOCrowdTrainer
 from coltra.models.raycast_models import LeeModel
 
-import data_utils as du
+import coltra.data_utils as du
 from coltra.training_utils import evaluate
 from coltra.utils import find_free_worker
 
