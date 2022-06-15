@@ -17,7 +17,7 @@ trainer:
 
     gamma: 0.99
     use_ugae: true
-    eta: 0.5
+    eta: 0.0
     gae_lambda: 0.9
 
     advantage_normalization: true
