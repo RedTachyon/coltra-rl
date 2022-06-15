@@ -92,7 +92,7 @@ if __name__ == "__main__":
     if args.start_dir:
         agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
     else:
-        model = model_cls(model_config, env.observation_space, action_space)
+        model = model_cls(model_config, observation_space, action_space)
         agent = agent_cls(model)
 
     if args.normalize:
