@@ -26,6 +26,7 @@ class Parser(BaseParser):
     name: str
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
+    project: str = "coltra"
     normalize: bool = False
     reward_wrapper: bool = False
 
@@ -36,6 +37,7 @@ class Parser(BaseParser):
         "name": "Name of the tb directory to store the logs",
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
+        "project": "Name of the wandb project to use",
         "normalize": "Whether to use the obs and return normalizing wrappers",
         "reward_wrapper": "Whether env should use the reward wrapper",
     }
@@ -47,6 +49,7 @@ class Parser(BaseParser):
         "name": "n",
         "start_dir": "sd",
         "start_idx": "si",
+        "project": "p",
         "normalize": "norm",
         "reward_wrapper": "rw",
     }
@@ -67,7 +70,7 @@ if __name__ == "__main__":
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
     wandb.init(
-        project="coltra", entity="redtachyon", sync_tensorboard=True, config=config
+        project=args.project, entity="redtachyon", sync_tensorboard=True, config=config
     )
 
     workers = trainer_config["workers"]
