@@ -31,6 +31,8 @@ class MultiGymEnv(MultiAgentEnv):
         **kwargs
     ):
         super().__init__()
+
+        gym.logger.set_level(gym.logger.ERROR)
         if wrappers is None:
             wrappers = []
         if "Bullet" in env_name:

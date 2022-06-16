@@ -27,6 +27,7 @@ class Parser(BaseParser):
     start_dir: Optional[str]
     start_idx: Optional[int] = -1
     project: str = "coltra"
+    seed: Optional[int] = None
     normalize: bool = False
     reward_wrapper: bool = False
 
@@ -38,6 +39,7 @@ class Parser(BaseParser):
         "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
         "start_idx": "From which iteration we should start (only if start_dir is set)",
         "project": "Name of the wandb project to use",
+        "seed": "Seed for the random number generator",
         "normalize": "Whether to use the obs and return normalizing wrappers",
         "reward_wrapper": "Whether env should use the reward wrapper",
     }
@@ -50,6 +52,7 @@ class Parser(BaseParser):
         "start_dir": "sd",
         "start_idx": "si",
         "project": "p",
+        "seed": "s",
         "normalize": "norm",
         "reward_wrapper": "rw",
     }
@@ -80,7 +83,7 @@ if __name__ == "__main__":
         wrappers.append(LastRewardWrapper)
     # Initialize the environment
     env = MultiGymEnv.get_venv(
-        workers=workers, env_name=args.env_name, wrappers=wrappers
+        workers=workers, env_name=args.env_name, wrappers=wrappers, seed=args.seed
     )
     action_space = env.action_space
     observation_space = env.observation_space
