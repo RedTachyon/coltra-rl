@@ -248,7 +248,7 @@ def _discount_bgae(
         adv_parts = numba.typed.List()
 
         for rew_part, val_part in zip(reward_parts, value_parts):
-            adv_part = _bgae_one_episode(rew_part.astype(np.float32), val_part.astype(np.float32), α, β, λ)
+            adv_part = _bgae_one_episode(rew_part.astype(np.float32), val_part.astype(np.float32), 0., α, β, λ)
             adv_parts.append(adv_part)
 
         idx = 0
