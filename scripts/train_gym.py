@@ -1,6 +1,7 @@
 from typing import Optional, Type
 
 import gym
+import numpy as np
 import torch
 import yaml
 from typarse import BaseParser
@@ -65,6 +66,7 @@ if __name__ == "__main__":
 
     if args.seed is not None:
         torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
 
     with open(args.config, "r") as f:
         config = yaml.load(f.read(), yaml.Loader)
