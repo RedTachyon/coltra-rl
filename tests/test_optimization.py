@@ -12,22 +12,24 @@ from coltra.collectors import collect_crowd_data
 
 def test_minibatches():
     rng = torch.manual_seed(0)
+    np_rngs = [None, np.random.default_rng(seed=0)]
 
     obs = Observation(vector=torch.randn(800, 4, generator=rng))
     logprobs = torch.randn(800, generator=rng)
     values = torch.randn(800, generator=rng)
 
-    batches = minibatches(obs, logprobs, values, batch_size=80, shuffle=False)
-    count = 0
-    for i, (m_obs, m_logprobs, m_values) in enumerate(batches):
-        count += 1
-        assert m_obs.vector.shape == (80, 4)
-        assert m_logprobs.shape == (80,)
-        assert m_values.shape == (80,)
-        assert torch.allclose(m_obs.vector, obs[i * 80 : i * 80 + 80].vector)
-        assert torch.allclose(m_logprobs, logprobs[i * 80 : i * 80 + 80])
-        assert torch.allclose(m_logprobs, logprobs[i * 80 : i * 80 + 80])
-    assert count == 10
+    for np_rng in np_rngs:
+        batches = minibatches(obs, logprobs, values, batch_size=80, shuffle=False, rng=np_rng)
+        count = 0
+        for i, (m_obs, m_logprobs, m_values) in enumerate(batches):
+            count += 1
+            assert m_obs.vector.shape == (80, 4)
+            assert m_logprobs.shape == (80,)
+            assert m_values.shape == (80,)
+            assert torch.allclose(m_obs.vector, obs[i * 80 : i * 80 + 80].vector)
+            assert torch.allclose(m_logprobs, logprobs[i * 80 : i * 80 + 80])
+            assert torch.allclose(m_logprobs, logprobs[i * 80 : i * 80 + 80])
+        assert count == 10
 
 
 def test_shuffle_minibatches():

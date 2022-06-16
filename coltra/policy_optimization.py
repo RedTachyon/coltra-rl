@@ -68,7 +68,7 @@ class CrowdPPOptimizer:
     An optimizer for a single homogeneous crowd agent. Estimates the gradient from the whole batch (no SGD).
     """
 
-    def __init__(self, agents: HomogeneousGroup, config: dict[str, Any]):
+    def __init__(self, agents: HomogeneousGroup, config: dict[str, Any], seed: Optional[int] = None):
 
         self.agents = agents
 
@@ -84,6 +84,8 @@ class CrowdPPOptimizer:
         self.gamma: float = self.config.gamma
         self.eps: float = self.config.eps
         self.gae_lambda: float = self.config.gae_lambda
+
+        self.rng: Generator = np.random.default_rng(seed=seed) if seed is not None else None
 
     def train_on_data(
         self,
@@ -193,6 +195,7 @@ class CrowdPPOptimizer:
                 advantages,
                 batch_size=batch_size,
                 shuffle=True,
+                rng=self.rng,
             ):
                 # Evaluate again after the PPO step, for new values and gradients, aka forward pass
                 m_logprob, m_value, m_entropy = agents.embed_evaluate(m_obs, m_action)

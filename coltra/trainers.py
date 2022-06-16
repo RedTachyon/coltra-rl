@@ -46,6 +46,7 @@ class PPOCrowdTrainer(Trainer):
         env: Union[MultiAgentEnv, VecEnv],
         config: dict[str, Any],
         use_uuid: bool = False,
+        seed: Optional[int] = None,
         save_path: Optional[str] = None
     ):
         super().__init__(agents, env, config)
@@ -63,7 +64,7 @@ class PPOCrowdTrainer(Trainer):
 
         self.path: Optional[str]
 
-        self.ppo = CrowdPPOptimizer(self.agents, config=self.config.PPOConfig.to_dict())
+        self.ppo = CrowdPPOptimizer(self.agents, config=self.config.PPOConfig.to_dict(), seed=seed)
 
         # Setup tensorboard
         self.writer: Optional[SummaryWriter]
