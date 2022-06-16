@@ -199,24 +199,24 @@ def get_beta_vector(T: int, α: float, β: float) -> np.ndarray:
 @njit
 def _bgae_one_episode(rewards: np.ndarray,  # (T,)
                       values: np.ndarray,  # (T,)
+                      last_value: float,
                       α: float, β: float, λ: float) -> np.ndarray:
     """
     Compute the discounted advantage for one episode.
     """
-
     # Compute the discounted advantage
     T = rewards.shape[0]
     Γ = get_beta_vector(T + 1, α, β)
-    lambdas = np.array([[λ ** l for l in range(T)]], dtype=np.float32)
+    lambdas = np.array([λ ** l for l in range(T)], dtype=np.float32)
     advantages = np.empty_like(rewards, dtype=np.float32)
 
-    values = np.append(values, np.float32(0))
+    values = np.append(values, np.float32(last_value))
 
     for t in range(T):
         t_left = T - t
-        reward_term = (lambdas[:, :t_left] * Γ[:t_left]) @ rewards[t:]
-        value_term = np.float32(1 - λ) * (lambdas[:, :t_left] * Γ[1:t_left + 1]) @ values[1:t_left + 1]
-        advantages[t] = (-values[t] + reward_term[0] + value_term[0])
+        reward_term = (lambdas[:t_left] * Γ[:t_left]) @ rewards[t:t + t_left]
+        value_term = np.float32(1 - λ) * (lambdas[:t_left] * Γ[1:t_left + 1]) @ values[t + 1:t + t_left + 1]
+        advantages[t] = (-values[t] + reward_term + value_term)
 
     return advantages
 
