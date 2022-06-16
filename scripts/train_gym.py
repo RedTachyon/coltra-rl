@@ -7,6 +7,7 @@ import yaml
 from typarse import BaseParser
 
 from coltra.agents import CAgent, DAgent, Agent
+from coltra.envs.spaces import ActionSpace
 from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
@@ -90,14 +91,14 @@ if __name__ == "__main__":
     env = MultiGymEnv.get_venv(
         workers=workers, env_name=args.env_name, wrappers=wrappers, seed=args.seed
     )
-    action_space = env.action_space
+    action_space: ActionSpace = env.action_space
     observation_space = env.observation_space
 
     print(f"{observation_space=}")
     print(f"{action_space=}")
 
     model_cls = MLPModel
-    agent_cls = CAgent if isinstance(action_space, gym.spaces.Box) else DAgent
+    agent_cls = CAgent if "continuous" in action_space.spaces else DAgent
 
     agent: Agent
     if args.start_dir:
