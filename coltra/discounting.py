@@ -242,8 +242,8 @@ def _discount_bgae(
         values_i = values[i]
         dones_i = dones[i]
 
-        reward_parts = np.split(rewards_i, np.where(dones_i)[0] + 1)
-        value_parts = np.split(values_i, np.where(dones_i)[0] + 1)
+        reward_parts = np.split(rewards_i, np.where(dones_i)[0])
+        value_parts = np.split(values_i, np.where(dones_i)[0])
 
         adv_parts = numba.typed.List()
 
