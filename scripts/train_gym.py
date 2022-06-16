@@ -63,6 +63,9 @@ if __name__ == "__main__":
 
     args = Parser()
 
+    if args.seed is not None:
+        torch.manual_seed(args.seed)
+
     with open(args.config, "r") as f:
         config = yaml.load(f.read(), yaml.Loader)
 
