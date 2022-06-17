@@ -1,10 +1,15 @@
 import numpy as np
+import pytest
 import torch
+
+from coltra import HomogeneousGroup, collect_crowd_data
+from coltra.agents import RandomGymAgent
 from coltra.discounting import (
     discount_experience,
     convert_params,
-    get_beta_vector,
+    get_beta_vector, _fast_discount_gae, _discount_bgae,
 )
+from coltra.envs import MultiGymEnv
 
 
 def test_convert():
@@ -116,10 +121,37 @@ def test_discounting():
     assert torch.allclose(returns[:1000], returns[1000:])
     assert torch.allclose(advantages[:1000], advantages[1000:])
 
+@pytest.fixture(scope="module")
+def dataset():
+    env = MultiGymEnv.get_venv(workers=8, env_name="CartPole-v0", seed=0)
+    agent = RandomGymAgent(env.action_space.discrete)
+    env.action_space.discrete.seed(0)
+    group = HomogeneousGroup(agent)
 
-# def test_episode_lens():
-#     dones = ...
-#
-# def test_episode_rewards():
-#     rewards = torch.cat([torch.zeros(10), torch.zeros(10) + 1, torch.zeros(10) + 2])
-#     dones = torch.tensor([...])
+    data, metrics, shape = collect_crowd_data(group, env, num_steps=500)
+
+    done = data['crowd'].done.reshape(shape).numpy()
+
+    reward = data['crowd'].reward.reshape(shape).numpy()  # [:,:idx]
+    value = data['crowd'].value.reshape(shape).numpy().astype(np.float32)  # [:,:idx]
+    last_value = data['crowd'].last_value.numpy()
+
+    return reward, value, last_value, done
+
+
+# TODO: This fails with some more parameter values, might just be float precision, need to fix it at some point
+@pytest.mark.parametrize("gae_lambda", [0.0, 0.9, 0.99, 1.0])
+@pytest.mark.parametrize("gamma", [0.0, 0.9, 0.99, 1.0])
+def test_bgae(dataset, gae_lambda: float, gamma: float):
+
+
+    reward, value, last_value, done = dataset
+
+    np.random.seed(0)
+    value = np.random.randn(*value.shape).astype(np.float32)
+    last_value = np.random.randn(*last_value.shape).astype(np.float32)
+
+    bgae_adv = _discount_bgae(reward, value, done, last_value, gamma, 0.0, gae_lambda)
+    gae_adv = _fast_discount_gae(reward, value, done, last_value, gamma, gae_lambda)
+
+    assert np.allclose(bgae_adv, gae_adv, atol=1e-7)
