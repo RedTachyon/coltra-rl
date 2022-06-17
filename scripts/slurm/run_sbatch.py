@@ -4,31 +4,35 @@ from typing import Optional
 
 from typarse import BaseParser
 
+
 class Parser(BaseParser):
     dry: bool
     env_id: str = "circle30"
 
     _help = {
         "dry": "Dry run, do not submit the job",
-        "env_id": "Environment name to use, from the dictionary defined in the code"
-        }
-
-    _abbrev = {
-        "dry": "d",
-        "env_id": "e"
+        "env_id": "Environment name to use, from the dictionary defined in the code",
     }
+
+    _abbrev = {"dry": "d", "env_id": "e"}
 
 
 def format_config(config: dict) -> str:
     base_json = json.dumps(config)
-    return base_json.replace(' ', '').replace('"', '\\"')
+    return base_json.replace(" ", "").replace('"', '\\"')
+
 
 if __name__ == "__main__":
 
     args = Parser()
 
     observers = ["Absolute", "Relative", "Egocentric"]
-    dynamics = ["CartesianVelocity", "CartesianAcceleration", "PolarVelocity", "PolarAcceleration"]
+    dynamics = [
+        "CartesianVelocity",
+        "CartesianAcceleration",
+        "PolarVelocity",
+        "PolarAcceleration",
+    ]
     models = {
         "ray": {
             "model_type": "ray",
@@ -45,7 +49,6 @@ if __name__ == "__main__":
             "environment.ray_agent_vision": False,
         },
     }
-
 
     all_envs = {
         "circle30": {
@@ -67,7 +70,6 @@ if __name__ == "__main__":
             "environment.num_agents": 50,
             "environment.enable_obstacles": True,
             "trainer.workers": 1,
-
         },
         "corridor50": {
             "environment.mode": "Corridor",
@@ -81,7 +83,6 @@ if __name__ == "__main__":
             "environment.enable_obstacles": False,
             "trainer.workers": 2,
         },
-
     }
 
     idx = args.env_id
@@ -117,4 +118,3 @@ if __name__ == "__main__":
                         out = subprocess.run(cmd, shell=True, capture_output=True)
                         print(out.stdout.decode("utf-8"))
                     i += 1
-

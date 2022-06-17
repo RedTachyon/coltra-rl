@@ -19,7 +19,9 @@ def test_minibatches():
     values = torch.randn(800, generator=rng)
 
     for np_rng in np_rngs:
-        batches = minibatches(obs, logprobs, values, batch_size=80, shuffle=False, rng=np_rng)
+        batches = minibatches(
+            obs, logprobs, values, batch_size=80, shuffle=False, rng=np_rng
+        )
         count = 0
         for i, (m_obs, m_logprobs, m_values) in enumerate(batches):
             count += 1

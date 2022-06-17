@@ -47,7 +47,7 @@ class PPOCrowdTrainer(Trainer):
         config: dict[str, Any],
         use_uuid: bool = False,
         seed: Optional[int] = None,
-        save_path: Optional[str] = None
+        save_path: Optional[str] = None,
     ):
         super().__init__(agents, env, config)
 
@@ -64,7 +64,9 @@ class PPOCrowdTrainer(Trainer):
 
         self.path: Optional[str]
 
-        self.ppo = CrowdPPOptimizer(self.agents, config=self.config.PPOConfig.to_dict(), seed=seed)
+        self.ppo = CrowdPPOptimizer(
+            self.agents, config=self.config.PPOConfig.to_dict(), seed=seed
+        )
 
         # Setup tensorboard
         self.writer: Optional[SummaryWriter]
@@ -76,9 +78,7 @@ class PPOCrowdTrainer(Trainer):
                 root = Path.home()
             else:
                 root = Path(save_path)
-            path = (
-                root / "tb_logs" / f"{self.config.tensorboard_name}_{dt_string}"
-            )
+            path = root / "tb_logs" / f"{self.config.tensorboard_name}_{dt_string}"
 
             self.writer = SummaryWriter(str(path))
             os.mkdir(str(path / "saved_weights"))

@@ -83,7 +83,11 @@ if __name__ == "__main__":
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
     wandb.init(
-        project=args.project, entity="redtachyon", sync_tensorboard=True, config=config, name=args.name
+        project=args.project,
+        entity="redtachyon",
+        sync_tensorboard=True,
+        config=config,
+        name=args.name,
     )
 
     workers = trainer_config["workers"]

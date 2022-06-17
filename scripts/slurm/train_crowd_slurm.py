@@ -43,7 +43,7 @@ class Parser(BaseParser):
 
     project: Optional[str] = None
     extra_config: Optional[str] = None
-        
+
     tb_path: Optional[str] = None
 
     _help = {
@@ -54,7 +54,7 @@ class Parser(BaseParser):
         "model": "Name of the model to use",
         "project": "Type of project to use",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
-        "tb_path": "Root location for the tb_logs directory"
+        "tb_path": "Root location for the tb_logs directory",
     }
 
     _abbrev = {
@@ -65,14 +65,13 @@ class Parser(BaseParser):
         "model": "m",
         "project": "p",
         "extra_config": "ec",
-        "tb_path": "tb"
+        "tb_path": "tb",
     }
 
 
 if __name__ == "__main__":
     try:
         CUDA = torch.cuda.is_available()
-
 
         args = Parser()
 
@@ -122,17 +121,23 @@ if __name__ == "__main__":
         if workers > 1:
             print("Vector env")
             env = UnitySimpleCrowdEnv.get_venv(
-                workers, base_worker_id=args.worker_id, file_name=args.env, no_graphics=True, extra_params=env_config
+                workers,
+                base_worker_id=args.worker_id,
+                file_name=args.env,
+                no_graphics=True,
+                extra_params=env_config,
             )
         else:
             print("Non-vector env")
             env = UnitySimpleCrowdEnv.get_env_creator(
-                file_name=args.env, worker_id=args.worker_id, no_graphics=True, extra_params=env_config
+                file_name=args.env,
+                worker_id=args.worker_id,
+                no_graphics=True,
+                extra_params=env_config,
             )()
 
         print("Env created")
         # env.reset(**env_config)
-
 
         # Initialize the agent
 
@@ -165,7 +170,9 @@ if __name__ == "__main__":
         if CUDA:
             agents.cuda()
 
-        trainer = PPOCrowdTrainer(agents, env, trainer_config, use_uuid=True, save_path=args.tb_path)
+        trainer = PPOCrowdTrainer(
+            agents, env, trainer_config, use_uuid=True, save_path=args.tb_path
+        )
         with open(os.path.join(trainer.path, "full_config.yaml"), "w") as f:
             yaml.dump(config, f)
 

@@ -90,11 +90,7 @@ def discount_experience(
     np_last_vals = last_values.detach().cpu().numpy().astype(np.float32)
     batch_size = np_last_vals.shape
     np_rewards = (
-        rewards.detach()
-        .cpu()
-        .numpy()
-        .astype(np.float32)
-        .reshape(batch_size + (-1,))
+        rewards.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
     )
     np_values = (
         values.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
@@ -196,40 +192,49 @@ def get_beta_vector(T: int, α: float, β: float) -> np.ndarray:
 #
 #     return advantages
 
+
 @njit
-def _bgae_one_episode(rewards: np.ndarray,  # (T,)
-                      values: np.ndarray,  # (T,)
-                      last_value: float,
-                      α: float, β: float, λ: float) -> np.ndarray:
+def _bgae_one_episode(
+    rewards: np.ndarray,  # (T,)
+    values: np.ndarray,  # (T,)
+    last_value: float,
+    α: float,
+    β: float,
+    λ: float,
+) -> np.ndarray:
     """
     Compute the discounted advantage for one episode.
     """
     # Compute the discounted advantage
     T = rewards.shape[0]
     Γ = get_beta_vector(T + 1, α, β)
-    lambdas = np.array([λ ** l for l in range(T)], dtype=np.float32)
+    lambdas = np.array([λ**l for l in range(T)], dtype=np.float32)
     advantages = np.empty_like(rewards, dtype=np.float32)
 
     values = np.append(values, np.float32(last_value))
 
     for t in range(T):
         t_left = T - t
-        reward_term = (lambdas[:t_left] * Γ[:t_left]) @ rewards[t:t + t_left]
-        value_term = np.float32(1 - λ) * (lambdas[:t_left] * Γ[1:t_left + 1]) @ values[t + 1:t + t_left + 1]
-        advantages[t] = (-values[t] + reward_term + value_term)
+        reward_term = (lambdas[:t_left] * Γ[:t_left]) @ rewards[t : t + t_left]
+        value_term = (
+            np.float32(1 - λ)
+            * (lambdas[:t_left] * Γ[1 : t_left + 1])
+            @ values[t + 1 : t + t_left + 1]
+        )
+        advantages[t] = -values[t] + reward_term + value_term
 
     return advantages
 
 
 @njit
 def _discount_bgae(
-        rewards: np.ndarray,  # float tensor (N, T)
-        values: np.ndarray,  # float tensor (N, T)
-        dones: np.ndarray,  # boolean tensor (N, T)
-        last_values: np.ndarray,  # float tensor (N,)
-        γ: float = 0.99,
-        η: float = 0.95,
-        λ: float = 0.95
+    rewards: np.ndarray,  # float tensor (N, T)
+    values: np.ndarray,  # float tensor (N, T)
+    dones: np.ndarray,  # boolean tensor (N, T)
+    last_values: np.ndarray,  # float tensor (N,)
+    γ: float = 0.99,
+    η: float = 0.95,
+    λ: float = 0.95,
 ):
     N = rewards.shape[0]
     T = rewards.shape[1]
@@ -248,7 +253,9 @@ def _discount_bgae(
         adv_parts = numba.typed.List()
 
         for rew_part, val_part in zip(reward_parts, value_parts):
-            adv_part = _bgae_one_episode(rew_part.astype(np.float32), val_part.astype(np.float32), 0., α, β, λ)
+            adv_part = _bgae_one_episode(
+                rew_part.astype(np.float32), val_part.astype(np.float32), 0.0, α, β, λ
+            )
             adv_parts.append(adv_part)
 
         idx = 0

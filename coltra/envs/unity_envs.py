@@ -179,7 +179,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             }
         )
 
-
     def _get_step_info(
         self, step: bool = False
     ) -> Tuple[ObsDict, RewardDict, DoneDict, InfoDict]:

@@ -77,7 +77,6 @@ if __name__ == "__main__":
         if CUDA:
             agents.cuda()
 
-
         # print("Evaluating...")
         # performances, energies = evaluate(env, agents, 10, disable_tqdm=False)
 
@@ -106,13 +105,10 @@ if __name__ == "__main__":
 
         print(f"Mean return: {np.mean(returns)}")
 
-
         frame_size = renders.shape[1:3]
 
         print("Recording a video")
-        video_path = os.path.join(
-            "videos", f"video.webm"
-        )
+        video_path = os.path.join("videos", f"video.webm")
         out = cv2.VideoWriter(
             video_path, cv2.VideoWriter_fourcc(*"VP90"), 24, frame_size[::-1]
         )

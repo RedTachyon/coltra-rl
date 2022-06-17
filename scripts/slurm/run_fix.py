@@ -16,7 +16,7 @@ class Parser(BaseParser):
 
 def format_config(config: dict) -> str:
     base_json = json.dumps(config)
-    return base_json.replace(' ', '').replace('"', '\\"')
+    return base_json.replace(" ", "").replace('"', '\\"')
 
 
 if __name__ == "__main__":
@@ -24,7 +24,12 @@ if __name__ == "__main__":
     args = Parser()
 
     observers = ["Absolute", "Relative", "Egocentric"]
-    dynamics = ["CartesianVelocity", "CartesianAcceleration", "PolarVelocity", "PolarAcceleration"]
+    dynamics = [
+        "CartesianVelocity",
+        "CartesianAcceleration",
+        "PolarVelocity",
+        "PolarAcceleration",
+    ]
     models = {
         "ray": {
             "model_type": "ray",
@@ -62,7 +67,6 @@ if __name__ == "__main__":
             "environment.num_agents": 50,
             "environment.enable_obstacles": True,
             "trainer.workers": 1,
-
         },
         "corridor50": {
             "environment.mode": "Corridor",
@@ -76,34 +80,35 @@ if __name__ == "__main__":
             "environment.enable_obstacles": False,
             "trainer.workers": 2,
         },
-
     }
 
-    fixes = [('Egocentric', 'CartesianAcceleration', 'ray', 1),
-             ('Relative', 'PolarAcceleration', 'relation', 1),
-             ('Egocentric', 'CartesianAcceleration', 'relation', 2),
-             ('Egocentric', 'CartesianVelocity', 'ray', 2),
-             ('Egocentric', 'CartesianAcceleration', 'rayrelation', 1),
-             ('Egocentric', 'PolarAcceleration', 'ray', 2),
-             ('Egocentric', 'PolarVelocity', 'relation', 1),
-             ('Egocentric', 'CartesianVelocity', 'relation', 1),
-             ('Relative', 'PolarAcceleration', 'ray', 2),
-             ('Egocentric', 'CartesianVelocity', 'rayrelation', 1),
-             ('Egocentric', 'PolarAcceleration', 'rayrelation', 1),
-             ('Relative', 'CartesianVelocity', 'relation', 1),
-             ('Relative', 'CartesianVelocity', 'ray', 1),
-             ('Absolute', 'PolarVelocity', 'ray', 1),
-             ('Absolute', 'CartesianAcceleration', 'rayrelation', 1),
-             ('Absolute', 'CartesianVelocity', 'rayrelation', 1),
-             ('Absolute', 'CartesianVelocity', 'relation', 1),
-             ('Absolute', 'CartesianAcceleration', 'relation', 1),
-             ('Relative', 'CartesianVelocity', 'rayrelation', 3),
-             ('Relative', 'PolarVelocity', 'relation', 2),
-             ('Relative', 'CartesianAcceleration', 'rayrelation', 1),
-             ('Absolute', 'PolarVelocity', 'rayrelation', 1),
-             ('Relative', 'CartesianAcceleration', 'relation', 1),
-             ('Relative', 'CartesianAcceleration', 'ray', 1),
-             ('Absolute', 'PolarAcceleration', 'relation', 1)]
+    fixes = [
+        ("Egocentric", "CartesianAcceleration", "ray", 1),
+        ("Relative", "PolarAcceleration", "relation", 1),
+        ("Egocentric", "CartesianAcceleration", "relation", 2),
+        ("Egocentric", "CartesianVelocity", "ray", 2),
+        ("Egocentric", "CartesianAcceleration", "rayrelation", 1),
+        ("Egocentric", "PolarAcceleration", "ray", 2),
+        ("Egocentric", "PolarVelocity", "relation", 1),
+        ("Egocentric", "CartesianVelocity", "relation", 1),
+        ("Relative", "PolarAcceleration", "ray", 2),
+        ("Egocentric", "CartesianVelocity", "rayrelation", 1),
+        ("Egocentric", "PolarAcceleration", "rayrelation", 1),
+        ("Relative", "CartesianVelocity", "relation", 1),
+        ("Relative", "CartesianVelocity", "ray", 1),
+        ("Absolute", "PolarVelocity", "ray", 1),
+        ("Absolute", "CartesianAcceleration", "rayrelation", 1),
+        ("Absolute", "CartesianVelocity", "rayrelation", 1),
+        ("Absolute", "CartesianVelocity", "relation", 1),
+        ("Absolute", "CartesianAcceleration", "relation", 1),
+        ("Relative", "CartesianVelocity", "rayrelation", 3),
+        ("Relative", "PolarVelocity", "relation", 2),
+        ("Relative", "CartesianAcceleration", "rayrelation", 1),
+        ("Absolute", "PolarVelocity", "rayrelation", 1),
+        ("Relative", "CartesianAcceleration", "relation", 1),
+        ("Relative", "CartesianAcceleration", "ray", 1),
+        ("Absolute", "PolarAcceleration", "relation", 1),
+    ]
 
     env = "circle12"
 

@@ -68,7 +68,12 @@ class CrowdPPOptimizer:
     An optimizer for a single homogeneous crowd agent. Estimates the gradient from the whole batch (no SGD).
     """
 
-    def __init__(self, agents: HomogeneousGroup, config: dict[str, Any], seed: Optional[int] = None):
+    def __init__(
+        self,
+        agents: HomogeneousGroup,
+        config: dict[str, Any],
+        seed: Optional[int] = None,
+    ):
 
         self.agents = agents
 
@@ -85,7 +90,9 @@ class CrowdPPOptimizer:
         self.eps: float = self.config.eps
         self.gae_lambda: float = self.config.gae_lambda
 
-        self.rng: Generator = np.random.default_rng(seed=seed) if seed is not None else None
+        self.rng: Generator = (
+            np.random.default_rng(seed=seed) if seed is not None else None
+        )
 
     def train_on_data(
         self,
