@@ -19,6 +19,7 @@ import pybullet_envs
 
 from coltra.wrappers import ObsVecNormWrapper, LastRewardWrapper
 from coltra.wrappers.agent_wrappers import RetNormWrapper
+from coltra.wrappers.env_wrappers import TimeFeatureWrapper
 
 
 class Parser(BaseParser):
@@ -32,6 +33,7 @@ class Parser(BaseParser):
     seed: Optional[int] = None
     normalize: bool = False
     reward_wrapper: bool = False
+    time_feature_wrapper: bool = False
 
     _help = {
         "config": "Config file for the coltra",
@@ -44,6 +46,7 @@ class Parser(BaseParser):
         "seed": "Seed for the random number generator",
         "normalize": "Whether to use the obs and return normalizing wrappers",
         "reward_wrapper": "Whether env should use the reward wrapper",
+        "time_feature_wrapper": "Whether env should use the time feature wrapper",
     }
 
     _abbrev = {
@@ -57,6 +60,7 @@ class Parser(BaseParser):
         "seed": "s",
         "normalize": "norm",
         "reward_wrapper": "rw",
+        "time_feature_wrapper": "tf",
     }
 
 
@@ -87,6 +91,9 @@ if __name__ == "__main__":
     wrappers = []
     if args.reward_wrapper:
         wrappers.append(LastRewardWrapper)
+    if args.time_feature_wrapper:
+        wrappers.append(TimeFeatureWrapper)
+
     # Initialize the environment
     env = MultiGymEnv.get_venv(
         workers=workers, env_name=args.env_name, wrappers=wrappers, seed=args.seed
