@@ -7,7 +7,9 @@ from coltra.agents import RandomGymAgent
 from coltra.discounting import (
     discount_experience,
     convert_params,
-    get_beta_vector, _fast_discount_gae, _discount_bgae,
+    get_beta_vector,
+    _fast_discount_gae,
+    _discount_bgae,
 )
 from coltra.envs import MultiGymEnv
 
@@ -121,6 +123,7 @@ def test_discounting():
     assert torch.allclose(returns[:1000], returns[1000:])
     assert torch.allclose(advantages[:1000], advantages[1000:])
 
+
 @pytest.fixture(scope="module")
 def dataset():
     env = MultiGymEnv.get_venv(workers=8, env_name="CartPole-v0", seed=0)
@@ -130,11 +133,11 @@ def dataset():
 
     data, metrics, shape = collect_crowd_data(group, env, num_steps=500)
 
-    done = data['crowd'].done.reshape(shape).numpy()
+    done = data["crowd"].done.reshape(shape).numpy()
 
-    reward = data['crowd'].reward.reshape(shape).numpy()  # [:,:idx]
-    value = data['crowd'].value.reshape(shape).numpy().astype(np.float32)  # [:,:idx]
-    last_value = data['crowd'].last_value.numpy()
+    reward = data["crowd"].reward.reshape(shape).numpy()  # [:,:idx]
+    value = data["crowd"].value.reshape(shape).numpy().astype(np.float32)  # [:,:idx]
+    last_value = data["crowd"].last_value.numpy()
 
     return reward, value, last_value, done
 
@@ -143,7 +146,6 @@ def dataset():
 @pytest.mark.parametrize("gae_lambda", [0.0, 0.9, 0.99, 1.0])
 @pytest.mark.parametrize("gamma", [0.0, 0.9, 0.99, 1.0])
 def test_bgae(dataset, gae_lambda: float, gamma: float):
-
 
     reward, value, last_value, done = dataset
 

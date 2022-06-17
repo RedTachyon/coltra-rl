@@ -216,9 +216,9 @@ def _bgae_one_episode(
 
     # Note to self: this is a weird trick to make the final episode returns match up with reference implementations.
     # I don't entirely understand it at the moment, but I guess it works?
-    one_minus_lambda = np.array([1-λ for _ in range(T)], dtype=np.float32)
+    one_minus_lambda = np.array([1 - λ for _ in range(T)], dtype=np.float32)
     if is_final:
-        one_minus_lambda[-1] = 1.
+        one_minus_lambda[-1] = 1.0
 
     for t in range(T):
         t_left = T - t
@@ -236,13 +236,13 @@ def _bgae_one_episode(
 
 @njit
 def _discount_bgae(
-        rewards: np.ndarray,  # float tensor (N, T)
-        values: np.ndarray,  # float tensor (N, T)
-        dones: np.ndarray,  # boolean tensor (N, T)
-        last_values: np.ndarray,  # float tensor (N,)
-        γ: float = 0.99,
-        η: float = 0.95,
-        λ: float = 0.95
+    rewards: np.ndarray,  # float tensor (N, T)
+    values: np.ndarray,  # float tensor (N, T)
+    dones: np.ndarray,  # boolean tensor (N, T)
+    last_values: np.ndarray,  # float tensor (N,)
+    γ: float = 0.99,
+    η: float = 0.95,
+    λ: float = 0.95,
 ):
     N = rewards.shape[0]
     T = rewards.shape[1]
@@ -265,11 +265,18 @@ def _discount_bgae(
                 last_val = last_values[i]
                 is_final = True
             else:
-                last_val = 0.
+                last_val = 0.0
                 is_final = False
 
-            adv_part = _bgae_one_episode(rew_part.astype(np.float32), val_part.astype(np.float32), last_val, α, β, λ,
-                                         is_final)
+            adv_part = _bgae_one_episode(
+                rew_part.astype(np.float32),
+                val_part.astype(np.float32),
+                last_val,
+                α,
+                β,
+                λ,
+                is_final,
+            )
             adv_parts.append(adv_part)
 
         idx = 0
