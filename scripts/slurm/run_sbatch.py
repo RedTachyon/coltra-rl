@@ -107,6 +107,7 @@ if __name__ == "__main__":
                     extra_config = {**models[model], **environment[env]}
                     if args.remove_globals:
                         extra_config["__remove_globals__"] = True
+                        project_name += "-rg"
                     cmd = [
                         "sbatch",
                         f"--export=ALL,NUM_RUNS={num_runs},OBSERVER={observer},DYNAMICS={dyn},MODEL={model},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
