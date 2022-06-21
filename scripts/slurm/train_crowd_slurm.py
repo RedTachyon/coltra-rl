@@ -94,11 +94,13 @@ if __name__ == "__main__":
 
         run_name = f"{args.observer[:3]}_{args.dynamics}_{args.model}"
 
+        remove_globals = False
         if args.extra_config is not None:
             config_str = args.extra_config
             if config_str[0] == "'" and config_str[-1] == "'":
                 config_str = config_str[1:-1]
             extra_config = json.loads(config_str)
+            remove_globals = extra_config.pop("__remove_globals__", False)
             extra_config = coltra.utils.undot_dict(extra_config)
             coltra.utils.update_dict(target=config, source=extra_config)
 
