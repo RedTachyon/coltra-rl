@@ -33,7 +33,6 @@ echo $EXTRA_CONFIG
 echo $NUM_RUNS
 
 module purge
-module load pytorch-gpu/py3/1.8.1
 
 source $HOME/.bashrc
 conda activate coltra
