@@ -13,7 +13,7 @@ class Parser(BaseParser):
     _help = {
         "dry": "Dry run, do not submit the job",
         "env_id": "Environment name to use, from the dictionary defined in the code",
-        "remove_globals": "Whether to remove global observations from the environment"
+        "remove_globals": "Whether to remove global observations from the environment",
     }
 
     _abbrev = {"dry": "d", "env_id": "e", "remove_globals": "rg"}

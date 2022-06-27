@@ -72,7 +72,7 @@ def process_decisions(
     decisions: Union[DecisionSteps, TerminalSteps],
     name: str,
     obs_specs: List[ObservationSpec],
-    remove_globals: bool = False  # TODO: this is an ugly hack for a specfic experiment, remove this after publication
+    remove_globals: bool = False,  # TODO: this is an ugly hack for a specfic experiment, remove this after publication
 ):
     """
     Takes in a DecisionSteps or TerminalSteps object, and returns the relevant information (observations, rewards, dones)
