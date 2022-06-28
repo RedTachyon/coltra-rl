@@ -24,17 +24,20 @@ set_log_level(ERROR)
 class Parser(BaseParser):
     path: str = "../models/corridor"
     env: str
+    base_video_dir: str = "temp"
     extra_config: Optional[str] = None
 
     _help = {
         "path": "Path to the saved agent",
         "env": "Path to the Unity environment binary",
+        "base_video_dir": "Base directory for the video files",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
     }
 
     _abbrev = {
         "path": "p",
         "env": "e",
+        "base_video_dir": "vd",
         "extra_config": "ec",
     }
 
@@ -108,7 +111,7 @@ if __name__ == "__main__":
         frame_size = renders.shape[1:3]
 
         print("Recording a video")
-        video_path = os.path.join("videos", f"video.webm")
+        video_path = os.path.join(args.base_video_dir, f"video.webm")
         out = cv2.VideoWriter(
             video_path, cv2.VideoWriter_fourcc(*"VP90"), 24, frame_size[::-1]
         )
