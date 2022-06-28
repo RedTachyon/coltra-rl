@@ -122,8 +122,13 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         if virtual_display:
             from pyvirtualdisplay.smartdisplay import SmartDisplay
+            import sys
 
-            self.virtual_display = SmartDisplay(size=virtual_display)
+            if sys.platform == "darwin":
+                mode = "xephyr"
+            else:
+                mode = "xvfb"
+            self.virtual_display = SmartDisplay(size=virtual_display, backend=mode)
             self.virtual_display.start()
         else:
             self.virtual_display = None
