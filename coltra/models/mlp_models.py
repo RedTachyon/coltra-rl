@@ -294,7 +294,9 @@ class BufferMLPModel(FlattenMLPModel):
 
 
 class MLPQModel(BaseQModel):
-    def __init__(self, config: dict, action_space: Space):
+    def __init__(
+        self, config: dict, observation_space: ObservationSpace, action_space: Space
+    ):
         super().__init__(config, action_space)
 
         Config: QMLPConfig = QMLPConfig.clone()
@@ -302,8 +304,13 @@ class MLPQModel(BaseQModel):
         Config.update(config)
         self.config = Config
 
+        if isinstance(observation_space, ObservationSpace):
+            self.input_size = observation_space.vector.shape[0]
+        else:
+            self.input_size = observation_space.shape[0]
+
         self.q_network = FCNetwork(
-            input_size=self.config.input_size,
+            input_size=self.input_size,
             output_sizes=[self.num_actions],
             hidden_sizes=self.config.hidden_sizes,
             activation=self.config.activation,
@@ -314,4 +321,5 @@ class MLPQModel(BaseQModel):
     def forward(
         self, obs: Observation, state: tuple = ()
     ) -> tuple[torch.Tensor, tuple]:
-        return self.q_network(obs.vector), ()
+        [q_values] = self.q_network(obs.vector)
+        return q_values, ()

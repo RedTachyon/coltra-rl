@@ -101,9 +101,15 @@ class BaseQModel(nn.Module):
         super().__init__()
         self.raw_config = config
         self.device = "cpu"
+        self._stateful = False
 
-        self.action_space = action_space
-        assert isinstance(self.action_space, Discrete)
+        if isinstance(action_space, ActionSpace):
+            self.action_space = action_space.space
+        else:
+            self.action_space = action_space
+
+        self.discrete = isinstance(self.action_space, Discrete)
+        assert self.discrete, "Only discrete action spaces are supported"
 
         # DQN can only handle discrete actions
         self.discrete = True
@@ -120,6 +126,10 @@ class BaseQModel(nn.Module):
     def cpu(self):
         super().cpu()
         self.device = "cpu"
+
+    @property
+    def stateful(self):
+        return self._stateful
 
 
 class FCNetwork(nn.Module):

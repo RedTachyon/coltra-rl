@@ -9,7 +9,7 @@ from torch import Tensor
 from torch.distributions import Normal, Categorical
 import gym
 
-from coltra.models.base_models import BaseModel
+from coltra.models.base_models import BaseModel, BaseQModel
 from coltra.buffers import Observation, Action
 
 
@@ -259,6 +259,43 @@ class DAgent(Agent):
         obs_batch = obs_batch.tensor(self.model.device)
         values = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
+
+
+class QAgent(Agent):
+    model: BaseQModel
+
+    def __init__(self, model: BaseQModel, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model = model
+        self.stateful = model.stateful
+
+    def act(
+        self,
+        obs_batch: Observation,
+        state_batch: tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+        num_actions: int = 2,
+        epsilon: float = 0.0,
+        **kwargs,
+    ) -> tuple[Action, tuple, dict]:
+        obs_batch = obs_batch.tensor(self.model.device)
+        batch_size = obs_batch.batch_size
+        state_batch = tuple(s.to(self.model.device) for s in state_batch)
+
+        states: tuple
+        actions: Tensor
+
+        with torch.no_grad():
+            action_qs, states = self.model(obs_batch, state_batch)
+
+        actions = action_qs.argmax(-1)
+
+        greedy = torch.rand(batch_size) < epsilon
+        random_actions = torch.randint(num_actions, size=(batch_size,))
+        actions = torch.where(greedy, random_actions, actions)
+
+        return Action(discrete=actions.cpu().numpy()), states, {}
 
 
 class ToyAgent(Agent):

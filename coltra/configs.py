@@ -4,8 +4,6 @@ from typarse import BaseConfig
 
 
 class QMLPConfig(BaseConfig):
-    input_size: int = 0  # Must be set
-
     activation: str = "leaky_relu"
 
     hidden_sizes: List[int] = [64, 64]

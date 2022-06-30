@@ -94,6 +94,7 @@ class HomogeneousGroup(MacroAgent):
         obs_dict: dict[AgentName, Observation],
         deterministic: bool = False,
         get_value: bool = False,
+        **kwargs,
     ):
         obs, keys = pack(obs_dict)
         actions, states, extra = self.agent.act(
@@ -101,6 +102,7 @@ class HomogeneousGroup(MacroAgent):
             state_batch=(),
             deterministic=deterministic,
             get_value=get_value,
+            **kwargs,
         )
 
         actions_dict = unpack(actions, keys)
