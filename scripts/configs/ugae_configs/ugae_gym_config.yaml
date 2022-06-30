@@ -9,13 +9,13 @@ trainer:
   PPOConfig:
     optimizer: adam
     OptimizerKwargs:
-      lr: 0.00003
+      lr: 9.80828e-05
       betas: !!python/tuple [0.9, 0.999]
       eps: 1.0e-07
       weight_decay: 0
       amsgrad: false
 
-    gamma: 0.99
+    gamma: 0.999
     use_ugae: true
     eta: 0.5
     gae_lambda: 0.9
@@ -29,8 +29,8 @@ trainer:
     min_entropy: 0.0
     value_coeff: 1.0
 
-    ppo_epochs: 20
-    minibatch_size: 2048
+    ppo_epochs: 5
+    minibatch_size: 32
 
     use_gpu:
 
