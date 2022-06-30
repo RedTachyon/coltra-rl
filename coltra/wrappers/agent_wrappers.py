@@ -89,8 +89,8 @@ class RetNormWrapper(AgentWrapper):
     def update_ret_norm(self, returns: Tensor):
         batch_count = len(returns)
         if not self._initialized:
-            self._ret_mean = torch.mean(returns)
-            self._ret_var = torch.var(returns)
+            self._ret_mean = torch.mean(returns).cpu()
+            self._ret_var = torch.var(returns).cpu()
             self._initialized = True
             self._ret_count = batch_count
         else:
