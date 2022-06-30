@@ -34,6 +34,7 @@ class Parser(BaseParser):
     normalize: bool = False
     reward_wrapper: bool = False
     time_feature_wrapper: bool = False
+    normalize_env: bool = False
 
     _help = {
         "config": "Config file for the coltra",
@@ -47,6 +48,7 @@ class Parser(BaseParser):
         "normalize": "Whether to use the obs and return normalizing wrappers",
         "reward_wrapper": "Whether env should use the reward wrapper",
         "time_feature_wrapper": "Whether env should use the time feature wrapper",
+        "normalize_env": "Whether to normalize the env obs and returns",
     }
 
     _abbrev = {
@@ -61,6 +63,7 @@ class Parser(BaseParser):
         "normalize": "norm",
         "reward_wrapper": "rw",
         "time_feature_wrapper": "tf",
+        "normalize_env": "norme",
     }
 
 
@@ -98,6 +101,9 @@ if __name__ == "__main__":
     if args.time_feature_wrapper:
         wrappers.append(TimeFeatureWrapper)
 
+    if args.normalize_env:
+        wrappers.append(gym.wrappers.NormalizeObservation)
+        wrappers.append(gym.wrappers.NormalizeReward)
     # Initialize the environment
     env = MultiGymEnv.get_venv(
         workers=workers, env_name=args.env_name, wrappers=wrappers, seed=args.seed
