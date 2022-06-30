@@ -102,8 +102,9 @@ if __name__ == "__main__":
         wrappers.append(TimeFeatureWrapper)
 
     if args.normalize_env:
-        wrappers.append(gym.wrappers.NormalizeObservation)
-        wrappers.append(gym.wrappers.NormalizeReward)
+        wrappers.append(lambda e: gym.wrappers.TransformObservation(e, lambda obs: obs / 10.))
+        wrappers.append(lambda e: gym.wrappers.TransformReward(e, lambda reward: reward / 10.))
+        wrappers.append(gym.wrappers.ClipAction)
     # Initialize the environment
     env = MultiGymEnv.get_venv(
         workers=workers, env_name=args.env_name, wrappers=wrappers, seed=args.seed
