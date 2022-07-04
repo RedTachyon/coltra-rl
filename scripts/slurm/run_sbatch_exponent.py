@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
         project_name = f"DCSRL-jz-exponent-{env}"
         # project_name = f"DCSRL-jz-timing"
-        extra_config = {**models[model], **env}
+        extra_config = {**model, **env}
         extra_config["environment.comfort_speed_exponent"] = 1 + i / 10
         cmd = [
             "sbatch",
