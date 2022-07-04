@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     for i in range(total):
 
-        project_name = f"DCSRL-jz-exponent-{env}"
+        project_name = f"DCSRL-jz-exponent-{args.env_id}"
         # project_name = f"DCSRL-jz-timing"
         extra_config = {**model, **env}
         extra_config["environment.comfort_speed_exponent"] = 1 + i / 10
