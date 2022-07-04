@@ -120,7 +120,7 @@ if __name__ == "__main__":
         extra_config["environment.comfort_speed_exponent"] = 1 + i / 10
         cmd = [
             "sbatch",
-            f"--export=ALL,NUM_RUNS={num_runs},OBSERVER={observer},DYNAMICS={dynamics},MODEL={model},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
+            f"--export=ALL,NUM_RUNS={num_runs},OBSERVER={observer},DYNAMICS={dynamics},MODEL={args.model},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
             "crowd.sbatch",
             # "echo.sbatch"
         ]
