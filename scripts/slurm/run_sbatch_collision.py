@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # i = 0
     # total = 11
 
-    collision_values = [0.0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2]
+    collision_values = [-0.0, -0.001, -0.005, -0.01, -0.05, -0.1, -0.2]
     total = len(collision_values)
 
     for i, collision in enumerate(collision_values):
