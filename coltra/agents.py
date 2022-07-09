@@ -15,6 +15,7 @@ from coltra.buffers import Observation, Action
 
 class Agent:
     model: BaseModel
+    device: str
 
     def __init__(self, *args, **kwargs):
         pass
@@ -41,10 +42,12 @@ class Agent:
 
     def cuda(self):
         if self.model is not None:
+            self.device = "cuda"
             self.model.cuda()
 
     def cpu(self):
         if self.model is not None:
+            self.device = "cpu"
             self.model.cpu()
 
     def state_dict(self, *args, **kwargs):

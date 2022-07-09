@@ -107,7 +107,7 @@ class RetNormWrapper(AgentWrapper):
             self._ret_count = tot_count
 
     def normalize_ret(self, returns: Tensor):
-        return (returns.cpu() - self._ret_mean) / np.sqrt(self._ret_var + self._ret_eps)
+        return (returns - self._ret_mean) / np.sqrt(self._ret_var + self._ret_eps)
 
     def unnormalize_value(self, value: Tensor):
         return self._ret_var * value + self._ret_mean
