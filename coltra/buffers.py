@@ -16,41 +16,45 @@ from typing import (
 )
 
 import numpy as np
+import jax.numpy as jnp
+import jax
 
-import torch
-from torch import Tensor
-
-Array = Union[np.ndarray, torch.Tensor]
+Array = jnp.ndarray
 
 
-def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
-    if isinstance(tensor, Tensor):
-        _tensor: Tensor = tensor  # Just for types
+def get_batch_size(array: Union[Array, Multitype]) -> int:
+    if isinstance(array, Array):
+        _tensor: Array = array  # Just for types
         return _tensor.shape[0]
     else:
-        _multitensor: Multitype = tensor
+        _multitensor: Multitype = array
         return _multitensor.batch_size
 
 
 def is_array(x: Any) -> bool:
-    return isinstance(x, np.ndarray) or isinstance(x, torch.Tensor)
+    return isinstance(x, np.ndarray) or isinstance(x, jnp.ndarray)
 
 
+@jax.tree_util.register_pytree_node_class
 class Multitype:
     _dict: dict[str, Array]
+
+    def tree_flatten(self):
+        return jax.tree_util.tree_flatten(self._dict)
+
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        res = cls()
+        res._dict = jax.tree_util.tree_unflatten(aux_data, children)
+        return res
 
     @classmethod
     def stack_tensor(cls, value_list: Sequence[Multitype], dim: int = 0):
         res = cls()
         keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
         for key in keys:
-            stacked = np.stack([value[key] for value in value_list], axis=dim)
-            value = torch.as_tensor(stacked)
-
-            # tensors = [torch.as_tensor(value[key]) for value in value_list]
-
-            # value = torch.stack(tensors, dim=dim)
-            res._dict[key] = value
+            stacked = jnp.stack([value[key] for value in value_list], axis=dim)
+            res._dict[key] = stacked
 
         return res
 
@@ -59,9 +63,9 @@ class Multitype:
         res = cls()
         keys = value_list[0]._dict.keys()  # assume all the inputs have the same keys
         for key in keys:
-            tensors = [torch.as_tensor(value[key]) for value in value_list]
+            tensors = [jnp.asarray(value[key]) for value in value_list]
 
-            value = torch.cat(tensors, dim=dim)
+            value = jnp.concatenate(tensors, axis=dim)
             res._dict[key] = value
 
         return res
@@ -83,7 +87,7 @@ class Multitype:
                 value = _batch_size
             elif value >= 0:
                 assert (
-                    value == field_value.shape[0]
+                        value == field_value.shape[0]
                 ), "Different types have different batch sizes"
 
         return value
@@ -92,7 +96,7 @@ class Multitype:
         res = type(self)()
         for key in self._dict.keys():
             value = self._dict[key]
-            tensor = torch.as_tensor(value).to(device)
+            tensor = jnp.asarray(value).to(device)
             res._dict[key] = tensor
         return res
 
@@ -143,11 +147,12 @@ class Multitype:
 BaseObs = Union[Array, dict[str, Array]]
 
 
+@jax.tree_util.register_pytree_node_class
 class Observation(Multitype):
     def __init__(self, obs: Optional[BaseObs] = None, **kwargs: Array):
         if obs is None:
             self._dict = {}
-        elif obs is not None and is_array(obs):
+        elif is_array(obs):
             self._dict = {"vector": obs}
         else:  # is not None and not is_array => is a dict
             self._dict = obs
@@ -158,11 +163,12 @@ class Observation(Multitype):
 BaseAction = Union[Array, int, dict[str, Array]]
 
 
+@jax.tree_util.register_pytree_node_class
 class Action(Multitype):
     def __init__(self, action: Optional[BaseAction] = None, **kwargs: Array):
         if action is None:
             self._dict = {}
-        elif action is not None and is_array(action):  # default is continuous action
+        elif is_array(action):  # default is continuous action
             self._dict = {"continuous": action}
         else:  # is not None and not is_array => is a dict
             self._dict = action
@@ -183,7 +189,7 @@ LogProb = Array  # float32
 Value = Array  # float32
 Done = Union[Array, bool]  # bool
 
-T = TypeVar("T", np.ndarray, torch.Tensor, Multitype)
+T = TypeVar("T", np.ndarray, jnp.ndarray, Multitype)
 
 
 def concat(array_list: list[T], dim: int = 0) -> T:
@@ -206,8 +212,8 @@ def concat(array_list: list[T], dim: int = 0) -> T:
         return type(arr).cat_tensor(array_list, dim=dim)
     elif isinstance(arr, np.ndarray):
         return np.concatenate(array_list, axis=dim)
-    elif isinstance(arr, torch.Tensor):
-        return torch.cat(array_list, dim=dim)
+    elif isinstance(arr, jnp.ndarray):
+        return jnp.concatenate(array_list, axis=dim)
 
 
 R = TypeVar("R")  # Should be a subclass of Record
@@ -281,12 +287,12 @@ class OnPolicyBuffer:
     data: dict[str, AgentOnPolicyBuffer] = field(default_factory=dict)
 
     def append(
-        self,
-        obs: dict[str, Observation],
-        action: dict[str, Action],
-        reward: dict[str, Reward],
-        value: dict[str, Value],
-        done: dict[str, Done],
+            self,
+            obs: dict[str, Observation],
+            action: dict[str, Action],
+            reward: dict[str, Reward],
+            value: dict[str, Value],
+            done: dict[str, Done],
     ):
 
         for agent_id in obs:  # Assume the keys are identical
@@ -307,9 +313,9 @@ class OnPolicyBuffer:
             result[agent_id] = OnPolicyRecord(
                 obs=Observation.stack_tensor(agent_buffer.obs),
                 action=Action.stack_tensor(agent_buffer.action),
-                reward=torch.as_tensor(agent_buffer.reward),
-                value=torch.as_tensor(agent_buffer.value),
-                done=torch.as_tensor(agent_buffer.done),
+                reward=jnp.asarray(agent_buffer.reward),
+                value=jnp.asarray(agent_buffer.value),
+                done=jnp.asarray(agent_buffer.done),
                 last_value=None,
             )
         return result
@@ -323,9 +329,9 @@ class OnPolicyBuffer:
             action=Action.cat_tensor(
                 [agent_buffer.action for agent_buffer in tensor_data]
             ),
-            reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
-            value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
-            done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
+            reward=jnp.concatenate([agent_buffer.reward for agent_buffer in tensor_data]),
+            value=jnp.concatenate([agent_buffer.value for agent_buffer in tensor_data]),
+            done=jnp.concatenate([agent_buffer.done for agent_buffer in tensor_data]),
             last_value=last_value,
         )
 
@@ -362,12 +368,12 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
     data: dict[str, AgentDQNBuffer] = field(default_factory=dict)
 
     def append(
-        self,
-        obs: dict[str, Observation],
-        action: dict[str, Action],
-        reward: dict[str, Reward],
-        next_obs: dict[str, Observation],
-        done: dict[str, Done],
+            self,
+            obs: dict[str, Observation],
+            action: dict[str, Action],
+            reward: dict[str, Reward],
+            next_obs: dict[str, Observation],
+            done: dict[str, Done],
     ):
         for agent_id in obs:  # Assume the keys are identical
             record = DQNRecord(
@@ -388,9 +394,9 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
             result[agent_id] = DQNRecord(
                 obs=Observation.stack_tensor(agent_buffer.obs),
                 action=Action.stack_tensor(agent_buffer.action),
-                reward=torch.as_tensor(agent_buffer.reward),
+                reward=jnp.asarray(agent_buffer.reward),
                 next_obs=Observation.stack_tensor(agent_buffer.next_obs),
-                done=torch.as_tensor(agent_buffer.done),
+                done=jnp.asarray(agent_buffer.done),
             )
         return result
 
@@ -403,9 +409,9 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
             action=Action.cat_tensor(
                 [agent_buffer.action for agent_buffer in tensor_data]
             ),
-            reward=torch.cat([agent_buffer.reward for agent_buffer in tensor_data]),
+            reward=jnp.concatenate([agent_buffer.reward for agent_buffer in tensor_data]),
             next_obs=Observation.cat_tensor(
                 [agent_buffer.next_obs for agent_buffer in tensor_data]
             ),
-            done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
+            done=jnp.concatenate([agent_buffer.done for agent_buffer in tensor_data]),
         )
