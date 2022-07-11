@@ -7,6 +7,9 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.distributions import Normal, Categorical
+
+import jax.numpy as jnp
+import jax
 import gym
 
 from coltra.models.base_models import BaseModel
@@ -33,11 +36,11 @@ class Agent:
 
     def evaluate(
         self, obs_batch: Observation, action_batch: Action
-    ) -> Tuple[Tensor, Tensor, Tensor]:
+    ) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
         """Return: logprobs, values, entropies"""
         raise NotImplementedError
 
-    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> jnp.ndarray:
         raise NotImplementedError
 
     def cuda(self):

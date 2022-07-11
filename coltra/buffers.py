@@ -96,7 +96,7 @@ class Multitype:
         res = type(self)()
         for key in self._dict.keys():
             value = self._dict[key]
-            tensor = jnp.asarray(value).to(device)
+            tensor = jnp.asarray(value)
             res._dict[key] = tensor
         return res
 
