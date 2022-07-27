@@ -20,7 +20,13 @@ class Parser(BaseParser):
         "model": "Model to use",
     }
 
-    _abbrev = {"dry": "d", "env_id": "e", "observer": "o", "dynamics": "dy", "model": "m"}
+    _abbrev = {
+        "dry": "d",
+        "env_id": "e",
+        "observer": "o",
+        "dynamics": "dy",
+        "model": "m",
+    }
 
 
 def format_config(config: dict) -> str:

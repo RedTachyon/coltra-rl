@@ -25,6 +25,7 @@ def test_attention_network():
     obs = Observation(vector=torch.rand(7, 8), buffer=torch.rand(7, 11, 8))
     out, attention = net(obs)
 
+
 def test_attention_model():
     class Config(BaseConfig):
         activation: str = "tanh"

@@ -20,13 +20,14 @@ from coltra.utils import AffineBeta
 
 class AttentionNetwork(nn.Module):
     """Basic attention network, with Q=K=V ?"""
+
     def __init__(
         self,
         vec_input_size: int = 4,
         rel_input_size: int = 4,
-        vec_hidden_layers: Sequence[int] = (32, ),
-        rel_hidden_layers: Sequence[int] = (32, ),
-        com_hidden_layers: Sequence[int] = (32, ),
+        vec_hidden_layers: Sequence[int] = (32,),
+        rel_hidden_layers: Sequence[int] = (32,),
+        com_hidden_layers: Sequence[int] = (32,),
         output_sizes: Sequence[int] = (2, 2),
         emb_size: int = 32,
         attention_heads: int = 4,
@@ -54,7 +55,9 @@ class AttentionNetwork(nn.Module):
             is_policy=False,
         )
 
-        self.attention = nn.MultiheadAttention(embed_dim=emb_size, num_heads=attention_heads, batch_first=True)
+        self.attention = nn.MultiheadAttention(
+            embed_dim=emb_size, num_heads=attention_heads, batch_first=True
+        )
 
         self.com_mlp = FCNetwork(
             input_size=emb_size + emb_size,
@@ -64,7 +67,6 @@ class AttentionNetwork(nn.Module):
             initializer=initializer,
             is_policy=is_policy,
         )
-
 
     def forward(self, x: Observation) -> Tuple[List[Tensor], Tensor]:
         x_vector = x.vector
@@ -79,7 +81,9 @@ class AttentionNetwork(nn.Module):
         Q = x_vector.unsqueeze(1)  # [B, 1, N]
         K = V = x_buffer
 
-        x_attn, attention = self.attention(Q, K, V, average_attn_weights=False)  # [B, 1, N], [B, H, 1, A]
+        x_attn, attention = self.attention(
+            Q, K, V, average_attn_weights=False
+        )  # [B, 1, N], [B, H, 1, A]
         attention = attention.squeeze(2)  # [B, H, A]
         # num_agents = V.shape[-2]
 
@@ -109,7 +113,9 @@ class AttentionNetwork(nn.Module):
         Q = x_vector.unsqueeze(1)  # [B, 1, N]
         K = V = x_buffer
 
-        x_attn, attention = self.attention(Q, K, V, average_attn_weights=False)  # [B, 1, N]
+        x_attn, attention = self.attention(
+            Q, K, V, average_attn_weights=False
+        )  # [B, 1, N]
 
         # Manual computation of attention - might not be necessary if torch attention behaves well
         # num_agents = V.shape[-2]
@@ -229,6 +235,7 @@ class AttentionModel(BaseModel):
     def latent_value(self, x: Observation, state: Tuple) -> Tensor:
         latent = self.value_network.latent(x)
         return latent
+
 
 #
 # class FlattenRelationModel(RelationModel):

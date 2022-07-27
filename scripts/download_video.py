@@ -13,7 +13,6 @@ class Parser(BaseParser):
         "target_dir": "Path to the directory where to save the video",
         "name": "Name of the video",
         "use_cached_model": "Whether to use the cached model or not. Only use if you know it exists",
-
     }
 
     _abbrev = {
