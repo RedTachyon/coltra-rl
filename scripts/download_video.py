@@ -5,17 +5,21 @@ import subprocess
 class Parser(BaseParser):
     model_name: str
     target_dir: str = "./videos"
+    name: str = "video"
     use_cached_model: bool = False
 
     _help = {
         "model_name": "Name of the model to use",
         "target_dir": "Path to the directory where to save the video",
+        "name": "Name of the video",
         "use_cached_model": "Whether to use the cached model or not. Only use if you know it exists",
+
     }
 
     _abbrev = {
         "model_name": "m",
         "target_dir": "t",
+        "name": "n",
         "use_cached_model": "uc",
     }
 
@@ -52,5 +56,23 @@ if __name__ == "__main__":
         stderr=subprocess.PIPE,
     )
     print(out3.stdout.decode("utf-8"))
+
+    print("Converting video to mp4")
+    out4 = subprocess.run(
+        f"ffmpeg -f webm -i {args.target_dir}/video.webm {args.target_dir}/{args.name}.mp4",
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    print(out4.stdout.decode("utf-8"))
+
+    print("Cleaning up")
+    out5 = subprocess.run(
+        f"rm {args.target_dir}/video.webm",
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    print(out5.stdout.decode("utf-8"))
 
     print("Done")

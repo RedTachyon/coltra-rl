@@ -101,3 +101,18 @@ class RelationConfig(BaseConfig):
     vec_hidden_layers: List[int] = [32, 32]
     rel_hidden_layers: List[int] = [32, 32]
     com_hidden_layers: List[int] = [32, 32]
+
+
+class AttentionConfig(BaseConfig):
+    activation: str = "tanh"
+    initializer: str = "orthogonal"
+
+    sigma0: float = 1.0
+
+    beta: bool = False
+
+    vec_hidden_layers: List[int] = [32, 32]
+    rel_hidden_layers: List[int] = [32, 32]
+    com_hidden_layers: List[int] = [32, 32]
+    emb_size: int = 64
+    attention_heads: int = 8
