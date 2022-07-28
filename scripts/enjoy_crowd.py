@@ -26,12 +26,14 @@ class Parser(BaseParser):
     env: str
     base_video_dir: str = "temp"
     extra_config: Optional[str] = None
+    deterministic: bool = False
 
     _help = {
         "path": "Path to the saved agent",
         "env": "Path to the Unity environment binary",
         "base_video_dir": "Base directory for the video files",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
+        "deterministic": "Whether to use deterministic action sampling or not",
     }
 
     _abbrev = {
@@ -39,6 +41,7 @@ class Parser(BaseParser):
         "env": "e",
         "base_video_dir": "vd",
         "extra_config": "ec",
+        "deterministic": "d",
     }
 
 
@@ -103,7 +106,7 @@ if __name__ == "__main__":
             num_steps=trainer_config["steps"],
             disable_tqdm=False,
             env_kwargs=env_config,
-            deterministic=True,
+            deterministic=args.deterministic,
         )
 
         print(f"Mean return: {np.mean(returns)}")

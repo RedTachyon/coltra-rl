@@ -7,12 +7,14 @@ class Parser(BaseParser):
     target_dir: str = "./videos"
     name: str = "video"
     use_cached_model: bool = False
+    deterministic: bool = False
 
     _help = {
         "model_name": "Name of the model to use",
         "target_dir": "Path to the directory where to save the video",
         "name": "Name of the video",
         "use_cached_model": "Whether to use the cached model or not. Only use if you know it exists",
+        "deterministic": "Whether to use deterministic action sampling or not",
     }
 
     _abbrev = {
@@ -20,6 +22,7 @@ class Parser(BaseParser):
         "target_dir": "t",
         "name": "n",
         "use_cached_model": "uc",
+        "deterministic": "d",
     }
 
 
@@ -40,7 +43,7 @@ if __name__ == "__main__":
 
     print("Generating video on remote")
     out2 = subprocess.run(
-        f"ssh -t ariel.geovic '/home/ariel/anaconda3/envs/coltra/bin/python /home/ariel/projects/coltra-rl/scripts/enjoy_crowd.py -p /home/ariel/temp/{model_name} -e /home/ariel/projects/coltra-rl/builds/crowd-v6a/crowd.x86_64'",
+        f"ssh -t ariel.geovic '/home/ariel/anaconda3/envs/coltra/bin/python /home/ariel/projects/coltra-rl/scripts/enjoy_crowd.py -p /home/ariel/temp/{model_name} -e /home/ariel/projects/coltra-rl/builds/crowd-v6a/crowd.x86_64'" + "-d" if args.deterministic else "",
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
