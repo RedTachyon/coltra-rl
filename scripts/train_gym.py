@@ -1,3 +1,4 @@
+import json
 from typing import Optional, Type
 
 import gym
@@ -6,6 +7,7 @@ import torch
 import yaml
 from typarse import BaseParser
 
+import coltra
 from coltra.agents import CAgent, DAgent, Agent
 from coltra.envs.spaces import ActionSpace
 from coltra.groups import HomogeneousGroup
@@ -35,6 +37,7 @@ class Parser(BaseParser):
     reward_wrapper: bool = False
     time_feature_wrapper: bool = False
     normalize_env: bool = False
+    extra_config: Optional[str] = None
 
     _help = {
         "config": "Config file for the coltra",
@@ -49,6 +52,7 @@ class Parser(BaseParser):
         "reward_wrapper": "Whether env should use the reward wrapper",
         "time_feature_wrapper": "Whether env should use the time feature wrapper",
         "normalize_env": "Whether to normalize the env obs and returns",
+        "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
     }
 
     _abbrev = {
@@ -64,6 +68,7 @@ class Parser(BaseParser):
         "reward_wrapper": "rw",
         "time_feature_wrapper": "tf",
         "normalize_env": "norme",
+        "extra_config": "ec",
     }
 
 
@@ -78,6 +83,16 @@ if __name__ == "__main__":
 
     with open(args.config, "r") as f:
         config = yaml.load(f.read(), yaml.Loader)
+
+    if args.extra_config is not None:
+        extra_config = json.loads(args.extra_config)
+        extra_config = coltra.utils.undot_dict(extra_config)
+        coltra.utils.update_dict(target=config, source=extra_config)
+
+        from pprint import pprint
+
+        print("Extra config:")
+        pprint(extra_config)
 
     trainer_config = config["trainer"]
     model_config = config["model"]
