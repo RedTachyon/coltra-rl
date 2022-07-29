@@ -37,4 +37,4 @@ conda activate coltra
 
 wandb offline
 
-srun bash run_training.sh $ENV_ID $PROJECTNAME $NUM_RUNS $EXTRA_CONFIG
+srun bash run_training.sh $ENV_ID $PROJECTNAME $EXTRA_CONFIG $NUM_RUNS
