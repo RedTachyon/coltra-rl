@@ -28,7 +28,7 @@ class Parser(BaseParser):
     config: str = "ugae_gym_config.yaml"
     iters: int = 1000
     env_name: str
-    name: Optional[str] = None
+    name: str = "ugae"
     project: str = "coltra"
     seed: Optional[int] = None
     # normalize: bool = False
