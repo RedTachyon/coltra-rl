@@ -36,11 +36,11 @@ if __name__ == "__main__":
     if args.env_id == "Humanoid-v4":
         gammas = [0.95, 0.99]
         etas = [0.0, 0.3, 0.5, 0.8, 1.0]
-        lambdas = [0.0, 0.3, 0.5, 0.8, 1.0]
+        lambdas = [0.0, 0.3, 0.5, 0.8, 0.9, 0.95, 1.0]
     else:
         gammas = [0.98, 0.99]
         etas = [0.0, 0.3, 0.5, 0.8, 1.0]
-        lambdas = [0.0, 0.3, 0.5, 0.8, 1.0]
+        lambdas = [0.0, 0.3, 0.5, 0.8, 0.9, 0.95, 1.0]
 
     configs = [(gamma, eta, lambda_) for gamma in gammas for eta in etas for lambda_ in lambdas]
 
