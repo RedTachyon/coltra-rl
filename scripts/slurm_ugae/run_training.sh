@@ -11,13 +11,14 @@ ENV_NAME=${1:-invalid}
 PROJECTNAME=${2:-debug}
 EXTRA_CONFIG=${3:-invalid}
 NUM_RUNS=${4:-invalid}
+ITERS=${5:-invalid}
 
 
 
 #for i in {0..$NUM_RUNS}
 for ((i=0; i<NUM_RUNS; i++))
 do
-    CUDA_VISIBLE_DEVICES=$((i/2)) python $PROJECT/slurm_ugae/train_gym.py -e "$ENV_NAME" -p "$PROJECTNAME" -i 2000 -norme -tf -ec $EXTRA_CONFIG -tb $WORK &
+    CUDA_VISIBLE_DEVICES=$((i/2)) python $PROJECT/slurm_ugae/train_gym.py -e "$ENV_NAME" -p "$PROJECTNAME" -i "$ITERS" -norme -tf -ec $EXTRA_CONFIG -tb $WORK &
     sleep 1
 done
 wait

@@ -54,6 +54,7 @@ if __name__ == "__main__":
     gammas = [0.98, 0.99]
     etas = [0.5, 0.8]
     lambdas = [0.8, 0.9, 1.0]
+    iters = 2000
 
     other_config = {}
     if args.env_id == "Humanoid-v4":
@@ -65,6 +66,10 @@ if __name__ == "__main__":
     if args.env_id == "Ant-v4":
         lambdas = [0.8, 0.9, 1.0]
         other_config["trainer.PPOConfig.OptimizerKwargs.lr"] = 0.0000191
+    if args.env_id == "CartPole-v1":
+        iters = 500
+
+
 
     configs = [(gamma, eta, lambda_) for gamma in gammas for eta in etas for lambda_ in lambdas]
 
@@ -77,7 +82,7 @@ if __name__ == "__main__":
             extra_config = {**other_config, "trainer.PPOConfig.eta": eta, "trainer.PPOConfig.gae_lambda": lam, "trainer.PPOConfig.gamma": gamma}
             cmd = [
                 "sbatch",
-                f"--export=ALL,ENV_ID={args.env_id},NUM_RUNS={num_runs},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
+                f"--export=ALL,ENV_ID={args.env_id},NUM_RUNS={num_runs},ITERS={iters},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
                 ("cpu" if args.cpu else "") + "ugae.sbatch",
                 # "echo.sbatch"
             ]

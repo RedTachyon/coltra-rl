@@ -29,6 +29,7 @@ echo $ENV_ID
 echo $PROJECTNAME
 echo $EXTRA_CONFIG
 echo $NUM_RUNS
+echo $ITERS
 
 module purge
 
@@ -37,4 +38,4 @@ conda activate coltra
 
 wandb offline
 
-srun bash run_training.sh $ENV_ID $PROJECTNAME $EXTRA_CONFIG $NUM_RUNS
+srun bash run_training.sh $ENV_ID $PROJECTNAME $EXTRA_CONFIG $NUM_RUNS $ITERS
