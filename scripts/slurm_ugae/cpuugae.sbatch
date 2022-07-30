@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1
 ##SBATCH --hint=nomultithread
 ##SBATCH --gres=gpu:4
-#SBATCH --cpus-per-task=0
+#SBATCH --cpus-per-task=40
 ##SBATCH --exclusive
 #SBATCH -A ibc@cpu
 
