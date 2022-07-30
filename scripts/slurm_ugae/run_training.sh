@@ -17,7 +17,7 @@ NUM_RUNS=${4:-invalid}
 #for i in {0..$NUM_RUNS}
 for ((i=0; i<NUM_RUNS; i++))
 do
-    CUDA_VISIBLE_DEVICES=$((i/2)) python $PROJECT/slurm_ugae/train_gym.py -e "$ENV_NAME" -p "$PROJECTNAME" -i 1000 -s $i -norme -tf -ec $EXTRA_CONFIG -tb $WORK &
+    CUDA_VISIBLE_DEVICES=$((i/2)) python $PROJECT/slurm_ugae/train_gym.py -e "$ENV_NAME" -p "$PROJECTNAME" -i 2000 -s $i -norme -tf -ec $EXTRA_CONFIG -tb $WORK &
     sleep 1
 done
 wait
