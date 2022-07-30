@@ -31,9 +31,16 @@ if __name__ == "__main__":
 
     num_runs = 8
 
-    gammas = [0.98, 0.99]
-    etas = [0.0, 0.3, 0.5, 0.8, 1.0]
-    lambdas = [0.0, 0.3, 0.5, 0.8, 1.0]
+    base_config = {}
+
+    if args.env_id == "Humanoid-v4":
+        gammas = [0.95, 0.99]
+        etas = [0.0, 0.3, 0.5, 0.8, 1.0]
+        lambdas = [0.0, 0.3, 0.5, 0.8, 1.0]
+    else:
+        gammas = [0.98, 0.99]
+        etas = [0.0, 0.3, 0.5, 0.8, 1.0]
+        lambdas = [0.0, 0.3, 0.5, 0.8, 1.0]
 
     configs = [(gamma, eta, lambda_) for gamma in gammas for eta in etas for lambda_ in lambdas]
 
@@ -41,7 +48,7 @@ if __name__ == "__main__":
 
     for i, (gamma, eta, lam) in enumerate(configs):
 
-        project_name = f"UGAE-jz-{args.env_id}"
+        project_name = f"UGAE-jz-{args.env_id}-long"
         extra_config = {"trainer.PPOConfig.eta": eta, "trainer.PPOConfig.gae_lambda": lam, "trainer.PPOConfig.gamma": gamma}
         cmd = [
             "sbatch",
