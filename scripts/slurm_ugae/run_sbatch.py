@@ -74,7 +74,7 @@ if __name__ == "__main__":
                 # "echo.sbatch"
             ]
             # print(" ".join(cmd))
-            print(f"{j+i}/{total} Running {' '.join(cmd)}")
+            print(f"{j*len(configs)+i}/{total} Running {' '.join(cmd)}")
             cmd = " ".join(cmd)
             if args.dry:
                 print(cmd)
