@@ -8,15 +8,18 @@ from typarse import BaseParser
 class Parser(BaseParser):
     dry: bool
     env_id: str
+    cpu: bool
 
     _help = {
         "dry": "Dry run, do not submit the job",
         "env_id": "Gym environment name to use",
+        "cpu": "Use cpu instead of gpu",
     }
 
     _abbrev = {
         "dry": "d",
         "env_id": "e",
+        "cpu": "cpu",
     }
 
 
@@ -33,14 +36,21 @@ if __name__ == "__main__":
 
     base_config = {}
 
-    if args.env_id == "Humanoid-v4":
-        gammas = [0.95, 0.99]
-        etas = [0.0, 0.3, 0.5, 0.8, 1.0]
-        lambdas = [0.0, 0.3, 0.5, 0.8, 0.9, 0.95, 1.0]
-    else:
-        gammas = [0.98, 0.99]
-        etas = [0.0, 0.3, 0.5, 0.8, 1.0]
-        lambdas = [0.0, 0.3, 0.5, 0.8, 0.9, 0.95, 1.0]
+    # if args.env_id == "Humanoid-v4":
+    #     gammas = [0.95, 0.99]
+    #     etas = [0.0, 0.3, 0.5, 0.8, 1.0]
+    #     lambdas = [0.0, 0.3, 0.5, 0.8, 0.9, 0.95, 1.0]
+    # else:
+    #     gammas = [0.98, 0.99]
+    #     etas = [0.0, 0.3, 0.5, 0.8, 1.0]
+    #     lambdas = [0.0, 0.3, 0.5, 0.8, 0.9, 0.95, 1.0]
+
+    gammas = [0.98, 0.99]
+    etas = [0.5, 0.8]
+    lambdas = [0.8, 0.9]
+
+    if args.env_id in ("Humanoid-v4", "HumanoidStandup-v4"):
+        lambdas = [0.9, 0.95]
 
     configs = [(gamma, eta, lambda_) for gamma in gammas for eta in etas for lambda_ in lambdas]
 
@@ -53,7 +63,7 @@ if __name__ == "__main__":
         cmd = [
             "sbatch",
             f"--export=ALL,ENV_ID={args.env_id},NUM_RUNS={num_runs},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
-            "ugae.sbatch",
+            ("cpu" if args.cpu else "") + "ugae.sbatch",
             # "echo.sbatch"
         ]
         # print(" ".join(cmd))
