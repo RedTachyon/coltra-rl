@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     for i, (gamma, eta, lam) in enumerate(configs):
 
-        project_name = f"UGAE-jz-{args.env_id}-long"
+        project_name = f"UGAE-jz-{args.env_id}-new"
         extra_config = {"trainer.PPOConfig.eta": eta, "trainer.PPOConfig.gae_lambda": lam, "trainer.PPOConfig.gamma": gamma}
         cmd = [
             "sbatch",
