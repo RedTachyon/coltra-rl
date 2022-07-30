@@ -9,17 +9,23 @@ class Parser(BaseParser):
     dry: bool
     env_id: str
     cpu: bool
+    num_runs: int = 8
+    reps: int = 1
 
     _help = {
         "dry": "Dry run, do not submit the job",
         "env_id": "Gym environment name to use",
         "cpu": "Use cpu instead of gpu",
+        "num_runs": "Number of runs to run in each experiment",
+        "reps": "Number of times to repeat the experiment",
     }
 
     _abbrev = {
         "dry": "d",
         "env_id": "e",
         "cpu": "cpu",
+        "num_runs": "n",
+        "reps": "rep",
     }
 
 
@@ -32,7 +38,7 @@ if __name__ == "__main__":
 
     args = Parser()
 
-    num_runs = 8
+    num_runs = args.num_runs
 
     base_config = {}
 
@@ -54,24 +60,25 @@ if __name__ == "__main__":
 
     configs = [(gamma, eta, lambda_) for gamma in gammas for eta in etas for lambda_ in lambdas]
 
-    total = len(configs)
+    total = len(configs) * args.reps
 
-    for i, (gamma, eta, lam) in enumerate(configs):
+    for _ in range(args.reps):
+        for i, (gamma, eta, lam) in enumerate(configs):
 
-        project_name = f"UGAE-jz-{args.env_id}-new"
-        extra_config = {"trainer.PPOConfig.eta": eta, "trainer.PPOConfig.gae_lambda": lam, "trainer.PPOConfig.gamma": gamma}
-        cmd = [
-            "sbatch",
-            f"--export=ALL,ENV_ID={args.env_id},NUM_RUNS={num_runs},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
-            ("cpu" if args.cpu else "") + "ugae.sbatch",
-            # "echo.sbatch"
-        ]
-        # print(" ".join(cmd))
-        print(f"{i}/{total} Running {' '.join(cmd)}")
-        cmd = " ".join(cmd)
-        if args.dry:
-            print(cmd)
-        else:
-            out = subprocess.run(cmd, shell=True, capture_output=True)
-            print(out.stdout.decode("utf-8"))
-        # i += 1
+            project_name = f"UGAE-jz-{args.env_id}-new"
+            extra_config = {"trainer.PPOConfig.eta": eta, "trainer.PPOConfig.gae_lambda": lam, "trainer.PPOConfig.gamma": gamma}
+            cmd = [
+                "sbatch",
+                f"--export=ALL,ENV_ID={args.env_id},NUM_RUNS={num_runs},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",
+                ("cpu" if args.cpu else "") + "ugae.sbatch",
+                # "echo.sbatch"
+            ]
+            # print(" ".join(cmd))
+            print(f"{i}/{total} Running {' '.join(cmd)}")
+            cmd = " ".join(cmd)
+            if args.dry:
+                print(cmd)
+            else:
+                out = subprocess.run(cmd, shell=True, capture_output=True)
+                print(out.stdout.decode("utf-8"))
+            # i += 1

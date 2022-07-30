@@ -2,15 +2,15 @@
 #SBATCH --job-name=ugae-onejob
 ##SBATCH --partition=gpu_p2
 #SBATCH --qos=qos_cpu-t3
-#SBATCH --output=logs/JobGPU%j.out # output file (%j = job ID)
-#SBATCH --error=logs/JobGPU%j.err # error file (%j = job ID)
+#SBATCH --output=logs/JobCPU%j.out # output file (%j = job ID)
+#SBATCH --error=logs/JobGCU%j.err # error file (%j = job ID)
 #SBATCH --time=05:00:00 # maximum allocation time "(HH:MM:SS)"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 ##SBATCH --hint=nomultithread
 ##SBATCH --gres=gpu:4
-#SBATCH --cpus-per-task=40
-#SBATCH --exclusive
+#SBATCH --cpus-per-task=20
+##SBATCH --exclusive
 #SBATCH -A ibc@cpu
 
 # Environment variables to import: (all str names)
