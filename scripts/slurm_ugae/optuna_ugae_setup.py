@@ -5,7 +5,7 @@ from os.path import exists
 
 
 class Parser(BaseParser):
-    name: str = "optuna"
+    name: str = "humanoid_standup"
     force: bool = False
 
     _abbrev = {"name": "n", "force": "f"}

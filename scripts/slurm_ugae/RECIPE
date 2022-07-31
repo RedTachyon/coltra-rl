@@ -1,8 +1,9 @@
 $optuna_name = humanoid_standup
 $wandb = UGAE-optuna-humanoid-standup
+$config_path = optuna_config.yaml
 
-1. <-- python optuna_ugae_setup.py -n $optuna_name (-f) --> DON'T DO THIS
-2. run_optuna_sbatch.sh <config_path> $optuna_name $wandb_name
+1. python optuna_ugae_setup.py -n $optuna_name (-f)
+2. run_optuna_sbatch.py -c <config_path> $optuna_name $wandb_name
   a. optuna_ugae.sbatch with CONFIG=<config_path> OPTUNA=$optuna_name WANDB=$wandb_name
   b. run_optuna_ugae.sh $CONFIG $optuna_name $wandb_name
   c. python optuna_ugae.py -n 1 -o $optuna_name -c $config_path -wp $wandb_name

@@ -2,7 +2,7 @@
 CONFIG=${1:-configs/base.yaml}
 OPTUNA=${2:-optuna}
 WANDB=${3:-jeanzay-sweep}
-TOTAL=${4:-15}
+TOTAL=${4:-50}
 
 echo "CONFIG: $CONFIG"
 echo "OPTUNA: $OPTUNA"
@@ -14,6 +14,8 @@ LASTID1=$(sbatch --export=ALL,CONFIG=$CONFIG,OPTUNA=$OPTUNA,WANDB=$WANDB optuna_
 LASTID1=$(echo $LASTID1 | awk 'NF{ print $NF }')
 
 echo "Launched $LASTID1"
+
+
 LASTID2=$(sbatch --export=ALL,CONFIG=$CONFIG,OPTUNA=$OPTUNA,WANDB=$WANDB optuna_ugae.sbatch)
 LASTID2=$(echo $LASTID2 | awk 'NF{ print $NF }')
 
