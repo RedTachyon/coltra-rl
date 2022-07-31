@@ -16,7 +16,7 @@ trainer:
       amsgrad: false
 
     gamma: 0.993
-    eta: 0.0
+    eta: 1.0
     gae_lambda: 0.891
 
     use_ugae: false
