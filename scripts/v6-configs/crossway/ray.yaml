@@ -19,6 +19,9 @@ trainer:
     eta: 0.0
     gae_lambda: 0.891
 
+    use_ugae: false
+
+
     advantage_normalization: true
 
     eps: 0.143
