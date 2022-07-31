@@ -26,7 +26,7 @@ set_log_level(ERROR)
 
 class Parser(BaseParser):
     config: str = "base.yaml"
-    n_trials: int = 50
+    n_trials: int = 1
     optuna_name: str = "optuna"
     wandb_project: str = "jeanzay-sweep"
 
@@ -92,7 +92,7 @@ def train_one(
         agent.cuda()
 
     trainer = PPOCrowdTrainer(
-        agents=agents, env=env, config=config["trainer"], use_uuid=True
+        agents=agents, env=env, config=config["trainer"], use_uuid=True, save_path="/gpfswork/rech/nbk/utu66tc/"
     )
 
     final_metrics = trainer.train(
@@ -102,7 +102,6 @@ def train_one(
         # trial=trial,
     )
 
-    env.close()
 
     all_returns = []
     for _ in range(10):
@@ -145,8 +144,6 @@ def objective(
 
     LAYER_OPTIONS = [
         [128, 128],
-        [32, 32, 32],
-        [64, 64, 64],
         [256, 256],
         [256, 256, 256],
     ]
@@ -179,8 +176,6 @@ def objective(
 
     config["trainer"]["tensorboard_name"] = f"trial{trial.number}"
     config["trainer"]["PPOConfig"]["use_gpu"] = CUDA
-
-    # TODO: run this several times and average the results
 
     mean_reward = train_one(trial, config, wandb_project)
 
