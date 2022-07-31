@@ -246,8 +246,8 @@ class MultiAgentEnv(gym.Env):
     def render(self, mode="rgb_array"):
         raise NotImplementedError
 
-    def __del__(self):
-        self.close()
+    # def __del__(self):
+    #     self.close()
 
     @staticmethod
     def pack(dict_: dict[str, Observation]) -> Tuple[Observation, List[str]]:

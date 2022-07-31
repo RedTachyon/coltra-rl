@@ -18,6 +18,7 @@ trainer:
       weight_decay: 0
       amsgrad: false
 
+    use_ugae: false
     gamma: 0.99
     eta: 0.5
     gae_lambda: 0.95
