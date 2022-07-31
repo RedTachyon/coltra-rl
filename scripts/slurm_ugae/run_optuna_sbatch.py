@@ -48,7 +48,7 @@ if __name__ == "__main__":
         if not args.dry:
             out = subprocess.run(cmd, shell=True, capture_output=True)
             output = out.stdout.decode("utf-8")
-            job_id = output.split(' ')[-1]
+            job_id = output.split(' ')[-1].strip()
             print(f"Job {job_id} submitted")
             print(output)
         else:
@@ -60,6 +60,6 @@ if __name__ == "__main__":
             if not args.dry:
                 out = subprocess.run(cmd, shell=True, capture_output=True)
                 output = out.stdout.decode("utf-8")
-                job_id = output.split(' ')[-1]
+                job_id = output.split(' ')[-1].strip()
                 print(f"Job {job_id} submitted")
                 print(output)
