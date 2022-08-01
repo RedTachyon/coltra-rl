@@ -103,20 +103,20 @@ def train_one(
     )
 
 
-    all_returns = []
-    for _ in range(10):
-        _, returns = collect_renders(agents, env, num_steps=1000, deterministic=False)
-        all_returns.append(returns)
+    # all_returns = []
+    # for _ in range(10):
+    #     _, returns = collect_renders(agents, env, num_steps=1000, deterministic=False)
+    #     all_returns.append(returns)
 
-    all_returns = np.array(all_returns)
-    mean_reward = np.mean(all_returns)
-    # mean_reward = final_metrics["crowd/mean_episode_reward"]
+    # all_returns = np.array(all_returns)
+    # mean_reward = np.mean(all_returns)
+    mean_reward = final_metrics["crowd/mean_episode_reward"]
 
     env.close()
 
     wandb.finish()
 
-    return mean_reward.item()
+    return mean_reward
 
 
 def objective(
