@@ -38,6 +38,7 @@ class Parser(BaseParser):
     iters: int = 500
     env: str
     name: str
+    worker_id: Optional[int] = None
     project: Optional[str] = None
     extra_config: Optional[str] = None
 
@@ -46,6 +47,7 @@ class Parser(BaseParser):
         "iters": "Number of coltra iterations",
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
+        "worker_id": "Worker id",
         "project": "Type of project to use",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
     }
@@ -55,6 +57,7 @@ class Parser(BaseParser):
         "iters": "i",
         "env": "e",
         "name": "n",
+        "worker_id": "w",
         "project": "p",
         "extra_config": "ec",
     }
@@ -104,11 +107,11 @@ if __name__ == "__main__":
         # Initialize the environment
         if workers > 1:
             env = UnitySimpleCrowdEnv.get_venv(
-                workers, file_name=args.env, no_graphics=True, extra_params=env_config
+                workers, base_worker_id=args.worker_id, file_name=args.env, no_graphics=True, extra_params=env_config
             )
         else:
             env = UnitySimpleCrowdEnv.get_env_creator(
-                file_name=args.env, no_graphics=True, extra_params=env_config
+                file_name=args.env, no_graphics=True, extra_params=env_config, worker_id=args.worker_id
             )()
 
         env.reset()
