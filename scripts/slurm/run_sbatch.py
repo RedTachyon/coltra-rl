@@ -8,15 +8,13 @@ from typarse import BaseParser
 class Parser(BaseParser):
     dry: bool
     env_id: str = "circle30"
-    remove_globals: bool = False
 
     _help = {
         "dry": "Dry run, do not submit the job",
         "env_id": "Environment name to use, from the dictionary defined in the code",
-        "remove_globals": "Whether to remove global observations from the environment",
     }
 
-    _abbrev = {"dry": "d", "env_id": "e", "remove_globals": "rg"}
+    _abbrev = {"dry": "d", "env_id": "e"}
 
 
 def format_config(config: dict) -> str:
@@ -105,9 +103,6 @@ if __name__ == "__main__":
                     project_name = f"DCSRL-jz-{env}"
                     # project_name = f"DCSRL-jz-timing"
                     extra_config = {**models[model], **environment[env]}
-                    if args.remove_globals:
-                        extra_config["__remove_globals__"] = True
-                        project_name += "-rg"
                     cmd = [
                         "sbatch",
                         f"--export=ALL,NUM_RUNS={num_runs},OBSERVER={observer},DYNAMICS={dyn},MODEL={model},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",

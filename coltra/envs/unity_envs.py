@@ -72,7 +72,6 @@ def process_decisions(
     decisions: Union[DecisionSteps, TerminalSteps],
     name: str,
     obs_specs: List[ObservationSpec],
-    remove_globals: bool = False,  # TODO: this is an ugly hack for a specfic experiment, remove this after publication
 ):
     """
     Takes in a DecisionSteps or TerminalSteps object, and returns the relevant information (observations, rewards, dones)
@@ -92,8 +91,6 @@ def process_decisions(
                 for spec, obs in zip(obs_specs, dec_obs)
             }
         )
-        if remove_globals:
-            obs.vector[:2] = 0
 
         obs_dict[agent_name] = obs
         reward_dict[agent_name] = decisions.reward[dec_ids.index(idx)]
@@ -109,7 +106,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         virtual_display: Optional[tuple[int, int]] = None,
         worker_id: Optional[int] = None,
         extra_params: Optional[dict[str, Any]] = None,
-        remove_globals: bool = False,  # whether to remove global observations, ugly temporary hack
         **kwargs,
     ):
         super().__init__()
@@ -133,7 +129,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         else:
             self.virtual_display = None
 
-        self.remove_globals = remove_globals
         self.engine_channel = EngineConfigurationChannel()
         self.stats_channel = StatsChannel()
         self.param_channel = EnvironmentParametersChannel()
@@ -209,10 +204,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             behavior_specs = self.behaviors[name][0]
 
             n_obs_dict, n_reward_dict, n_done_dict = process_decisions(
-                decisions, name, behavior_specs, self.remove_globals
+                decisions, name, behavior_specs
             )
             n_ter_obs_dict, n_ter_reward_dict, n_ter_done_dict = process_decisions(
-                terminals, name, behavior_specs, self.remove_globals
+                terminals, name, behavior_specs
             )
 
             for key, value in n_ter_done_dict.items():
