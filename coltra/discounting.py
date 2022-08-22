@@ -144,55 +144,6 @@ def get_beta_vector(T: int, α: float, β: float) -> np.ndarray:
     return discount
 
 
-# @njit
-# def _discount_bgae(
-#     rewards: np.ndarray,  # float tensor (T, N)
-#     values: np.ndarray,  # float tensor (T, N)
-#     dones: np.array,  # boolean tensor (T, N)
-#     γ: float,  # \in (0, 1); extreme values imply with eta = 0
-#     η: float = 0,
-#     λ: float = 0.95,  # \in [0, 1]; possible [0, \infty)
-#     *,
-#     gamma: float = None,
-#     eta: float = None
-# ) -> np.ndarray:
-#     """
-#     A numpy/numba-based CPU-optimized computation. Wrapped by discount_bgae for a Tensor interface
-#     """
-#     if gamma is not None:
-#         γ = gamma
-#     if eta is not None:
-#         η = eta
-#
-#     T = rewards.shape[1]
-#     assert T == values.shape[1]
-#
-#     α, β = convert_params(γ, η)
-#
-#     advantages = np.empty_like(rewards, dtype=np.float32)
-#
-#     Γ_all = get_beta_vector(T + 1, α, β)
-#
-#     λ_all = np.array([λ**i for i in range(T)], dtype=np.float32)
-#
-#     for t in range(T):
-#         s_rewards = rewards[:, t:]
-#         s_values = values[:, t + 1 :]
-#         old_value = values[:, t]
-#
-#         Γ_v = Γ_all[: T - t]
-#         Γ_v1 = Γ_all[1 : T - t]
-#         λ_v = λ_all[: T - t]
-#
-#         future_rewards = s_rewards @ (λ_v * Γ_v)
-#         future_values = s_values @ (np.float32(1.0 - λ) * (λ_v[:-1] * Γ_v1))
-#
-#         advantage = -old_value + future_rewards + future_values
-#         advantages[:, t] = advantage
-#
-#     return advantages
-
-
 @njit
 def _bgae_one_episode(
     rewards: np.ndarray,  # (T,)
