@@ -36,7 +36,7 @@ jobs:
         black .
     - name: Run pytype
       run: |
-        pytype .
+        pytype --config pytype.cfg .
     - name: Test with pytest
       run: |
         pytest
