@@ -51,7 +51,7 @@ if __name__ == "__main__":
     #     etas = [0.0, 0.3, 0.5, 0.8, 1.0]
     #     lambdas = [0.0, 0.3, 0.5, 0.8, 0.9, 0.95, 1.0]
 
-    gammas = [0.98, 0.99]
+    gammas = [0.98]#, 0.99]
     etas = [0.5, 0.8]
     lambdas = [0.8, 0.9, 1.0]
     iters = 2000
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         other_config["trainer.PPOConfig.OptimizerKwargs.lr"] = 0.0000191
     if args.env_id == "CartPole-v1":
         iters = 500
-
+    # if args.env_id ==
 
 
     configs = [(gamma, eta, lambda_) for gamma in gammas for eta in etas for lambda_ in lambdas]

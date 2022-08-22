@@ -5,6 +5,7 @@ import gym
 import numpy as np
 import torch
 import yaml
+from gym.spaces import Box
 from typarse import BaseParser
 
 import coltra
@@ -117,7 +118,11 @@ if __name__ == "__main__":
         wrappers.append(
             lambda e: gym.wrappers.TransformReward(e, lambda reward: reward / 10.0)
         )
-        wrappers.append(gym.wrappers.ClipAction)
+        _env = gym.make(args.env_name)
+        if isinstance(_env.action_space, Box):
+            wrappers.append(gym.wrappers.ClipAction)
+        _env.close()
+
     # Initialize the environment
     env = MultiGymEnv.get_venv(
         workers=workers, env_name=args.env_name, wrappers=wrappers, seed=args.seed
