@@ -225,7 +225,7 @@ class AttentionModel(BaseModel):
         return action_distribution, (), extra_outputs
 
     def value(self, x: Observation, state: Tuple = ()) -> Tensor:
-        [value] = self.value_network(x)
+        [value, attn] = self.value_network(x)
         return value
 
     def latent(self, x: Observation, state: Tuple) -> Tensor:
