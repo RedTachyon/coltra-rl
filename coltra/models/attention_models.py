@@ -79,7 +79,7 @@ class AttentionNetwork(nn.Module):
         [x_buffer] = self.rel_mlp(x_buffer)  # [B, A, N]; Q = K = V in attention
 
         Q = x_vector.unsqueeze(1)  # [B, 1, N]
-        K = V = x_buffer
+        K = V = x_buffer  # [B, A, N]
 
         x_attn, attention = self.attention(
             Q, K, V, average_attn_weights=False

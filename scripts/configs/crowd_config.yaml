@@ -49,10 +49,13 @@ model:
   rel_hidden_layers: [64, 64, 64]
   com_hidden_layers: [128, 128]
 
+  emb_size: 64
+  attention_heads: 4
+
 
 environment:
   num_agents: 12
-  mode: "Circle"
+  mode: Crossway
 
   # Reward function
   potential: 1

@@ -21,6 +21,7 @@ from coltra.collectors import collect_renders
 from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.groups import HomogeneousGroup
 from coltra.models import BaseModel
+from coltra.models.attention_models import AttentionModel
 from coltra.models.mlp_models import MLPModel, RayMLPModel
 from coltra.models.relational_models import RelationModel, RayRelationModel
 from coltra.trainers import PPOCrowdTrainer
@@ -97,6 +98,7 @@ if __name__ == "__main__":
             "relation",
             "ray",
             "rayrelation",
+            "attention",
         ), ValueError(f"Wrong model type {model_type} in the config.")
 
         trainer_config["tensorboard_name"] = args.name
@@ -130,6 +132,8 @@ if __name__ == "__main__":
 
         if model_type == "relation":
             model_cls = RelationModel
+        elif model_type == "attention":
+            model_cls = AttentionModel
         elif model_type == "blind":
             model_cls = MLPModel
         elif model_type == "ray":
