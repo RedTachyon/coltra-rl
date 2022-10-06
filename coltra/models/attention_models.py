@@ -81,9 +81,14 @@ class AttentionNetwork(nn.Module):
         Q = x_vector.unsqueeze(1)  # [B, 1, N]
         K = V = x_buffer  # [B, A, N]
 
+        if hasattr(self, "buffer_mask"):
+            buffer_mask = self.buffer_mask
+        else:
+            buffer_mask = None
+
         x_attn, attention = self.attention(
             Q, K, V, average_attn_weights=False,
-            key_padding_mask=x.buffer_mask
+            key_padding_mask=buffer_mask
 
         )  # [B, 1, N], [B, H, 1, A]
 
