@@ -85,12 +85,24 @@ def process_decisions(
     for idx in dec_ids:
         agent_name = f"{name}&id={idx}"
 
-        obs = Observation(
-            **{
-                Sensor.from_string(spec.name).to_string(): obs[dec_ids.index(idx)]
-                for spec, obs in zip(obs_specs, dec_obs)
-            }
-        )
+        obs_raw = {
+            Sensor.from_string(spec.name).to_string(): obs[dec_ids.index(idx)]
+            for spec, obs in zip(obs_specs, dec_obs)
+        }
+        # if "buffer" in obs_raw:
+        #     obs_raw["buffer"] = obs_raw["buffer"][~np.all(obs_raw["buffer"] == 0, axis=1)]
+
+        if "buffer" in obs_raw:
+            obs_raw["buffer_mask"] = np.all(obs_raw["buffer"] == 0, axis=1)
+
+        obs = Observation(**obs_raw)
+
+        # obs = Observation(
+        #     **{
+        #         Sensor.from_string(spec.name).to_string(): obs[dec_ids.index(idx)]
+        #         for spec, obs in zip(obs_specs, dec_obs)
+        #     }
+        # )
 
         obs_dict[agent_name] = obs
         reward_dict[agent_name] = decisions.reward[dec_ids.index(idx)]

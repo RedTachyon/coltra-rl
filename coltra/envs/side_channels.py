@@ -87,3 +87,20 @@ class StringChannel(SideChannel):
 
     def on_message_received(self, msg: IncomingMessage) -> None:
         raise ValueError("Sending a message through a read-only channel")
+
+
+class AttentionChannel(SideChannel):
+    def __init__(self):
+        super().__init__(uuid.UUID("43842a14-43d6-11ed-8437-acde48001122"))
+
+    def send_string(self, key: str, value: str) -> None:
+        # Unused, mostly just pro forma
+        # Add the string to an OutgoingMessage
+        msg = OutgoingMessage()
+        msg.write_string(key)
+        msg.write_string(value)
+        # We call this method to queue the data we want to send
+        super().queue_message_to_send(msg)
+
+    def on_message_received(self, msg: IncomingMessage) -> None:
+        raise ValueError("Sending a message through a read-only channel")

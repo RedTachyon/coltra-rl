@@ -148,12 +148,12 @@ class CAgent(Agent):  # Continuous Agent
             else:
                 actions = action_distribution.rsample()
 
-        extra = {}
+        # extra = {}
         if get_value:
             value = extra_outputs["value"]
-            extra["value"] = value.squeeze(-1).cpu().numpy()
+            extra_outputs["value"] = value.squeeze(-1).cpu().numpy()
 
-        return Action(continuous=actions.cpu().numpy()), states, extra
+        return Action(continuous=actions.cpu().numpy()), states, extra_outputs
 
     def evaluate(
         self, obs_batch: Observation, action_batch: Action
@@ -223,12 +223,12 @@ class DAgent(Agent):
             else:
                 actions = action_distribution.sample()
 
-        extra = {}
+        # extra = {}
         if get_value:
             value = extra_outputs["value"]
-            extra["value"] = value.squeeze(-1).cpu().numpy()
+            extra_outputs["value"] = value.squeeze(-1).cpu().numpy()
 
-        return Action(discrete=actions.cpu().numpy()), states, extra
+        return Action(discrete=actions.cpu().numpy()), states, extra_outputs
 
     def evaluate(
         self, obs_batch: Observation, action_batch: Action

@@ -76,14 +76,17 @@ class AttentionNetwork(nn.Module):
         x_buffer = x.buffer
         assert len(x_buffer.shape) == 3  # [B, A, N]
 
-        [x_buffer] = self.rel_mlp(x_buffer)  # [B, A, N]; Q = K = V in attention
+        [x_buffer] = self.rel_mlp(x_buffer)  # [B, A, N]; K = V in attention
 
         Q = x_vector.unsqueeze(1)  # [B, 1, N]
         K = V = x_buffer  # [B, A, N]
 
         x_attn, attention = self.attention(
-            Q, K, V, average_attn_weights=False
+            Q, K, V, average_attn_weights=False,
+            key_padding_mask=x.buffer_mask
+
         )  # [B, 1, N], [B, H, 1, A]
+
         attention = attention.squeeze(2)  # [B, H, A]
         # num_agents = V.shape[-2]
 
