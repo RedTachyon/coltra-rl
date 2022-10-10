@@ -393,3 +393,15 @@ def undot_dict(d: dict) -> dict:
                 subdict = subdict.setdefault(subkey, {})
             subdict[keys[-1]] = value
     return dict(new_dict)
+
+
+def attention_string(attention: dict[str, torch.Tensor]) -> str:
+    """
+    Converts the attention dict to a string that can be transmitted to the unity env for rendering.
+    Only works for a single (non-vectorized) env.
+    """
+    # values = {k: torch.round(a.mean(0) * 100).to(int) for k, a in attention.items()}
+
+    values = [torch.round(a.mean(0) * 100).to(int) for k, a in attention.items()]
+    return "\n".join(" ".join([str(x) for x in val.tolist()]) for val in values)
+

@@ -21,7 +21,7 @@ from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
 
-from coltra.envs.side_channels import StatsChannel, StringChannel
+from coltra.envs.side_channels import StatsChannel, StringChannel, AttentionChannel
 from coltra.buffers import Observation, Action
 from coltra.envs.subproc_vec_env import SubprocVecEnv
 from coltra.envs.base_env import (
@@ -145,6 +145,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.stats_channel = StatsChannel()
         self.param_channel = EnvironmentParametersChannel()
         self.string_channel = StringChannel()
+        self.attention_channel = AttentionChannel()
 
         self.active_agents: List[str] = []
 
@@ -152,6 +153,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         kwargs["side_channels"].append(self.stats_channel)
         kwargs["side_channels"].append(self.param_channel)
         kwargs["side_channels"].append(self.string_channel)
+        kwargs["side_channels"].append(self.attention_channel)
 
         if worker_id is None:
             worker_id = find_free_worker(500)

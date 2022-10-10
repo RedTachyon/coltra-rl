@@ -93,11 +93,9 @@ class AttentionChannel(SideChannel):
     def __init__(self):
         super().__init__(uuid.UUID("43842a14-43d6-11ed-8437-acde48001122"))
 
-    def send_string(self, key: str, value: str) -> None:
-        # Unused, mostly just pro forma
+    def send_string(self, value: str) -> None:
         # Add the string to an OutgoingMessage
         msg = OutgoingMessage()
-        msg.write_string(key)
         msg.write_string(value)
         # We call this method to queue the data we want to send
         super().queue_message_to_send(msg)

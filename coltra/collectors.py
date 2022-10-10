@@ -3,9 +3,12 @@ from typing import Tuple, Optional, Any
 import numpy as np
 from tqdm import trange
 
+from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.buffers import OnPolicyRecord, OnPolicyBuffer
 from coltra.envs import MultiAgentEnv
 from coltra.groups import HomogeneousGroup
+
+from coltra.utils import attention_string
 
 
 def collect_crowd_data(
@@ -94,6 +97,7 @@ def collect_renders(
     deterministic: bool = True,
     disable_tqdm: bool = False,
     env_kwargs: Optional[dict] = None,
+    show_attention: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Performs a rollout of the agent in the environment, recording the renders
@@ -129,6 +133,13 @@ def collect_renders(
         action_dict, states, extra = agents.act(
             obs_dict, deterministic, get_value=False
         )
+
+        if show_attention:
+            attention = extra["attention"]
+            attention_msg = attention_string(attention)
+            assert isinstance(env, UnitySimpleCrowdEnv), "Can't visualize attention outside of Unity crowd envs"
+
+            env.attention_channel.send_string(attention_msg)
 
         # Actual step in the environment
         next_obs, reward_dict, done_dict, info_dict = env.step(action_dict)

@@ -27,6 +27,7 @@ class Parser(BaseParser):
     base_video_dir: str = "temp"
     extra_config: Optional[str] = None
     deterministic: bool = False
+    show_attention: bool = False
 
     _help = {
         "path": "Path to the saved agent",
@@ -34,6 +35,7 @@ class Parser(BaseParser):
         "base_video_dir": "Base directory for the video files",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
         "deterministic": "Whether to use deterministic action sampling or not",
+        "show_attention": "Whether to visualize the attention values or not",
     }
 
     _abbrev = {
@@ -42,6 +44,7 @@ class Parser(BaseParser):
         "base_video_dir": "vd",
         "extra_config": "ec",
         "deterministic": "d",
+        "show_attention": "sa",
     }
 
 
@@ -107,6 +110,7 @@ if __name__ == "__main__":
             disable_tqdm=False,
             env_kwargs=env_config,
             deterministic=args.deterministic,
+            show_attention=args.show_attention,
         )
 
         print(f"Mean return: {np.mean(returns)}")
