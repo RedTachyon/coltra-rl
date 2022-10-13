@@ -37,16 +37,19 @@ model:
   activation: tanh
   initializer: orthogonal
 
+  sigma0: 0.4
+
   beta: false
 
   hidden_sizes: [64, 64, 64]
   separate_value: true
 
-  sigma0: 0.4
 
-  vec_hidden_layers: [32, 32]
-  rel_hidden_layers: [64, 64, 64]
+  vec_hidden_layers: [128, 128, 128]
+  rel_hidden_layers: [128, 128, 128]
   com_hidden_layers: [128, 128]
+  emb_size: 64
+  attention_heads: 8
 
 
 environment:
