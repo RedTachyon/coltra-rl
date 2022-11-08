@@ -404,4 +404,3 @@ def attention_string(attention: dict[str, torch.Tensor]) -> str:
 
     values = [torch.round(a.mean(0) * 100).to(int) for k, a in attention.items()]
     return "\n".join(" ".join([str(x) for x in val.tolist()]) for val in values)
-

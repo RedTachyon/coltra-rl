@@ -41,14 +41,13 @@ if __name__ == "__main__":
 
     args = Parser()
 
-
     for i in range(args.streams):
         cmd = f"sbatch --export=ALL,CONFIG={args.config},OPTUNA={args.optuna},WANDB={args.wandb_project} optuna_ugae.sbatch"
         print(f"Executing {cmd}")
         if not args.dry:
             out = subprocess.run(cmd, shell=True, capture_output=True)
             output = out.stdout.decode("utf-8")
-            job_id = output.split(' ')[-1].strip()
+            job_id = output.split(" ")[-1].strip()
             print(f"Job {job_id} submitted")
             print(output)
         else:
@@ -60,6 +59,6 @@ if __name__ == "__main__":
             if not args.dry:
                 out = subprocess.run(cmd, shell=True, capture_output=True)
                 output = out.stdout.decode("utf-8")
-                job_id = output.split(' ')[-1].strip()
+                job_id = output.split(" ")[-1].strip()
                 print(f"Job {job_id} submitted")
                 print(output)

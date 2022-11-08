@@ -43,7 +43,9 @@ class MultiGymEnv(MultiAgentEnv):
 
         import_fn()
 
-        self.s_env = gym.make(env_name, disable_env_checker=True, render_mode=render_mode, **kwargs)
+        self.s_env = gym.make(
+            env_name, disable_env_checker=True, render_mode=render_mode, **kwargs
+        )
         self.s_env.reset(seed=seed)
         self.name = name
         self.wrappers = wrappers

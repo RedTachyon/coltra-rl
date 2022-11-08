@@ -315,9 +315,7 @@ class UnityEnvironment(BaseEnv):
 
     def reset_async(self) -> None:
         if self._loaded:
-            self._communicator.exchange_async(
-                self._generate_reset_input()
-            )
+            self._communicator.exchange_async(self._generate_reset_input())
         else:
             raise UnityEnvironmentException("No Unity environment is loaded.")
 

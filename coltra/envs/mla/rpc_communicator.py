@@ -158,7 +158,6 @@ class RpcCommunicator(Communicator):
             return None
         return output.unity_output
 
-
     def close(self):
         """
         Sends a shutdown signal to the unity environment, and closes the grpc connection.

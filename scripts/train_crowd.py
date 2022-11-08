@@ -108,11 +108,18 @@ if __name__ == "__main__":
         # Initialize the environment
         if workers > 1:
             env = UnitySimpleCrowdEnv.get_venv(
-                workers, base_worker_id=args.worker_id, file_name=args.env, no_graphics=True, extra_params=env_config
+                workers,
+                base_worker_id=args.worker_id,
+                file_name=args.env,
+                no_graphics=True,
+                extra_params=env_config,
             )
         else:
             env = UnitySimpleCrowdEnv.get_env_creator(
-                file_name=args.env, no_graphics=True, extra_params=env_config, worker_id=args.worker_id
+                file_name=args.env,
+                no_graphics=True,
+                extra_params=env_config,
+                worker_id=args.worker_id,
             )()
 
         env.reset()

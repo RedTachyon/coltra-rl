@@ -73,7 +73,6 @@ if __name__ == "__main__":
 
     workers = trainer_config["workers"]
 
-
     # Initialize the environment
     env = EnergyEnv(num_agents=workers)
 

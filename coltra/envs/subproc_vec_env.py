@@ -238,7 +238,6 @@ class SubprocVecEnv(MultiAgentEnv):
             remote.send(("envs", None))
         return [remote.recv() for remote in self.remotes]
 
-
     def _get_indices(self, indices):
         """
         Convert a flexibly-typed reference to environment indices to an implied list of indices.
@@ -251,7 +250,6 @@ class SubprocVecEnv(MultiAgentEnv):
         elif isinstance(indices, int):
             indices = [indices]
         return indices
-
 
     def _get_target_remotes(self, indices):
         """

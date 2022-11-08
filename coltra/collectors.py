@@ -137,7 +137,9 @@ def collect_renders(
         if show_attention:
             attention = extra["attention"]
             attention_msg = attention_string(attention)
-            assert isinstance(env, UnitySimpleCrowdEnv), "Can't visualize attention outside of Unity crowd envs"
+            assert isinstance(
+                env, UnitySimpleCrowdEnv
+            ), "Can't visualize attention outside of Unity crowd envs"
 
             env.attention_channel.send_string(attention_msg)
 

@@ -45,9 +45,7 @@ class Parser(BaseParser):
     }
 
 
-def train_one(
-    trial: optuna.Trial, config: dict, wandb_project: str
-):
+def train_one(trial: optuna.Trial, config: dict, wandb_project: str):
 
     config = copy.deepcopy(config)
 
@@ -63,7 +61,9 @@ def train_one(
     wrappers.append(gym.wrappers.ClipAction)
 
     env = MultiGymEnv.get_venv(
-        workers=config["trainer"]["workers"], env_name="HumanoidStandup-v4", wrappers=wrappers
+        workers=config["trainer"]["workers"],
+        env_name="HumanoidStandup-v4",
+        wrappers=wrappers,
     )
     action_space: ActionSpace = env.action_space
     observation_space = env.observation_space
@@ -92,7 +92,11 @@ def train_one(
         agent.cuda()
 
     trainer = PPOCrowdTrainer(
-        agents=agents, env=env, config=config["trainer"], use_uuid=True, save_path="/gpfswork/rech/nbk/utu66tc/"
+        agents=agents,
+        env=env,
+        config=config["trainer"],
+        use_uuid=True,
+        save_path="/gpfswork/rech/nbk/utu66tc/",
     )
 
     final_metrics = trainer.train(
@@ -101,7 +105,6 @@ def train_one(
         save_path=trainer.path,
         # trial=trial,
     )
-
 
     # all_returns = []
     # for _ in range(10):
@@ -119,9 +122,7 @@ def train_one(
     return mean_reward
 
 
-def objective(
-    trial: optuna.Trial, config_path: str, wandb_project: str
-) -> float:
+def objective(trial: optuna.Trial, config_path: str, wandb_project: str) -> float:
     # Get some parameters
     lr = trial.suggest_loguniform("lr", 1e-5, 1e-2)
     n_episodes = 1
@@ -152,7 +153,6 @@ def objective(
 
     vec_hidden_layers = trial.suggest_categorical("vec_hidden_layers", LAYER_IDX)
     vec_hidden_layers = LAYER_OPTIONS[vec_hidden_layers]
-
 
     optuna_model_kwargs = {
         "hidden_sizes": vec_hidden_layers,
@@ -190,9 +190,7 @@ if __name__ == "__main__":
     )
 
     study.optimize(
-        lambda trial: objective(
-            trial, args.config, args.wandb_project
-        ),
+        lambda trial: objective(trial, args.config, args.wandb_project),
         n_trials=args.n_trials,
     )
 

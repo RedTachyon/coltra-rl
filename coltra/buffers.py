@@ -13,7 +13,8 @@ from typing import (
     Any,
     TypeVar,
     Type,
-    Sequence, Iterator
+    Sequence,
+    Iterator,
 )
 
 import numpy as np
@@ -429,5 +430,3 @@ class TensorDict(Mapping):
 
     def __iter__(self) -> Iterator[str]:
         return iter(self.names)
-
-

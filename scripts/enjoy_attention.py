@@ -107,7 +107,7 @@ if __name__ == "__main__":
             disable_tqdm=False,
             env_kwargs=env_config,
             deterministic=args.deterministic,
-            send_attention=True
+            send_attention=True,
         )
 
         print(f"Mean return: {np.mean(returns)}")

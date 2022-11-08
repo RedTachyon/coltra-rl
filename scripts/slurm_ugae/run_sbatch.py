@@ -51,7 +51,7 @@ if __name__ == "__main__":
     #     etas = [0.0, 0.3, 0.5, 0.8, 1.0]
     #     lambdas = [0.0, 0.3, 0.5, 0.8, 0.9, 0.95, 1.0]
 
-    gammas = [0.98]#, 0.99]
+    gammas = [0.98]  # , 0.99]
     etas = [0.5, 0.8]
     lambdas = [0.8, 0.9, 1.0]
     iters = 2000
@@ -70,8 +70,9 @@ if __name__ == "__main__":
         iters = 500
     # if args.env_id ==
 
-
-    configs = [(gamma, eta, lambda_) for gamma in gammas for eta in etas for lambda_ in lambdas]
+    configs = [
+        (gamma, eta, lambda_) for gamma in gammas for eta in etas for lambda_ in lambdas
+    ]
 
     total = len(configs) * args.reps
 
@@ -79,7 +80,12 @@ if __name__ == "__main__":
         for i, (gamma, eta, lam) in enumerate(configs):
 
             project_name = f"UGAE-jz-{args.env_id}-new"
-            extra_config = {**other_config, "trainer.PPOConfig.eta": eta, "trainer.PPOConfig.gae_lambda": lam, "trainer.PPOConfig.gamma": gamma}
+            extra_config = {
+                **other_config,
+                "trainer.PPOConfig.eta": eta,
+                "trainer.PPOConfig.gae_lambda": lam,
+                "trainer.PPOConfig.gamma": gamma,
+            }
             cmd = [
                 "sbatch",
                 f"--export=ALL,ENV_ID={args.env_id},NUM_RUNS={num_runs},ITERS={iters},PROJECTNAME={project_name},EXTRA_CONFIG=\"'{format_config(extra_config)}'\"",

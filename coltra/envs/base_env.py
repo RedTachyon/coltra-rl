@@ -51,7 +51,6 @@ class MultiAgentEnv:
     def close(self):
         pass
 
-
     @staticmethod
     def pack(dict_: dict[str, Observation]) -> Tuple[Observation, List[str]]:
         keys = list(dict_.keys())

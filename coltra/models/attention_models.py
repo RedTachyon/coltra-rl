@@ -87,9 +87,7 @@ class AttentionNetwork(nn.Module):
             buffer_mask = None
 
         x_attn, attention = self.attention(
-            Q, K, V, average_attn_weights=False,
-            key_padding_mask=buffer_mask
-
+            Q, K, V, average_attn_weights=False, key_padding_mask=buffer_mask
         )  # [B, 1, N], [B, H, 1, A]
 
         attention = attention.squeeze(2)  # [B, H, A]

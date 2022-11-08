@@ -147,5 +147,12 @@ if __name__ == "__main__":
     if CUDA:
         agents.cuda()
 
-    trainer = PPOCrowdTrainer(agents, env, trainer_config, seed=args.seed, use_uuid=True, save_path=args.tb_path)
+    trainer = PPOCrowdTrainer(
+        agents,
+        env,
+        trainer_config,
+        seed=args.seed,
+        use_uuid=True,
+        save_path=args.tb_path,
+    )
     trainer.train(args.iters, disable_tqdm=False, save_path=trainer.path)
