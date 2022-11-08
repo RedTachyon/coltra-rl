@@ -86,7 +86,7 @@ class MultiGymEnv(MultiAgentEnv):
             info["final_obs"] = Observation(vector=obs.astype(np.float32))
             info["e_episode_reward"] = np_float(self.total_reward)
             self.total_reward = 0
-            obs = self.s_env.reset()
+            obs, _ = self.s_env.reset()
 
         obs = Observation(vector=obs.astype(np.float32))
         return self._dict(obs), self._dict(reward), self._dict(done), info
