@@ -4,8 +4,8 @@ from typing import Dict, Any, List, Tuple, Union, Sequence
 
 import numpy as np
 import torch
-from gym import Space
-from gym.spaces import Box
+from gymnasium import Space
+from gymnasium.spaces import Box
 from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.distributions import Distribution, Normal

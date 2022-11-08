@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.distributions import Normal, Categorical
-import gym
+import gymnasium as gym
 
 from coltra.models.base_models import BaseModel
 from coltra.buffers import Observation, Action

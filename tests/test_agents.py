@@ -3,7 +3,7 @@ import shutil
 
 import numpy as np
 import torch
-from gym.spaces import Box, Discrete
+from gymnasium.spaces import Box, Discrete
 from torch import Tensor
 
 from coltra.agents import ConstantAgent, CAgent, DAgent, Agent

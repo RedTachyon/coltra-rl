@@ -5,7 +5,6 @@ from torch import Tensor
 from coltra.agents import Agent
 from coltra.buffers import Observation, Action
 from coltra.envs import MultiAgentEnv
-from coltra.envs.base_env import VecEnv
 
 
 class AgentWrapper(Agent):
@@ -71,5 +70,5 @@ class EnvWrapper(MultiAgentEnv):
         return self.env.render()
 
     @classmethod
-    def get_venv(cls, workers: int = 8, *args, **kwargs) -> VecEnv:
+    def get_venv(cls, workers: int = 8, *args, **kwargs) -> MultiAgentEnv:
         raise NotImplementedError

@@ -1,7 +1,7 @@
 from typing import Union, Dict
 
 import numpy as np
-import gym
+import gymnasium as gym
 
 
 class LastRewardWrapper(gym.Wrapper):

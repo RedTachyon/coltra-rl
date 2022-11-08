@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 import torch
-from gym.spaces import Box, Discrete
+from gymnasium.spaces import Box, Discrete
 from torch import Tensor
 from torch.distributions import Normal
 from typarse import BaseConfig

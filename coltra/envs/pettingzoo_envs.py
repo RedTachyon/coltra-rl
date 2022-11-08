@@ -1,12 +1,12 @@
-from typing import Callable, Any
-import numpy as np
-from gym.spaces import Discrete
+from typing import Callable
 
+import numpy as np
+from gymnasium.spaces import Discrete
 from pettingzoo.utils.env import ParallelEnv
 
 from coltra.buffers import Observation
 from coltra.envs import MultiAgentEnv, SubprocVecEnv
-from coltra.envs.base_env import VecEnv, ActionDict, StepReturn, ObsDict
+from coltra.envs.base_env import ActionDict, StepReturn, ObsDict
 
 
 def sigmoid(x: np.ndarray):

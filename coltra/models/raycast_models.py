@@ -1,7 +1,7 @@
 import copy
 from typing import Dict, List, Tuple
 
-from gym import Space
+from gymnasium import Space
 from torch.distributions import Distribution, Normal
 from typarse import BaseConfig
 

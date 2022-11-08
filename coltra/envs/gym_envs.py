@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional, Callable, List, Type
 
-import gym
-from gym import Wrapper
+import gymnasium as gym
+from gymnasium import Wrapper
 import numpy as np
 
 from coltra.buffers import Observation, Action
@@ -21,6 +21,8 @@ class MultiGymEnv(MultiAgentEnv):
     A wrapper for environments that can be `gym.make`'d
     """
 
+    s_env: gym.Env
+
     def __init__(
         self,
         env_name: str,
@@ -28,6 +30,7 @@ class MultiGymEnv(MultiAgentEnv):
         import_fn: Callable = lambda: None,
         seed: Optional[int] = None,
         wrappers: Optional[list[Type[Wrapper]]] = None,
+        render_mode: Optional[str] = None,
         **kwargs
     ):
         super().__init__()
@@ -40,8 +43,8 @@ class MultiGymEnv(MultiAgentEnv):
 
         import_fn()
 
-        self.s_env = gym.make(env_name, disable_env_checker=True, **kwargs)
-        self.s_env.seed(seed)
+        self.s_env = gym.make(env_name, disable_env_checker=True, render_mode=render_mode, **kwargs)
+        self.s_env.reset(seed=seed)
         self.name = name
         self.wrappers = wrappers
 
@@ -60,7 +63,7 @@ class MultiGymEnv(MultiAgentEnv):
         self.total_reward = 0
 
     def reset(self, *args, **kwargs):
-        obs = self.s_env.reset()
+        obs, info = self.s_env.reset()
         obs = Observation(vector=obs.astype(np.float32))
         self.total_reward = 0
 
@@ -73,7 +76,8 @@ class MultiGymEnv(MultiAgentEnv):
         else:
             action = action.continuous
 
-        obs, reward, done, info = self.s_env.step(action)
+        obs, reward, terminated, truncated, info = self.s_env.step(action)
+        done = terminated or truncated
         self.total_reward += reward
 
         if done:
@@ -86,7 +90,7 @@ class MultiGymEnv(MultiAgentEnv):
         return self._dict(obs), self._dict(reward), self._dict(done), info
 
     def render(self, *args, **kwargs):
-        return self.s_env.render(*args, **kwargs)
+        return self.s_env.render()
 
     def _dict(self, val: Any) -> dict[str, Any]:
         return {self.name: val}

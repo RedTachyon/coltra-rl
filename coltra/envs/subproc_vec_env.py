@@ -1,14 +1,28 @@
 import multiprocessing as mp
-from collections import OrderedDict
-from typing import Sequence, Any, Dict, List, Callable, Union, Optional
+from typing import Sequence, Any, List, Callable, Union, Optional
 
-import gym
+import cloudpickle
 import numpy as np
 
 from coltra.buffers import Observation
-from coltra.utils import parse_agent_name
-from coltra.envs.base_env import VecEnv, CloudpickleWrapper
 from coltra.envs.base_env import MultiAgentEnv
+from coltra.utils import parse_agent_name
+
+
+class CloudpickleWrapper(object):
+    def __init__(self, var):
+        """
+        Uses cloudpickle to serialize contents (otherwise multiprocessing tries to use pickle)
+
+        :param var: (Any) the variable you wish to wrap for pickling with cloudpickle
+        """
+        self.var = var
+
+    def __getstate__(self):
+        return cloudpickle.dumps(self.var)
+
+    def __setstate__(self, obs):
+        self.var = cloudpickle.loads(obs)
 
 
 def _worker(
@@ -60,7 +74,7 @@ def _worker(
             break
 
 
-class SubprocVecEnv(VecEnv, MultiAgentEnv):
+class SubprocVecEnv(MultiAgentEnv):
     """
     Creates a multiprocess vectorized wrapper for multiple environments, distributing each environment to its own
     process, allowing significant speed up when the environment is computationally complex.
@@ -90,6 +104,7 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
         env_fns: list[Callable[[], MultiAgentEnv]],
         start_method: Optional[str] = None,
     ):
+        super().__init__()
         self.waiting = False
         self.closed = False
         n_envs = len(env_fns)
@@ -120,7 +135,9 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
 
         self.remotes[0].send(("get_spaces", None))
         observation_space, action_space = self.remotes[0].recv()
-        VecEnv.__init__(self, len(env_fns), observation_space, action_space)
+        self.num_envs = n_envs
+        self.observation_space = observation_space
+        self.action_space = action_space
 
     def step_async(self, actions):
         """Send the actons to the environments"""
@@ -146,6 +163,16 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
             _gather_subproc(dones),
             _flatten_info(infos),
         )
+
+    def step(self, actions):
+        """
+        Step the environments with the given action
+
+        :param actions: ([int] or [float]) the action
+        :return: ([int] or [float], [float], [bool], dict) observation, reward, done, information
+        """
+        self.step_async(actions)
+        return self.step_wait()
 
     def seed(self, seed=None):
         for idx, remote in enumerate(self.remotes):
@@ -210,6 +237,21 @@ class SubprocVecEnv(VecEnv, MultiAgentEnv):
         for idx, remote in enumerate(self.remotes):
             remote.send(("envs", None))
         return [remote.recv() for remote in self.remotes]
+
+
+    def _get_indices(self, indices):
+        """
+        Convert a flexibly-typed reference to environment indices to an implied list of indices.
+
+        :param indices: (None,int,Iterable) refers to indices of envs.
+        :return: (list) the implied list of indices.
+        """
+        if indices is None:
+            indices = range(self.num_envs)
+        elif isinstance(indices, int):
+            indices = [indices]
+        return indices
+
 
     def _get_target_remotes(self, indices):
         """

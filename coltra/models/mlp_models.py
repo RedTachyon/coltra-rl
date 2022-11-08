@@ -4,8 +4,8 @@ from typing import Dict, Tuple, Callable, List
 import numpy as np
 import torch
 import torch.nn.functional as F
-from gym import Space
-from gym.spaces import Discrete, Box
+from gymnasium import Space
+from gymnasium.spaces import Discrete, Box
 from torch import nn, Tensor
 from torch.distributions import (
     Distribution,

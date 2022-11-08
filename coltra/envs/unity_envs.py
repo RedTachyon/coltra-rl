@@ -3,7 +3,7 @@ from typing import Tuple, List, Union, Dict, Optional, Any
 from enum import Enum
 
 from PIL.Image import Image
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from mlagents_envs.base_env import (
     ActionTuple,
     DecisionStep,

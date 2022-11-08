@@ -1,6 +1,6 @@
 from typing import Optional
 
-import gym
+import gymnasium as gym
 import torch
 import yaml
 from typarse import BaseParser

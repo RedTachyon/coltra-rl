@@ -3,7 +3,7 @@ import os
 from logging import ERROR
 
 import cv2
-import gym
+import gymnasium as gym
 import numpy as np
 import optuna
 from matplotlib import pyplot as plt

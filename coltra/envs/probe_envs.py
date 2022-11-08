@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 
-from gym.spaces import Box, Discrete
+from gymnasium.spaces import Box, Discrete
 import numpy as np
 
 from coltra.buffers import Observation, Action

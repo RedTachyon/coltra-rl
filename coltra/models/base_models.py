@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import List, Callable, Union, Tuple, Dict, Sequence
 
 import torch
-from gym import Space
-from gym.spaces import Discrete, Box
+from gymnasium import Space
+from gymnasium.spaces import Discrete, Box
 from torch import nn, Tensor
 from torch.distributions import Distribution
 

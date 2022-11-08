@@ -3,7 +3,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 import torch
-from gym import Space
+from gymnasium import Space
 from torch import Tensor, nn
 from torch.distributions import Distribution, Categorical, Normal
 

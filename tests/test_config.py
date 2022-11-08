@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box, Discrete
+from gymnasium.spaces import Box, Discrete
 
 from coltra.configs import MLPConfig
 from coltra.envs.spaces import ObservationSpace

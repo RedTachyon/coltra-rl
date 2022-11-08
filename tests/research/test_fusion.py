@@ -2,8 +2,8 @@ from itertools import chain
 
 import numpy as np
 import torch
-from gym import Space
-from gym.spaces import Box, Discrete
+from gymnasium import Space
+from gymnasium.spaces import Box, Discrete
 from torch import nn
 from torch.distributions import Distribution
 

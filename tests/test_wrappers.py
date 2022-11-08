@@ -1,10 +1,10 @@
 import os
 import shutil
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from coltra.buffers import discrete
 from coltra.envs import MultiGymEnv

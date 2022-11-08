@@ -1,7 +1,7 @@
 import json
 from typing import Optional, Type
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
 import yaml
@@ -17,7 +17,6 @@ from coltra.envs import MultiGymEnv
 
 import wandb
 
-import pybullet_envs
 
 from coltra.wrappers import ObsVecNormWrapper, LastRewardWrapper
 from coltra.wrappers.agent_wrappers import RetNormWrapper

@@ -1,26 +1,23 @@
-import copy
 import os
 import datetime
-import shortuuid
+import os
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple, Union
+from typing import Any, Optional
 
 import numpy as np
 import optuna
+import shortuuid
 import torch
 import yaml
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import trange
-from typarse import BaseConfig
 
-from coltra.agents import Agent
 from coltra.collectors import collect_crowd_data
 from coltra.configs import TrainerConfig
-from coltra.envs import SubprocVecEnv, MultiAgentEnv
+from coltra.envs import MultiAgentEnv
 from coltra.groups import HomogeneousGroup
 from coltra.policy_optimization import CrowdPPOptimizer
 from coltra.utils import Timer, write_dict
-from coltra.envs.base_env import VecEnv
 
 
 class Trainer:
@@ -43,7 +40,7 @@ class PPOCrowdTrainer(Trainer):
     def __init__(
         self,
         agents: HomogeneousGroup,
-        env: Union[MultiAgentEnv, VecEnv],
+        env: MultiAgentEnv,
         config: dict[str, Any],
         use_uuid: bool = False,
         seed: Optional[int] = None,

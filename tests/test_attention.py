@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from torch.distributions import Normal
 from typarse import BaseConfig
 

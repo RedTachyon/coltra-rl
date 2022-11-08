@@ -1,7 +1,7 @@
 from typing import Optional
 
 import cv2
-import gym
+import gymnasium as gym
 import torch
 import yaml
 from typarse import BaseParser
@@ -11,8 +11,6 @@ from coltra.collectors import collect_renders
 from coltra.groups import HomogeneousGroup
 from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiGymEnv
-
-import pybullet_envs
 
 
 class Parser(BaseParser):
@@ -46,7 +44,7 @@ if __name__ == "__main__":
     args = Parser()
 
     # Initialize the environment
-    env = MultiGymEnv.get_venv(1, env_name=args.env_name)
+    env = MultiGymEnv.get_venv(1, env_name=args.env_name, render_mode="rgb_array")
     action_space = env.action_space
     observation_space = env.observation_space
 

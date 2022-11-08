@@ -1,6 +1,6 @@
 from typing import Optional
 
-from gym.spaces import Space, Box, Discrete
+from gymnasium.spaces import Space, Box, Discrete
 
 from coltra.buffers import Observation, Action
 

@@ -1,9 +1,8 @@
 import json
-from typing import Optional, Type
+from typing import Optional
 
-import gym
-import numpy as np
 import torch
+import wandb
 import yaml
 from typarse import BaseParser
 
@@ -14,15 +13,6 @@ from coltra.envs.spaces import ActionSpace
 from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.trainers import PPOCrowdTrainer
-from coltra.envs import MultiGymEnv
-
-import wandb
-
-import pybullet_envs
-
-from coltra.wrappers import ObsVecNormWrapper, LastRewardWrapper
-from coltra.wrappers.agent_wrappers import RetNormWrapper
-from coltra.wrappers.env_wrappers import TimeFeatureWrapper
 
 
 class Parser(BaseParser):
