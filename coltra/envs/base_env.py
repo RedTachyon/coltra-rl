@@ -48,6 +48,9 @@ class MultiAgentEnv:
     def render(self, mode="rgb_array"):
         raise NotImplementedError
 
+    def close(self):
+        pass
+
 
     @staticmethod
     def pack(dict_: dict[str, Observation]) -> Tuple[Observation, List[str]]:
