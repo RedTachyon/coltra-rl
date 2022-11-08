@@ -46,11 +46,12 @@ class LastRewardWrapper(gym.Wrapper):
             )
 
     def reset(self):
-        return self._get_obs(self.env.reset(), 0)
+        obs, info = self.env.reset()
+        return self._get_obs(obs, 0.0), info
 
     def step(self, action: Union[int, np.ndarray]):
-        obs, reward, done, info = self.env.step(action)
-        return self._get_obs(obs, reward), reward, done, info
+        obs, reward, terminated, truncated, info = self.env.step(action)
+        return self._get_obs(obs, reward), reward, terminated, truncated, info
 
     def _get_obs(
         self, obs: Union[np.ndarray, Dict[str, np.ndarray]], reward: float
@@ -130,12 +131,13 @@ class TimeFeatureWrapper(gym.Wrapper):
 
     def reset(self):
         self._current_step = 0
-        return self._get_obs(self.env.reset())
+        obs, info = self.env.reset()
+        return self._get_obs(obs), info
 
     def step(self, action: Union[int, np.ndarray]):
         self._current_step += 1
-        obs, reward, done, info = self.env.step(action)
-        return self._get_obs(obs), reward, done, info
+        obs, reward, terminated, truncated, info = self.env.step(action)
+        return self._get_obs(obs), reward, terminated, truncated, info
 
     def _get_obs(
         self, obs: Union[np.ndarray, Dict[str, np.ndarray]]
