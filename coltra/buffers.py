@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Mapping
 from dataclasses import dataclass, field, fields
 from typing import (
     List,
@@ -12,7 +13,7 @@ from typing import (
     Any,
     TypeVar,
     Type,
-    Sequence,
+    Sequence, Iterator
 )
 
 import numpy as np
@@ -409,3 +410,24 @@ class DQNBuffer:  # TODO: this and OnPolicyBuffer should have a common base clas
             ),
             done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
         )
+
+
+class TensorDict(Mapping):
+    def __init__(self, data: Array, names: Sequence[str]):
+        super().__init__()
+        self.data = data
+        self.names = names
+        self.inverse_names = {name: i for i, name in enumerate(names)}
+
+        assert len(self.names) == len(self.data)
+
+    def __getitem__(self, k: str) -> Array:
+        return self.data[self.inverse_names[k]]
+
+    def __len__(self) -> int:
+        return len(self.data)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.names)
+
+

@@ -25,7 +25,6 @@ from coltra.models.attention_models import AttentionModel
 from coltra.models.mlp_models import MLPModel, RayMLPModel
 from coltra.models.relational_models import RelationModel, RayRelationModel
 from coltra.trainers import PPOCrowdTrainer
-from coltra.models.raycast_models import LeeModel
 
 import coltra.data_utils as du
 from coltra.training_utils import evaluate
