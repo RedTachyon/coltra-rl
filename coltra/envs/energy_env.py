@@ -24,7 +24,7 @@ class EnergyEnv(MultiAgentEnv):
 
         self.pos = None
         self.vel = None
-        self.goals = None
+        self.goal = None
         self.live = []
         self.time = 0
 
@@ -100,7 +100,7 @@ class LineEnergyEnv(MultiAgentEnv):
 
         self.pos = None
         self.vel = None
-        self.goals = None
+        self.goal = None
         self.live = []
         self.time = 0
 
