@@ -12,3 +12,17 @@ def evaluate_trajectory(trajectory: Trajectory, reward_function: callable, gamma
     Returns:
         float: Trajectory evaluation.
     """
+    pass
+
+
+def annotate_actions(trajectory: Trajectory, dynamics: str = "CarVel"):
+    """Annotate the actions of a trajectory with the next state, next action, and reward.
+
+    Args:
+        trajectory (Trajectory): Trajectory to annotate.
+        dynamics (str, optional): Dynamics model to use. Defaults to "CarVel".
+
+    Returns:
+        Trajectory: Annotated trajectory.
+    """
+    pass
