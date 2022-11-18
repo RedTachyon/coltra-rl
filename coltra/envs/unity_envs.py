@@ -169,12 +169,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         self.unity.reset()
 
-        # All behavior names, except for Manager agents which do not take actions but manage the environment
         behaviors = dict(self.unity.behavior_specs)
         self.behaviors = {
             key: value
             for key, value in behaviors.items()
-            if not key.startswith("Manager")
         }
 
         # semi-hardcoded computation of obs/action spaces, slightly different api than gym
@@ -295,12 +293,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         self.unity.reset()
 
-        # All behavior names, except for Manager agents which do not take actions but manage the environment
         behaviors = dict(self.unity.behavior_specs)
         self.behaviors = {key: value for key, value in behaviors.items()}
 
-        # ...but manager is used to collect stats
-        # self.manager = [key for key in behaviors if key.startswith("Manager")][0]
 
         obs_dict, _, _, _ = self._get_step_info(step=True)
         if len(obs_dict) == 0:
