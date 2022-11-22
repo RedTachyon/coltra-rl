@@ -1,7 +1,13 @@
+from __future__ import annotations
+
+from typing import Callable
+
+import numpy as np
+
 from coltra.data_utils import Trajectory
 
 
-def evaluate_trajectory(trajectory: Trajectory, reward_function: callable, gamma: float = 0.99, eta: float = 0.0) -> float:
+def evaluate_trajectory(trajectory: Trajectory, reward_function: Callable[[np.ndarray, np.ndarray], float], gamma: float = 0.99, eta: float = 0.0) -> float:
     """Evaluate a trajectory according to the reward function.
 
     Args:
@@ -15,7 +21,7 @@ def evaluate_trajectory(trajectory: Trajectory, reward_function: callable, gamma
     pass
 
 
-def annotate_actions(trajectory: Trajectory, dynamics: str = "CarVel"):
+def annotate_actions(trajectory: Trajectory, dynamics: str = "CarVel") -> np.ndarray:
     """Annotate the actions of a trajectory with the next state, next action, and reward.
 
     Args:
