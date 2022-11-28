@@ -143,8 +143,8 @@ def moving_average(a: np.ndarray, n: int = 3) -> np.ndarray:
 class Trajectory:
     time: np.ndarray
     pos: np.ndarray
-    goal: np.ndarray = None
-    finish: np.ndarray = None
+    goal: np.ndarray | None = None
+    finish: np.ndarray | None = None
 
     def __post_init__(self):
         if self.goal is None:
