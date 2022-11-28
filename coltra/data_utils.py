@@ -123,7 +123,8 @@ def read_trajectory(path: str, max_time: int = 1000) -> Trajectory:
     traj_dict = read_json(path)
     return Trajectory(
         time=traj_dict["time"][:max_time], pos=traj_dict["position"][:, :max_time, :],
-        goal=traj_dict["goal"] if "goal" in traj_dict else None
+        goal=traj_dict["goal"] if "goal" in traj_dict else None,
+        finish=traj_dict["finish"].astype(int) if "finish" in traj_dict else None
     )
 
 
@@ -143,33 +144,40 @@ class Trajectory:
     time: np.ndarray
     pos: np.ndarray
     goal: np.ndarray = None
+    finish: np.ndarray = None
 
     def __post_init__(self):
         if self.goal is None:
             self.goal = self.pos[:, -1, :]
+        if self.finish is None:
+            self.finish = np.full(self.pos.shape[0], self.pos.shape[1], dtype=int)
 
     def __getitem__(self, item):
         if isinstance(item, tuple):
             if len(item) == 1:
                 goal_idx = item
                 time_idx = slice(None)
+                finish_idx = item
             elif len(item) == 2:
                 goal_idx, _ = item
                 time_idx = item[1]
+                finish_idx = item[0]
             else:
                 goal_idx = (item[0], item[2])
                 time_idx = item[1]
-        else:
+                finish_idx = item[0]
+        else:  # isinstance(item, int):
             goal_idx = item
             time_idx = slice(None)
-        return Trajectory(time=self.time[time_idx], pos=self.pos[item], goal=self.goal[goal_idx])
+            finish_idx = item
+        return Trajectory(time=self.time[time_idx], pos=self.pos[item], goal=self.goal[goal_idx], finish=self.finish[finish_idx])
 
     def __iter__(self):
         return iter(astuple(self))
 
 
 def get_velocity(trajectory: Trajectory) -> np.ndarray:
-    time, pos, goal = trajectory
+    time, pos, goal = trajectory.time, trajectory.pos, trajectory.goal
 
     velocity = np.diff(pos, axis=-2) / np.diff(time)[None, :, None]
 
@@ -193,7 +201,7 @@ def get_angle(trajectory: Trajectory) -> np.ndarray:
 
 
 def get_speed(trajectory: Trajectory) -> np.ndarray:
-    time, pos, goal = trajectory
+    time, pos, goal = trajectory.time, trajectory.pos, trajectory.goal
 
     speed = np.diff(pos, axis=-2)
     speed = np.linalg.norm(speed, axis=-1) / np.diff(time)
@@ -202,7 +210,7 @@ def get_speed(trajectory: Trajectory) -> np.ndarray:
 
 
 def draw_trajectory(trajectory: Trajectory):
-    time, positions, goal = trajectory
+    time, positions, goal = trajectory.time, trajectory.pos, trajectory.goal
     if len(positions.shape) == 2:
         positions = np.expand_dims(positions, 0)
 
@@ -259,7 +267,7 @@ def rot_matrix(theta: np.ndarray) -> np.ndarray:
 
 
 def norm_trajectory(trajectory: Trajectory, fix_sign: bool = False) -> Trajectory:
-    time, pos, goal = trajectory
+    time, pos, goal = trajectory.time, trajectory.pos, trajectory.goal
 
     start = pos[:, 0, np.newaxis, :]
     end = pos[:, -1, np.newaxis, :]
@@ -281,7 +289,7 @@ def norm_trajectory(trajectory: Trajectory, fix_sign: bool = False) -> Trajector
 
 
 def get_acceleration(trajectory: Trajectory, norm: bool = False) -> np.ndarray:
-    time, pos, goal = trajectory
+    time, pos, goal = trajectory.time, trajectory.pos, trajectory.goal
 
     vel = get_velocity(trajectory)
     accel = np.diff(vel, axis=-2) / np.diff(time)[None, :-1, None]
