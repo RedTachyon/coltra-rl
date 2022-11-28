@@ -49,14 +49,15 @@ model:
   rel_hidden_layers: [128, 128, 128]
   com_hidden_layers: [128, 128]
   emb_size: 64
-  attention_heads: 8
+  attention_heads: 2
 
 
 environment:
   num_agents: 50
-  mode: "Circle"
-  dynamics: "PolarAcceleration"
-  observer: "Egocentric"
+  initializer: "Crossway"
+  dynamics: "CartesianAcceleration"
+  observer: "Relative"
+  rewarder: "BaseRewarder"
 
   # Reward function
   potential: 1
@@ -75,7 +76,8 @@ environment:
   comfort_distance: 0
   comfort_distance_weight: 0
 
-  energy_complex: false # Needs to be fixed in Unity
+  energy_weight: 1
+  final_energy_weight: 1
 
   # Observations
   sight_radius: 10
@@ -83,34 +85,34 @@ environment:
   sight_angle: 180
   sight_acceleration: false
 
-  destroy_raycasts: true
-  ray_agent_vision: true
   rays_per_direction: 10
   ray_length: 10
   ray_degrees: 90
+  ray_agent_vision: true
+  destroy_raycasts: true
 
   # Spawn
-  spawn_noise_scale: 0.5
-  spawn_scale: 6
+  spawn_noise_scale: 0.3
+  spawn_scale: 5
 
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: false
+  enable_obstacles: true
   block_scale: 3
 
   random_mass: true
   random_energy: true
 
-
   shared_goal: true
 
+
   evaluation_mode: false
-  nice_colors: true
   # save_path:  # This should probably be set manually
   early_finish: false
+  nice_colors: true
 
   show_attention: false
   backwards_allowed: true
 
-model_type: "attention"
+model_type: "relation"

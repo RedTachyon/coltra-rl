@@ -43,12 +43,12 @@ class Parser(BaseParser):
     extra_config: Optional[str] = None
 
     _help = {
-        "config": "Config file for the coltra. If preceded by 'wandb:', will use wandb to fetch config.",
+        "config": "Config file for coltra. If preceded by 'wandb:', will use wandb to fetch config.",
         "iters": "Number of coltra iterations",
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
         "worker_id": "Worker id",
-        "project": "Type of project to use",
+        "project": "Name of wandb project",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
     }
 
