@@ -283,7 +283,7 @@ def norm_trajectory(trajectory: Trajectory, fix_sign: bool = False) -> Trajector
         sign = np.sign(norm_pos.mean(axis=1, keepdims=True))
         norm_pos *= sign
 
-    norm_traj = Trajectory(time=time, pos=norm_pos)
+    norm_traj = Trajectory(time=time, pos=norm_pos, goal=norm_pos[:,-1,:], finish=trajectory.finish)
 
     return norm_traj
 
