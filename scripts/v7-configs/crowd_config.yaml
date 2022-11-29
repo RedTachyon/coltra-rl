@@ -9,13 +9,13 @@ trainer:
   PPOConfig:
     optimizer: adam
     OptimizerKwargs:
-      lr: 8.7e-05
+      lr: 0.0001
       betas: !!python/tuple [0.9, 0.999]
       eps: 1.0e-07
       weight_decay: 0
       amsgrad: false
 
-    gamma: 0.993
+    gamma: 1
     eta: 0.0
     gae_lambda: 0.891
 
@@ -53,10 +53,10 @@ model:
 
 
 environment:
-  num_agents: 20
+  num_agents: 12
   initializer: "Circle"
-  dynamics: "PolarVelocity"
-  observer: "Egocentric"
+  dynamics: "PolarAcceleration"
+  observer: "Relative"
   rewarder: "Energy"
 
   # Reward function
