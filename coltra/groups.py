@@ -95,6 +95,8 @@ class HomogeneousGroup(MacroAgent):
         deterministic: bool = False,
         get_value: bool = False,
     ):
+        if len(obs_dict) == 0:
+            return {}, (), {}
         obs, keys = pack(obs_dict)
         actions, states, extra = self.agent.act(
             obs_batch=obs,

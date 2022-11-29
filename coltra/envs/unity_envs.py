@@ -235,10 +235,16 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         if len(reward_dict) < len(obs_dict):
             raise ValueError("This shouldn't happen, check it")
-        done_dict["__all__"] = all(done_dict.values())
+        # done_dict["__all__"] = all(done_dict.values())
 
         # info_dict["final_obs"] = ter_obs_dict
         # info_dict["final_rewards"] = ter_reward_dict
+
+        for agent_id, done in done_dict.items():
+            if done:
+                # TODO: For some reason this is the thing that works, idk why I don't need to update the observations
+                reward_dict[agent_id] = ter_reward_dict[agent_id]
+                # obs_dict[agent_id] = ter_obs_dict[agent_id]
 
         stats = self.stats_channel.parse_info(clear=step)
         # stats = parse_side_message(self.stats_channel.last_msg)

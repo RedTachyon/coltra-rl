@@ -53,11 +53,11 @@ model:
 
 
 environment:
-  num_agents: 50
-  initializer: "Crossway"
-  dynamics: "CartesianAcceleration"
-  observer: "Relative"
-  rewarder: "BaseRewarder"
+  num_agents: 20
+  initializer: "Circle"
+  dynamics: "PolarVelocity"
+  observer: "Egocentric"
+  rewarder: "Energy"
 
   # Reward function
   potential: 1
@@ -98,7 +98,7 @@ environment:
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: true
+  enable_obstacles: false
   block_scale: 3
 
   random_mass: true
