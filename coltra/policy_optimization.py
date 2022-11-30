@@ -114,6 +114,8 @@ class CrowdPPOptimizer:
             metrics: a dict with the TB metrics of the update
 
         """
+
+        # TODO: figure out the OB1 error that's lurking somewhere, using the convention from the crowd
         metrics = {}
         timer = Timer()
 

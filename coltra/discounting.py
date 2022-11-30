@@ -87,6 +87,8 @@ def discount_experience(
         eta: same as η, see above
     """
 
+    # TODO: this is probably bugged
+
     np_last_vals = last_values.detach().cpu().numpy().astype(np.float32)
     batch_size = np_last_vals.shape
     np_rewards = (
@@ -98,6 +100,7 @@ def discount_experience(
     np_dones = (
         dones.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
     )
+    import pdb; pdb.set_trace()
     if not use_ugae:
         advantages = _fast_discount_gae(
             np_rewards, np_values, np_dones, np_last_vals, γ, λ
@@ -206,6 +209,7 @@ def _discount_bgae(
         values_i = values[i]
         dones_i = dones[i]
 
+        # TODO: this is messed up, at least with the new env - maybe also with new crowds?
         reward_parts = np.split(rewards_i, np.where(dones_i)[0])
         value_parts = np.split(values_i, np.where(dones_i)[0])
 
