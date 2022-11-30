@@ -100,7 +100,6 @@ def discount_experience(
     np_dones = (
         dones.detach().cpu().numpy().astype(np.float32).reshape(batch_size + (-1,))
     )
-    import pdb; pdb.set_trace()
     if not use_ugae:
         advantages = _fast_discount_gae(
             np_rewards, np_values, np_dones, np_last_vals, γ, λ
