@@ -197,6 +197,7 @@ def _discount_bgae(
     η: float = 0.95,
     λ: float = 0.95,
 ):
+    # TODO: this is probably broken by making it match the normal discounting
     N = rewards.shape[0]
     T = rewards.shape[1]
     advantages = np.empty_like(rewards, dtype=np.float32)
@@ -242,7 +243,7 @@ def _discount_bgae(
     return advantages
 
 
-@njit
+# @njit
 def _fast_discount_gae(
     rewards: np.ndarray,  # [B, T] shape
     values: np.ndarray,
@@ -251,6 +252,7 @@ def _fast_discount_gae(
     γ: float = 0.99,
     λ: float = 0.95,
 ):
+    # TODO: this is probably broken with my data collection semantic
     γ = np.float32(γ)
     λ = np.float32(λ)
     advantages = np.zeros_like(rewards)
