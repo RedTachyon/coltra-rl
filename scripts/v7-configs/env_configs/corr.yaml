@@ -55,7 +55,7 @@ model:
 environment:
   num_agents: 50
   initializer: "Corridor"
-  dynamics: "PolarAcceleration"
+  dynamics: "CartesianAcceleration"
   observer: "Relative"
   rewarder: "BaseRewarder"
 

@@ -56,7 +56,7 @@ environment:
   num_agents: 20
   initializer: "Circle"
   dynamics: "PolarAcceleration"
-  observer: "Relative"
+  observer: "Egocentric"
   rewarder: "BaseRewarder"
 
   # Reward function
