@@ -15,9 +15,11 @@ trainer:
       weight_decay: 0
       amsgrad: false
 
-    gamma: 0.993
+    gamma: 1
     eta: 0.0
-    gae_lambda: 0.891
+    gae_lambda: 1
+
+    use_ugae: true
 
     advantage_normalization: true
 
@@ -53,7 +55,7 @@ model:
 
 
 environment:
-  num_agents: 12
+  num_agents: 15
   initializer: "Circle"
   dynamics: "PolarAcceleration"
   observer: "Relative"

@@ -72,7 +72,7 @@ def process_decisions(
     decisions: Union[DecisionSteps, TerminalSteps],
     name: str,
     obs_specs: List[ObservationSpec],
-):
+) -> tuple[ObsDict, RewardDict, DoneDict]:
     """
     Takes in a DecisionSteps or TerminalSteps object, and returns the relevant information (observations, rewards, dones)
     """

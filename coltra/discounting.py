@@ -87,7 +87,6 @@ def discount_experience(
         eta: same as η, see above
     """
 
-    # TODO: this is probably bugged
 
     np_last_vals = last_values.detach().cpu().numpy().astype(np.float32)
     batch_size = np_last_vals.shape
@@ -210,12 +209,15 @@ def _discount_bgae(
         dones_i = dones[i]
 
         # TODO: this is messed up, at least with the new env - maybe also with new crowds?
-        reward_parts = np.split(rewards_i, np.where(dones_i)[0])
-        value_parts = np.split(values_i, np.where(dones_i)[0])
+        split = np.where(dones_i)[0] + 1
+        reward_parts = np.split(rewards_i, split)
+        value_parts = np.split(values_i, split)
 
         adv_parts = numba.typed.List()
 
         for j, (rew_part, val_part) in enumerate(zip(reward_parts, value_parts)):
+            if len(rew_part) == 0:
+                continue
             if j == len(reward_parts) - 1:
                 last_val = last_values[i]
                 is_final = True
@@ -242,8 +244,7 @@ def _discount_bgae(
 
     return advantages
 
-
-# @njit
+@njit
 def _fast_discount_gae(
     rewards: np.ndarray,  # [B, T] shape
     values: np.ndarray,
