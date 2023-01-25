@@ -72,7 +72,7 @@ def random_curriculum(config: dict | None = None, seed: int = 0, step: int = 0) 
     Based on the default config, but randomly samples the configuration and number of agents
 
     To randomize:
-    - Scenario (`initializer`): catergorical
+    - Scenario (`initializer`): categorical
     - Number of agents (`num_agents`): 5 - 50
     - Obstacles? (`enable_obstacles`): binary
     """
