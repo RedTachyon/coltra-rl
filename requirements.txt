@@ -25,6 +25,6 @@ pillow~=8.4.0
 setuptools~=58.0.4
 pyvirtualdisplay~=2.2
 optuna~=2.10.0
-pytype==2021.10.18
+pytype==2023.1.17
 jax==0.3.10
 jaxlib
