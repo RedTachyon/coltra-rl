@@ -22,6 +22,8 @@ class DelayedEnv(MultiAgentEnv):
         self.observation_space = ObservationSpace({"vector": gym.spaces.Box(low=0, high=1, shape=(2,))})
         self.action_space = ActionSpace({"discrete": gym.spaces.Discrete(2)})
 
+        self.timer = 0
+
     def reset(self, **kwargs):
         self.timer = 0
         return self.get_obs()

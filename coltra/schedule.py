@@ -66,6 +66,8 @@ def fixed_curriculum(config: dict | None = None, seed: int = 0, step: int = 0) -
     """
     Uses a fixed environment configuration. Effectively a no-op to fit the template.
     """
+    if config is None:
+        config = BASE_CONFIG
     config = config.copy()
     return config
 

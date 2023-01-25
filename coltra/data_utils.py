@@ -144,7 +144,7 @@ class Trajectory:
     time: np.ndarray
     pos: np.ndarray
     goal: np.ndarray
-    finish: np.ndarray
+    finish: np.ndarray | None
 
     def __post_init__(self):
         if self.goal is None:
