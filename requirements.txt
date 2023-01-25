@@ -29,3 +29,4 @@ pytype==2023.1.17
 jax==0.4.1
 jaxlib==0.4.1
 shortuuid==1.0.11
+black==22.3.0

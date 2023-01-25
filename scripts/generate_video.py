@@ -39,7 +39,6 @@ if __name__ == "__main__":
         print(out1.stdout.decode("utf-8"))
         print(out1.stderr.decode("utf-8"))
 
-
     print("Generating video on remote")
     out2 = subprocess.run(
         f"/home/ariel/anaconda3/envs/coltra/bin/python /home/ariel/projects/coltra-rl/scripts/enjoy_crowd.py -p /home/ariel/temp/{model_name} -e /home/ariel/projects/coltra-rl/builds/crowd-v6a/crowd.x86_64",

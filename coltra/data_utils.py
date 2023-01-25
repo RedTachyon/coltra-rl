@@ -122,9 +122,10 @@ def read_json(path: str) -> Dict[str, np.ndarray]:
 def read_trajectory(path: str, max_time: int = 1000) -> Trajectory:
     traj_dict = read_json(path)
     return Trajectory(
-        time=traj_dict["time"][:max_time], pos=traj_dict["position"][:, :max_time, :],
+        time=traj_dict["time"][:max_time],
+        pos=traj_dict["position"][:, :max_time, :],
         goal=traj_dict["goal"] if "goal" in traj_dict else None,
-        finish=traj_dict["finish"].astype(int) if "finish" in traj_dict else None
+        finish=traj_dict["finish"].astype(int) if "finish" in traj_dict else None,
     )
 
 
@@ -170,7 +171,12 @@ class Trajectory:
             goal_idx = item
             time_idx = slice(None)
             finish_idx = item
-        return Trajectory(time=self.time[time_idx], pos=self.pos[item], goal=self.goal[goal_idx], finish=self.finish[finish_idx])
+        return Trajectory(
+            time=self.time[time_idx],
+            pos=self.pos[item],
+            goal=self.goal[goal_idx],
+            finish=self.finish[finish_idx],
+        )
 
     def __iter__(self):
         return iter(astuple(self))
@@ -283,7 +289,9 @@ def norm_trajectory(trajectory: Trajectory, fix_sign: bool = False) -> Trajector
         sign = np.sign(norm_pos.mean(axis=1, keepdims=True))
         norm_pos *= sign
 
-    norm_traj = Trajectory(time=time, pos=norm_pos, goal=norm_pos[:,-1,:], finish=trajectory.finish)
+    norm_traj = Trajectory(
+        time=time, pos=norm_pos, goal=norm_pos[:, -1, :], finish=trajectory.finish
+    )
 
     return norm_traj
 

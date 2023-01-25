@@ -19,7 +19,9 @@ class DelayedEnv(MultiAgentEnv):
         self.active_agents = [f"agent{i}" for i in range(self.num_agents)]
         self.steps = steps
 
-        self.observation_space = ObservationSpace({"vector": gym.spaces.Box(low=0, high=1, shape=(2,))})
+        self.observation_space = ObservationSpace(
+            {"vector": gym.spaces.Box(low=0, high=1, shape=(2,))}
+        )
         self.action_space = ActionSpace({"discrete": gym.spaces.Discrete(2)})
 
         self.timer = 0
@@ -33,7 +35,10 @@ class DelayedEnv(MultiAgentEnv):
         done = {agent_id: False for agent_id in self.active_agents}
         info = {}
         if self.timer == 0:
-            self.choices = {agent_id: 1 + 0.75 * (1 - act.discrete) for agent_id, act in action_dict.items()}
+            self.choices = {
+                agent_id: 1 + 0.75 * (1 - act.discrete)
+                for agent_id, act in action_dict.items()
+            }
             # self.choices = {agent_id: np.float32(1 + 0.75 * act.discrete) for agent_id, act in action_dict.items()}
             self.timer += 1
         elif self.timer < self.steps - 1:
@@ -80,7 +85,9 @@ class ReversalEnv(MultiAgentEnv):
     This happend if the value of
     """
 
-    def __init__(self, num_agents: int, dt: int = 100, t2: int = 100, tax: float = 0.01):
+    def __init__(
+        self, num_agents: int, dt: int = 100, t2: int = 100, tax: float = 0.01
+    ):
         super().__init__()
 
         self.num_agents = num_agents
@@ -96,7 +103,9 @@ class ReversalEnv(MultiAgentEnv):
 
         self.tax = tax
 
-        self.observation_space = ObservationSpace({"vector": gym.spaces.Box(low=0, high=1, shape=(4,))})
+        self.observation_space = ObservationSpace(
+            {"vector": gym.spaces.Box(low=0, high=1, shape=(4,))}
+        )
         self.action_space = ActionSpace({"discrete": gym.spaces.Discrete(2)})
 
         self.timer = 0
@@ -130,26 +139,36 @@ class ReversalEnv(MultiAgentEnv):
 
             for agent_id, initial_decision in self.initial_decisions.items():
                 secondary_decision = self.secondary_decisions[agent_id]
-                if initial_decision == "SER" and secondary_decision == "SER":  # Committed to SER, sticking with it
+                if (
+                    initial_decision == "SER" and secondary_decision == "SER"
+                ):  # Committed to SER, sticking with it
                     rewards[agent_id] = self.v1
-                elif initial_decision == "LLR" and secondary_decision == "SER":  # Committed to LLR, switching to SER
+                elif (
+                    initial_decision == "LLR" and secondary_decision == "SER"
+                ):  # Committed to LLR, switching to SER
                     rewards[agent_id] = self.v1 - self.tax
-                elif initial_decision == "SER" and secondary_decision == "LLR":  # Committed to SER, switching to LLR - not allowed
+                elif (
+                    initial_decision == "SER" and secondary_decision == "LLR"
+                ):  # Committed to SER, switching to LLR - not allowed
                     rewards[agent_id] = self.v1
                 else:
-                    rewards[agent_id] = 0.
+                    rewards[agent_id] = 0.0
 
             self.timer += 1
         elif self.timer == self.dt + self.t2 - 1:
             for agent_id, initial_decision in self.initial_decisions.items():
                 secondary_decision = self.secondary_decisions[agent_id]
 
-                if initial_decision == "LLR" and secondary_decision == "LLR":  # Committed to LLR, sticking with it
+                if (
+                    initial_decision == "LLR" and secondary_decision == "LLR"
+                ):  # Committed to LLR, sticking with it
                     rewards[agent_id] = self.v2
-                elif initial_decision == "SER" and secondary_decision == "LLR":  # Committed to SER, switching to LLR
-                    rewards[agent_id] = 0.
+                elif (
+                    initial_decision == "SER" and secondary_decision == "LLR"
+                ):  # Committed to SER, switching to LLR
+                    rewards[agent_id] = 0.0
                 else:
-                    rewards[agent_id] = 0.
+                    rewards[agent_id] = 0.0
 
             done = {agent_id: True for agent_id in self.active_agents}
             self.reset()
@@ -161,15 +180,25 @@ class ReversalEnv(MultiAgentEnv):
     def get_obs(self):
         if self.timer == 0:  # First decision step
             obs = np.array([1, 0, 0, 0], dtype=np.float32)
-            obs_dict = {agent_id: Observation(obs.copy()) for agent_id in self.active_agents}
+            obs_dict = {
+                agent_id: Observation(obs.copy()) for agent_id in self.active_agents
+            }
         elif self.timer == self.dt - 1:  # Second decision step, counting the increment
             obs1 = np.array([0, 1, 0, 0], dtype=np.float32)
             obs2 = np.array([0, 0, 1, 0], dtype=np.float32)
-            obs_dict = {agent_id: Observation(obs1.copy() if self.initial_decisions[agent_id] == "SER" else obs2.copy())
-                        for agent_id in self.active_agents}
+            obs_dict = {
+                agent_id: Observation(
+                    obs1.copy()
+                    if self.initial_decisions[agent_id] == "SER"
+                    else obs2.copy()
+                )
+                for agent_id in self.active_agents
+            }
         else:  # idle step
             obs = np.array([0, 0, 0, 1], dtype=np.float32)
-            obs_dict = {agent_id: Observation(obs.copy()) for agent_id in self.active_agents}
+            obs_dict = {
+                agent_id: Observation(obs.copy()) for agent_id in self.active_agents
+            }
 
         return obs_dict
 
@@ -191,7 +220,9 @@ class ReversalEnv2(MultiAgentEnv):
         self.t1 = np.nan
         self.t2 = np.nan
 
-        self.observation_space = ObservationSpace({"vector": gym.spaces.Box(low=0, high=1, shape=(4,))})
+        self.observation_space = ObservationSpace(
+            {"vector": gym.spaces.Box(low=0, high=1, shape=(4,))}
+        )
         self.action_space = ActionSpace({"discrete": gym.spaces.Discrete(2)})
 
         self.timer = 0
@@ -201,13 +232,25 @@ class ReversalEnv2(MultiAgentEnv):
     def reset(self):
         self.timer = 0
         self.initial_decisions = {}
-        self.v1 = {agent_id: np.random.uniform(0, self.v_max) for agent_id in self.active_agents}
+        self.v1 = {
+            agent_id: np.random.uniform(0, self.v_max)
+            for agent_id in self.active_agents
+        }
         # self.v2 = {agent_id: np.random.uniform(self.v1[agent_id], self.v_max) for agent_id in self.active_agents}
-        self.v2 = {agent_id: np.random.uniform(0, self.v_max) for agent_id in self.active_agents}
+        self.v2 = {
+            agent_id: np.random.uniform(0, self.v_max)
+            for agent_id in self.active_agents
+        }
         # self.t1 = {agent_id: self.t_max - 1 for agent_id in self.active_agents}
         # self.t2 = {agent_id: self.t_max - 1 for agent_id in self.active_agents}
-        self.t1 = {agent_id: np.random.randint(0, self.t_max) for agent_id in self.active_agents}
-        self.t2 = {agent_id: np.random.randint(0, self.t_max) for agent_id in self.active_agents}
+        self.t1 = {
+            agent_id: np.random.randint(0, self.t_max)
+            for agent_id in self.active_agents
+        }
+        self.t2 = {
+            agent_id: np.random.randint(0, self.t_max)
+            for agent_id in self.active_agents
+        }
 
         return self.get_obs()
 
@@ -216,8 +259,7 @@ class ReversalEnv2(MultiAgentEnv):
         done = {agent_id: False for agent_id in self.active_agents}
         if self.timer == 0:
             self.initial_decisions = {
-                agent_id: act.discrete
-                for agent_id, act in action_dict.items()
+                agent_id: act.discrete for agent_id, act in action_dict.items()
             }
 
         for agent_id, initial_decision in self.initial_decisions.items():
@@ -226,7 +268,7 @@ class ReversalEnv2(MultiAgentEnv):
             elif self.timer == self.t2[agent_id] and initial_decision == 1:
                 rewards[agent_id] = self.v2[agent_id]
             else:
-                rewards[agent_id] = 0.
+                rewards[agent_id] = 0.0
 
         self.timer += 1
 
@@ -236,21 +278,25 @@ class ReversalEnv2(MultiAgentEnv):
 
         return self.get_obs(), rewards, done, {}
 
-
     def get_obs(self):
         if self.timer == 0:
             obs = {
-                agent_id: np.array([
-                         self.v1[agent_id],
-                         self.v2[agent_id],
-                         self.t1[agent_id] / self.t_max,
-                         self.t2[agent_id] / self.t_max],
-                         dtype=np.float32)
-                for agent_id in self.active_agents}
+                agent_id: np.array(
+                    [
+                        self.v1[agent_id],
+                        self.v2[agent_id],
+                        self.t1[agent_id] / self.t_max,
+                        self.t2[agent_id] / self.t_max,
+                    ],
+                    dtype=np.float32,
+                )
+                for agent_id in self.active_agents
+            }
         else:
             obs = {
-                agent_id: np.array([0., 0., 0., 0.], dtype=np.float32)
-                for agent_id in self.active_agents}
+                agent_id: np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+                for agent_id in self.active_agents
+            }
             # obs = {
             #     agent_id: np.array([self.v1[agent_id],# / self.v_max,
             #              self.t1[agent_id] / self.t_max,

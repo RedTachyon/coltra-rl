@@ -50,7 +50,9 @@ class PettingZooEnv(MultiAgentEnv):
             }
         else:
             action = {
-                agent_id: sigmoid(action_dict[agent_id].continuous) if self.sigmoid else action_dict[agent_id].continuous
+                agent_id: sigmoid(action_dict[agent_id].continuous)
+                if self.sigmoid
+                else action_dict[agent_id].continuous
                 for agent_id in action_dict
             }
         obs, reward, done, info = self.pz_env.step(action)

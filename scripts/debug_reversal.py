@@ -32,7 +32,9 @@ class DelayedEnv(MultiAgentEnv):
         self.num_agents = num_agents
         self.active_agents = [f"agent{i}" for i in range(self.num_agents)]
 
-        self.observation_space = ObservationSpace({"vector": gym.spaces.Box(low=0, high=1, shape=(2,))})
+        self.observation_space = ObservationSpace(
+            {"vector": gym.spaces.Box(low=0, high=1, shape=(2,))}
+        )
         self.action_space = ActionSpace({"discrete": gym.spaces.Discrete(2)})
 
     def reset(self, **kwargs):
@@ -44,7 +46,10 @@ class DelayedEnv(MultiAgentEnv):
         done = {agent_id: False for agent_id in self.active_agents}
         if self.timer == 0:
             # self.choices = {agent_id: 1 + 0.75 * (1-act.discrete) for agent_id, act in action_dict.items()}
-            self.choices = {agent_id: 1 + 0.75 * act.discrete for agent_id, act in action_dict.items()}
+            self.choices = {
+                agent_id: 1 + 0.75 * act.discrete
+                for agent_id, act in action_dict.items()
+            }
 
             # rewards = self.choices
         elif self.timer < STEPS - 1:
@@ -75,7 +80,9 @@ class DelayedEnv(MultiAgentEnv):
 
 env = DelayedEnv(100)
 
-model = MLPModel(config={}, observation_space=env.observation_space, action_space=env.action_space)
+model = MLPModel(
+    config={}, observation_space=env.observation_space, action_space=env.action_space
+)
 agent = DAgent(model)
 group = HomogeneousGroup(agent)
 
@@ -87,7 +94,7 @@ trainer_config = {
     "PPOConfig": {
         "gamma": 0.99,
         "minibatch_size": 100,
-    }
+    },
 }
 
 trainer = PPOCrowdTrainer(group, env, trainer_config)
@@ -95,7 +102,7 @@ trainer = PPOCrowdTrainer(group, env, trainer_config)
 metrics = trainer.train(1)
 
 data, metrics, shape = coltra.collect_crowd_data(group, env, STEPS, deterministic=False)
-data = data['crowd']
+data = data["crowd"]
 obs = data.obs
 actions = data.action
 rewards = data.reward
@@ -106,6 +113,8 @@ ep_rewards = get_episode_rewards(rewards.numpy(), dones.numpy(), shape)
 
 print(ep_rewards.mean())
 
-ret, adv = discount_experience(data.reward, data.value, data.done, data.last_value, use_ugae=True, γ=0.99, η=0, λ=0)
+ret, adv = discount_experience(
+    data.reward, data.value, data.done, data.last_value, use_ugae=True, γ=0.99, η=0, λ=0
+)
 
 print(ret.reshape(data.last_value.shape + (-1,)))

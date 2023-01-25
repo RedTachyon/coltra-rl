@@ -170,10 +170,7 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.unity.reset()
 
         behaviors = dict(self.unity.behavior_specs)
-        self.behaviors = {
-            key: value
-            for key, value in behaviors.items()
-        }
+        self.behaviors = {key: value for key, value in behaviors.items()}
 
         # semi-hardcoded computation of obs/action spaces, slightly different api than gym
         self.behavior_name = list(self.behaviors.keys())[0]
@@ -301,7 +298,6 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
 
         behaviors = dict(self.unity.behavior_specs)
         self.behaviors = {key: value for key, value in behaviors.items()}
-
 
         obs_dict, _, _, _ = self._get_step_info(step=True)
         if len(obs_dict) == 0:

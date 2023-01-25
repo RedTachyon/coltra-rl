@@ -87,7 +87,6 @@ def discount_experience(
         eta: same as η, see above
     """
 
-
     np_last_vals = last_values.detach().cpu().numpy().astype(np.float32)
     batch_size = np_last_vals.shape
     np_rewards = (
@@ -243,6 +242,7 @@ def _discount_bgae(
                 idx += 1
 
     return advantages
+
 
 @njit
 def _fast_discount_gae(

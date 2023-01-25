@@ -1,7 +1,15 @@
 from tqdm import trange
 
 import coltra
-from coltra import UnitySimpleCrowdEnv, Action, Observation, collect_crowd_data, HomogeneousGroup, CAgent, PPOCrowdTrainer
+from coltra import (
+    UnitySimpleCrowdEnv,
+    Action,
+    Observation,
+    collect_crowd_data,
+    HomogeneousGroup,
+    CAgent,
+    PPOCrowdTrainer,
+)
 from coltra.policy_optimization import CrowdPPOptimizer
 from coltra.models import AttentionModel
 from coltra.agents import ConstantAgent
@@ -24,11 +32,14 @@ with open(path, "r") as f:
 
 unity_path = "../../CrowdAI/Builds/Mac/crowd-v7rc3.app"
 # unity_path = None
-env = UnitySimpleCrowdEnv(file_name=unity_path, no_graphics=False,
-                          extra_params=config['environment'])
+env = UnitySimpleCrowdEnv(
+    file_name=unity_path, no_graphics=False, extra_params=config["environment"]
+)
 
 # env.set_timescale()
-model = AttentionModel(config={}, observation_space=env.observation_space, action_space=env.action_space)
+model = AttentionModel(
+    config={}, observation_space=env.observation_space, action_space=env.action_space
+)
 
 # torch.nn.init.zeros_(model.policy_network.com_mlp.heads[0].weight)
 # torch.nn.init.zeros_(model.policy_network.com_mlp.heads[0].bias)
@@ -37,9 +48,11 @@ agent = CAgent(model)
 
 group = HomogeneousGroup(agent)
 
-optimizer = CrowdPPOptimizer(group, config['trainer']['PPOConfig'])
+optimizer = CrowdPPOptimizer(group, config["trainer"]["PPOConfig"])
 
-data, metrics, shape = collect_crowd_data(group, env, 1000, disable_tqdm=False, deterministic=False)
+data, metrics, shape = collect_crowd_data(
+    group, env, 1000, disable_tqdm=False, deterministic=False
+)
 
 optimizer.train_on_data(data, shape)
 
