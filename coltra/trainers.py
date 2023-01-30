@@ -108,6 +108,8 @@ class PPOCrowdTrainer(Trainer):
         step_timer = Timer()
         metrics = {}
 
+        best_so_far = -np.inf
+
         if save_path:
             self.agents.save(save_path)
             # torch.save(self.agent.model, os.path.join(save_path, "base_agent.pt"))
@@ -134,7 +136,8 @@ class PPOCrowdTrainer(Trainer):
             end_time = step_timer.checkpoint()
 
             mean_reward = metrics["crowd/mean_episode_reward"]
-            pbar.set_description(f"{mean_reward:8.3f}")
+            best_so_far = max(best_so_far, mean_reward)
+            pbar.set_description(f"Reward: {mean_reward:8.3f}; Best: {best_so_far:8.3f}")
 
             ########################################## Save the updated agent ##########################################
 
