@@ -112,7 +112,7 @@ class PPOCrowdTrainer(Trainer):
             self.agents.save(save_path)
             # torch.save(self.agent.model, os.path.join(save_path, "base_agent.pt"))
 
-        for step in trange(1, num_iterations + 1, disable=disable_tqdm):
+        for step in (pbar := trange(1, num_iterations + 1, disable=disable_tqdm)):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
 
@@ -132,6 +132,9 @@ class PPOCrowdTrainer(Trainer):
             )
 
             end_time = step_timer.checkpoint()
+
+            mean_reward = metrics["crowd/mean_episode_reward"]
+            pbar.set_description(f"{mean_reward:8.3f}")
 
             ########################################## Save the updated agent ##########################################
 
@@ -181,7 +184,6 @@ class PPOCrowdTrainer(Trainer):
 
             write_dict(extra_metric, step, self.writer)
 
-            mean_reward = metrics["crowd/mean_episode_reward"]
 
             if trial is not None:
                 trial.report(mean_reward, step)

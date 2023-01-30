@@ -34,7 +34,7 @@ set_log_level(ERROR)
 
 
 class Parser(BaseParser):
-    config: str = "v6-configs/crowd_config.yaml"
+    config: str = "v7-configs/crowd_config.yaml"
     iters: int = 500
     env: str
     name: str

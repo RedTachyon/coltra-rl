@@ -15,9 +15,9 @@ trainer:
       weight_decay: 0
       amsgrad: false
 
-    gamma: 1
+    gamma: 0.993
     eta: 0.0
-    gae_lambda: 1
+    gae_lambda: 0.891
 
     use_ugae: true
 
@@ -55,11 +55,11 @@ model:
 
 
 environment:
-  num_agents: 15
+  num_agents: 30
   initializer: "Circle"
   dynamics: "PolarAcceleration"
   observer: "Relative"
-  rewarder: "Energy"
+  rewarder: "BaseRewarder"
 
   # Reward function
   potential: 1
