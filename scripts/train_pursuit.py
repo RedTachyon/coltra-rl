@@ -62,7 +62,7 @@ if __name__ == "__main__":
     trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
     wandb.init(
-        project="coltra", entity="redtachyon", sync_tensorboard=True, config=config
+        project="coltra", sync_tensorboard=True, config=config
     )
 
     workers = trainer_config["workers"]

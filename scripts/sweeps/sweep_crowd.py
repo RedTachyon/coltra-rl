@@ -74,7 +74,6 @@ if __name__ == "__main__":
 
     wandb.init(
         project="debug",
-        entity="redtachyon",
         sync_tensorboard=True,
         config={},
         # name=name,

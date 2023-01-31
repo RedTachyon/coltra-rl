@@ -75,7 +75,6 @@ def train_one(trial: optuna.Trial, config: dict, wandb_project: str):
 
     wandb.init(
         project=wandb_project,
-        entity="redtachyon",
         sync_tensorboard=True,
         config=config,
         name=f"trial{trial.number}",

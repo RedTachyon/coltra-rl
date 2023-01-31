@@ -67,7 +67,6 @@ def train_one(
 
     wandb.init(
         project=wandb_project,
-        entity="redtachyon",
         sync_tensorboard=True,
         config=config,
         name=f"trial{trial.number}",

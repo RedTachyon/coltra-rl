@@ -65,7 +65,6 @@ if __name__ == "__main__":
 
     wandb.init(
         project=args.project,
-        entity="redtachyon",
         sync_tensorboard=True,
         config=config,
         name=args.name,

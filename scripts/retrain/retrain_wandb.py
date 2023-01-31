@@ -25,7 +25,7 @@ set_log_level(ERROR)
 
 class Parser(BaseParser):
     env: str
-    entity: str = "redtachyon"
+    entity: str = None
     project: str = "crowdai-top5"
     run_id: str = "rvpfws09"
     worker_id: int = 0

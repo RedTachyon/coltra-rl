@@ -67,7 +67,6 @@ if __name__ == "__main__":
     if args.name:
         wandb.init(
             project="crowdai",
-            entity="redtachyon",
             sync_tensorboard=True,
             config=config,
             name=args.name,
