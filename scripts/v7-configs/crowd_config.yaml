@@ -1,7 +1,7 @@
 ---
 trainer:
   steps: 200
-  workers: 2
+  workers: 4
 
   tensorboard_name:
   save_freq: 100
@@ -55,16 +55,16 @@ model:
 
 
 environment:
-  num_agents: 30
+  num_agents: 12
   initializer: "Circle"
   dynamics: "PolarAcceleration"
   observer: "Relative"
-  rewarder: "BaseRewarder"
+  rewarder: "EnergyPotential"
 
   # Reward function
   potential: 1
   goal: 10
-  collision: -0.05
+  collision: -0.5
   step_reward: -0.005
 
   standstill_weight: 0
@@ -80,6 +80,7 @@ environment:
 
   energy_weight: 1
   final_energy_weight: 1
+  potential_energy_scale: 2
 
   # Observations
   sight_radius: 10
