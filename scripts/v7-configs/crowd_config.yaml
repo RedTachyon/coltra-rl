@@ -15,7 +15,7 @@ trainer:
       weight_decay: 0
       amsgrad: false
 
-    gamma: 0.935
+    gamma: 0.99
     eta: 0.0
     gae_lambda: 0.928
 
@@ -80,7 +80,7 @@ environment:
 
   energy_weight: 1
   final_energy_weight: 1
-  potential_energy_scale: 2
+  potential_energy_scale: 3
 
   # Observations
   sight_radius: 10
