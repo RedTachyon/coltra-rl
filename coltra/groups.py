@@ -215,6 +215,170 @@ class HomogeneousGroup(MacroAgent):
         self.agent.model.load_state_dict(weights)
 
 
+
+class FamilyGroup(MacroAgent):
+    """
+    A macroagent with a family agent whose actions get added to the crowd agent's observations
+
+    GENERAL OUTLINE:
+    Compute family actions
+    Append them to the crowd observations (separate function?)
+    Pack the crowd observations
+    Compute crowd actions
+    Unpack crowd actions
+    Append family actions to crowd actions
+    Return all actions
+
+    Probably need to properly handle extras (values? what else was there?)
+
+    Also do the same for evaluate - should be simpler since it's PolicyName and not AgentName?
+    """
+
+    def __init__(self, agent: Agent, family_agent: Agent):
+        self.policy_name = "crowd"
+        # self.policy_mapping = {"": self.policy_name}
+        self.policy_mapping = {"Person": "crowd", "Family": "family"}
+        self.agent = agent
+        self.family_agent = family_agent
+
+    def act(
+        self,
+        obs_dict: dict[AgentName, Observation],
+        deterministic: bool = False,
+        get_value: bool = False,
+    ):
+        if len(obs_dict) == 0:
+            return {}, (), {}
+        family_obs, family_keys = pack({k: v for k, v in obs_dict.items() if "Family" in k})
+        crowd_obs = {k: v for k, v in obs_dict.items() if "Person" in k}
+
+        family_actions, _, family_extra = self.family_agent.act(
+            obs_batch=family_obs,
+            state_batch=(),
+            deterministic=deterministic,
+            get_value=get_value,
+        )
+
+        obs, keys = pack(crowd_obs)
+        actions, states, extra = self.agent.act(
+            obs_batch=obs,
+            state_batch=(),
+            deterministic=deterministic,
+            get_value=get_value,
+        )
+
+        actions_dict = unpack(actions, keys)
+
+        extra = {key: unpack(value, keys) for key, value in extra.items()}
+
+        return actions_dict, states, extra
+
+    def evaluate(
+        self,
+        obs_batch: dict[PolicyName, Observation],
+        action_batch: dict[PolicyName, Action],
+    ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
+
+        obs = obs_batch[self.policy_name]
+        action = action_batch[self.policy_name]
+        return self.embed(self.agent.evaluate(obs, action))
+
+
+    def parameters(self) -> Iterable[torch.nn.Parameter]:
+        return self.agent.model.parameters()
+
+    def cuda(self):
+        self.agent.cuda()
+
+    def cpu(self):
+        self.agent.cpu()
+
+    def value(
+        self, obs_batch: dict[AgentName, Observation], **kwargs
+    ) -> dict[str, Tensor]:
+        obs, keys = pack(obs_batch)
+        values = self.agent.value(obs)
+        return unpack(values, keys)
+
+    def value_pack(self, obs_batch: dict[AgentName, Observation], **kwargs) -> Tensor:
+        obs, _ = pack(obs_batch)
+        values = self.agent.value(obs)
+        return values
+
+    T = TypeVar("T")
+
+    def embed(self, value: T) -> dict[PolicyName, T]:
+        return {self.policy_name: value}
+
+
+
+    def embed_evaluate(
+        self, obs: Observation, action: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
+        return self.evaluate(self.embed(obs), self.embed(action))[self.policy_name]
+
+    def save(
+        self,
+        base_path: str,
+    ):
+        agent_fname: str = "agent.pt"
+        model_fname: str = "model.pt"
+        mapping_fname: str = "policy_mapping.pt"
+
+        torch.save(self.agent, os.path.join(base_path, agent_fname))
+        torch.save(self.agent.model, os.path.join(base_path, model_fname))
+        torch.save(self.policy_mapping, os.path.join(base_path, mapping_fname))
+
+    @classmethod
+    def load(cls, base_path: str, weight_idx: Optional[int] = None):
+        agent_fname: str = "agent.pt"
+        mapping_fname: str = "policy_mapping.pt"
+
+        weight_fname: str = "weights"
+
+        device = None if torch.cuda.is_available() else "cpu"
+        agent = torch.load(os.path.join(base_path, agent_fname), map_location=device)
+        group = cls(agent)
+
+        if weight_idx == -1:
+            weight_idx = max(
+                [
+                    int(fname.split("_")[-1])  # Get the last agent
+                    for fname in os.listdir(os.path.join(base_path, "saved_weights"))
+                    if fname.startswith(weight_fname)
+                ]
+            )
+
+        if weight_idx is not None:
+            weights = torch.load(
+                os.path.join(
+                    base_path, "saved_weights", f"{weight_fname}_{weight_idx}"
+                ),
+                map_location=device,
+            )
+
+            group.agent.model.load_state_dict(weights)
+
+        if not torch.cuda.is_available():
+            group.cpu()
+
+        return group
+
+    def save_state(self, base_path: str, idx: int):
+        weights_dir = os.path.join(base_path, "saved_weights")
+        if not os.path.exists(weights_dir):
+            os.mkdir(weights_dir)
+
+        torch.save(
+            self.agent.model.state_dict(),
+            os.path.join(weights_dir, f"weights_{idx}"),
+        )
+
+    def load_state(self, base_path: str, idx: int = -1):
+        weights_path = os.path.join(base_path, "saved_weights", f"weights_{idx}")
+        weights = torch.load(weights_path, map_location=self.agent.model.device)
+        self.agent.model.load_state_dict(weights)
+
 # class HeterogeneousGroup(MacroAgent):
 #     """
 #     A "macroagent" combining several individual agents
