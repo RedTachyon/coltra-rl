@@ -36,7 +36,7 @@ from collections import defaultdict
 
 from torch.utils.tensorboard import SummaryWriter
 
-from coltra.buffers import Observation
+from coltra.buffers import Observation, Action
 
 # DataBatch = DataBatchT = Dict[str, Dict[str, Any]]
 # AgentDataBatch = Dict[str, Union[Tensor, Tuple]]
@@ -404,3 +404,14 @@ def attention_string(attention: dict[str, torch.Tensor]) -> str:
 
     values = [torch.round(a.mean(0) * 100).to(int) for k, a in attention.items()]
     return "\n".join(" ".join([str(x) for x in val.tolist()]) for val in values)
+
+
+def augment_observations(crowd_obs: dict[str, Observation], family_act: Action) -> dict[str, Observation]:
+    """Appends family continuous actions to the agents' vector observations. In-place. """
+    action = family_act.continuous
+    for agent_id, obs in crowd_obs.items():
+        vector_obs = obs.vector
+        if vector_obs.ndim == 1:
+            vector_obs = vector_obs[None, :]
+        obs.vector = np.concatenate([vector_obs, action], axis=-1)
+    return crowd_obs

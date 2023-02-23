@@ -8,7 +8,7 @@ from typing import List, TypeVar
 
 import torch.nn
 from torch import Tensor
-from coltra.utils import pack, unpack
+from coltra.utils import pack, unpack, augment_observations
 from coltra.agents import Agent
 from coltra.buffers import Observation, Action
 
@@ -259,6 +259,8 @@ class FamilyGroup(MacroAgent):
             get_value=get_value,
         )
 
+        augment_observations(crowd_obs, family_actions)
+
         obs, keys = pack(crowd_obs)
         actions, states, extra = self.agent.act(
             obs_batch=obs,
@@ -269,7 +271,19 @@ class FamilyGroup(MacroAgent):
 
         actions_dict = unpack(actions, keys)
 
+
+        family_actions_dict = unpack(family_actions, family_keys)
+
+        actions_dict.update(family_actions_dict)
+
         extra = {key: unpack(value, keys) for key, value in extra.items()}
+        family_extra = {key: unpack(value, family_keys) for key, value in family_extra.items()}
+
+        for key, value in family_extra.items():
+            if key in extra:
+                extra[key].update(value)
+            else:
+                extra[key] = value
 
         return actions_dict, states, extra
 
@@ -278,10 +292,8 @@ class FamilyGroup(MacroAgent):
         obs_batch: dict[PolicyName, Observation],
         action_batch: dict[PolicyName, Action],
     ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
-
-        obs = obs_batch[self.policy_name]
-        action = action_batch[self.policy_name]
-        return self.embed(self.agent.evaluate(obs, action))
+        # TODO: Next
+        ...
 
 
     def parameters(self) -> Iterable[torch.nn.Parameter]:
