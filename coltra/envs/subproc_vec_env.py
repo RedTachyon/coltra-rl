@@ -262,6 +262,25 @@ class SubprocVecEnv(MultiAgentEnv):
         indices = self._get_indices(indices)
         return [self.remotes[i] for i in indices]
 
+    @property
+    def behaviors(self):
+        return self.get_attr("behaviors")[0]
+
+    @property
+    def observation_spaces(self):
+        return self.get_attr("observation_spaces")[0]
+
+    @property
+    def action_spaces(self):
+        return self.get_attr("action_spaces")[0]
+
+
+    # def __getattr__(self, name):
+    #     """
+    #     Redirects all the other calls to the first environment. Slightly hacky.
+    #     """
+    #     return self.get_attr(name, [0])[0]
+
 
 def _gather_subproc(obs: List[dict[str, Observation]]) -> dict[str, Observation]:
     combined_obs = {

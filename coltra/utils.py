@@ -406,12 +406,38 @@ def attention_string(attention: dict[str, torch.Tensor]) -> str:
     return "\n".join(" ".join([str(x) for x in val.tolist()]) for val in values)
 
 
-def augment_observations(crowd_obs: dict[str, Observation], family_act: Action) -> dict[str, Observation]:
+def augment_observations(crowd_obs: dict[str, Observation], family_act: dict[str, Action]) -> dict[str, Observation]:
     """Appends family continuous actions to the agents' vector observations. In-place. """
-    action = family_act.continuous
+    # action = family_act.continuous
     for agent_id, obs in crowd_obs.items():
+
         vector_obs = obs.vector
-        if vector_obs.ndim == 1:
+        action = get_matching_action(agent_id, family_act).continuous
+
+        if vector_obs.ndim == 1 and action.ndim == 2:
             vector_obs = vector_obs[None, :]
         obs.vector = np.concatenate([vector_obs, action], axis=-1)
     return crowd_obs
+
+
+def get_matching_action(agent_id: str, family_act: dict[str, Action]) -> Action:
+    """Returns the family action that matches the agent id"""
+    team_env_ident = get_group_identifier(agent_id)
+
+    for family_id, action in family_act.items():
+        if get_group_identifier(family_id) == team_env_ident:
+            return action
+
+    raise ValueError(f"Could not find action for agent {agent_id} in family actions {family_act}")
+
+
+def get_group_identifier(agent_id: str) -> str:
+    _, ident = agent_id.split("?")
+    parts = ident.split("&")
+
+    if len(parts) == 2:  # only team and id
+        team_env_ident = parts[0].split("=")[1]
+    else:  # team, id, and env
+        team_env_ident = parts[0].split("=")[1] + '_' +  parts[2].split("=")[1]
+
+    return team_env_ident

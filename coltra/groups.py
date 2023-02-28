@@ -70,7 +70,7 @@ class MacroAgent(abc.ABC):
 
     @abc.abstractmethod
     def value(
-        self, obs_batch: dict[AgentName, Observation], **kwargs
+        self, obs_batch: dict[AgentName, Observation], action_batch: dict[AgentName, Action], **kwargs
     ) -> dict[AgentName, Tensor]:
         pass
 
@@ -249,8 +249,10 @@ class FamilyGroup(MacroAgent):
     ):
         if len(obs_dict) == 0:
             return {}, (), {}
-        family_obs, family_keys = pack({k: v for k, v in obs_dict.items() if "Family" in k})
-        crowd_obs = {k: v for k, v in obs_dict.items() if "Person" in k}
+
+        family_dict, crowd_dict = self.split_dict(obs_dict)
+
+        family_obs, family_keys = pack(family_dict)
 
         family_actions, _, family_extra = self.family_agent.act(
             obs_batch=family_obs,
@@ -259,24 +261,24 @@ class FamilyGroup(MacroAgent):
             get_value=get_value,
         )
 
-        augment_observations(crowd_obs, family_actions)
+        family_actions_dict = unpack(family_actions, family_keys)
 
-        obs, keys = pack(crowd_obs)
+
+        augment_observations(crowd_dict, family_actions_dict)
+
+        crowd_obs, crowd_keys = pack(crowd_dict)
         actions, states, extra = self.agent.act(
-            obs_batch=obs,
+            obs_batch=crowd_obs,
             state_batch=(),
             deterministic=deterministic,
             get_value=get_value,
         )
 
-        actions_dict = unpack(actions, keys)
-
-
-        family_actions_dict = unpack(family_actions, family_keys)
+        actions_dict = unpack(actions, crowd_keys)
 
         actions_dict.update(family_actions_dict)
 
-        extra = {key: unpack(value, keys) for key, value in extra.items()}
+        extra = {key: unpack(value, crowd_keys) for key, value in extra.items()}
         family_extra = {key: unpack(value, family_keys) for key, value in family_extra.items()}
 
         for key, value in family_extra.items():
@@ -295,6 +297,12 @@ class FamilyGroup(MacroAgent):
         # TODO: Next
         ...
 
+    def split_dict(self, obs_batch: dict[AgentName, Observation]) -> tuple[dict[AgentName, Observation], dict[AgentName, Observation]]:
+        family_obs = {k: v for k, v in obs_batch.items() if "Family" in k}
+        crowd_obs = {k: v for k, v in obs_batch.items() if "Person" in k}
+
+        return family_obs, crowd_obs
+
 
     def parameters(self) -> Iterable[torch.nn.Parameter]:
         return self.agent.model.parameters()
@@ -306,13 +314,21 @@ class FamilyGroup(MacroAgent):
         self.agent.cpu()
 
     def value(
-        self, obs_batch: dict[AgentName, Observation], **kwargs
+        self, obs_batch: dict[AgentName, Observation], action_batch: dict[AgentName, Action], **kwargs
     ) -> dict[str, Tensor]:
+        family_obs, crowd_obs = self.split_dict(obs_batch)
+
+        # TODO: fix this
+
+        family_obs, family_keys = pack(family_obs)
+        family_values = self.family_agent.value(family_obs)
+
+
         obs, keys = pack(obs_batch)
         values = self.agent.value(obs)
         return unpack(values, keys)
 
-    def value_pack(self, obs_batch: dict[AgentName, Observation], **kwargs) -> Tensor:
+    def value_pack(self, obs_batch: dict[AgentName, Observation], action_batch: dict[AgentName, Action], **kwargs) -> Tensor:
         obs, _ = pack(obs_batch)
         values = self.agent.value(obs)
         return values
