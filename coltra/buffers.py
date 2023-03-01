@@ -14,7 +14,7 @@ from typing import (
     TypeVar,
     Type,
     Sequence,
-    Iterator,
+    Iterator, Tuple,
 )
 
 import numpy as np
@@ -23,7 +23,9 @@ import torch
 from torch import Tensor
 
 Array = Union[np.ndarray, torch.Tensor]
-
+AgentName = str
+AgentNameStub = str
+PolicyName = str
 
 def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
     if isinstance(tensor, Tensor):
@@ -303,9 +305,9 @@ class OnPolicyBuffer:
 
             self.data.setdefault(agent_id, AgentOnPolicyBuffer()).append(record)
 
-    def tensorify(self) -> dict[str, OnPolicyRecord]:
+    def tensorify(self, data: dict[str, AgentOnPolicyBuffer]) -> dict[str, OnPolicyRecord]:
         result = {}
-        for agent_id, agent_buffer in self.data.items():  # str -> AgentMemoryBuffer
+        for agent_id, agent_buffer in data.items():  # str -> AgentMemoryBuffer
             result[agent_id] = OnPolicyRecord(
                 obs=Observation.stack_tensor(agent_buffer.obs),
                 action=Action.stack_tensor(agent_buffer.action),
@@ -316,8 +318,10 @@ class OnPolicyBuffer:
             )
         return result
 
-    def crowd_tensorify(self, last_value: Optional[Value] = None) -> OnPolicyRecord:
-        tensor_data = self.tensorify().values()
+    def crowd_tensorify(self, data: Optional[dict[str, AgentOnPolicyBuffer]] = None, last_value: Optional[Value] = None) -> OnPolicyRecord:
+        if data is None:
+            data = self.data
+        tensor_data = self.tensorify(data).values()
         return OnPolicyRecord(
             obs=Observation.cat_tensor(
                 [agent_buffer.obs for agent_buffer in tensor_data]
@@ -331,6 +335,62 @@ class OnPolicyBuffer:
             last_value=last_value,
         )
 
+    def hetero_tensorify(self,
+                         data: Optional[dict[AgentName, AgentOnPolicyBuffer]] = None,
+                         last_value: Optional[dict[AgentName, Value]] = None,
+                         policy_mapping: dict[AgentNameStub, PolicyName] = None) -> dict[PolicyName, OnPolicyRecord]:
+        if data is None:
+            data = self.data
+
+        if policy_mapping is None:
+            policy_mapping = {"": "crowd"}
+
+        policy_rev = {v: k for k, v in policy_mapping.items()}
+        policies = set(policy_mapping.values())
+
+        result = {}
+        for policy in policies:
+
+            policy_last_value, _ = pack_tensor({k: v for k, v in last_value.items() if k.startswith(policy_rev[policy])})
+
+            result[policy] = self.crowd_tensorify(
+                data={k: v for k, v in data.items() if k.startswith(policy_rev[policy])},
+                last_value=policy_last_value,
+            )
+
+        return result
+
+    # def family_tensorify(self, last_value: Optional[dict[str, Value]] = None) -> tuple[OnPolicyRecord, OnPolicyRecord]:
+    #     tensor_data = self.tensorify()
+    #     family_data, crowd_data = split_dict(tensor_data)
+    #     family_last_value, crowd_last_value = split_dict(last_value)
+    #
+    #     return (
+    #         OnPolicyRecord(
+    #             obs=Observation.cat_tensor(
+    #                 [agent_buffer.obs for agent_buffer in family_data.values()]
+    #             ),
+    #             action=Action.cat_tensor(
+    #                 [agent_buffer.action for agent_buffer in family_data.values()]
+    #             ),
+    #             reward=torch.cat([agent_buffer.reward for agent_buffer in family_data.values()]),
+    #             value=torch.cat([agent_buffer.value for agent_buffer in family_data.values()]),
+    #             done=torch.cat([agent_buffer.done for agent_buffer in family_data.values()]),
+    #             last_value=last_value,
+    #         ),
+    #         OnPolicyRecord(
+    #             obs=Observation.cat_tensor(
+    #                 [agent_buffer.obs for agent_buffer in crowd_data.values()]
+    #             ),
+    #             action=Action.cat_tensor(
+    #                 [agent_buffer.action for agent_buffer in crowd_data.values()]
+    #             ),
+    #             reward=torch.cat([agent_buffer.reward for agent_buffer in crowd_data.values()]),
+    #             value=torch.cat([agent_buffer.value for agent_buffer in crowd_data.values()]),
+    #             done=torch.cat([agent_buffer.done for agent_buffer in crowd_data.values()]),
+    #             last_value=last_value,
+    #         ),
+    #     )
 
 @dataclass
 class DQNRecord(Record):
@@ -430,3 +490,34 @@ class TensorDict(Mapping):
 
     def __iter__(self) -> Iterator[str]:
         return iter(self.names)
+
+
+K = TypeVar('K', bound=str)
+V = TypeVar('V')
+
+
+def split_dict(dict_batch: dict[K, V]) -> tuple[dict[K, V], dict[K, V]]:
+    family_dict = {k: v for k, v in dict_batch.items() if "Family" in k}
+    crowd_dict = {k: v for k, v in dict_batch.items() if "Person" in k}
+
+    return family_dict, crowd_dict
+
+
+def pack(dict_: dict[str, Observation]) -> Tuple[Observation, List[str]]:
+    keys = list(dict_.keys())
+    values = Observation.stack_tensor([dict_[key] for key in keys])
+
+    return values, keys
+
+def pack_tensor(dict_: dict[str, Array]) -> Tuple[Tensor, List[str]]:
+    keys = list(dict_.keys())
+    if isinstance(dict_[keys[0]], torch.Tensor):
+        values = torch.stack([dict_[key] for key in keys])
+    else:
+        values = torch.as_tensor(np.stack([dict_[key] for key in keys]))
+
+    return values, keys
+
+def unpack(arrays: Any, keys: List[str]) -> dict[str, Any]:
+    value_dict = {key: arrays[i] for i, key in enumerate(keys)}
+    return value_dict

@@ -8,9 +8,9 @@ from typing import List, TypeVar
 
 import torch.nn
 from torch import Tensor
-from coltra.utils import pack, unpack, augment_observations
+from coltra.utils import augment_observations
 from coltra.agents import Agent
-from coltra.buffers import Observation, Action
+from coltra.buffers import Observation, Action, split_dict, pack, unpack
 
 AgentName = str
 AgentNameStub = str
@@ -232,6 +232,13 @@ class FamilyGroup(MacroAgent):
     Probably need to properly handle extras (values? what else was there?)
 
     Also do the same for evaluate - should be simpler since it's PolicyName and not AgentName?
+
+
+    TODO:
+    - evaluate
+    - save/load
+    - trainer
+    - optimizer - do I need a new one? or just fix parameters?
     """
 
     def __init__(self, agent: Agent, family_agent: Agent):
@@ -250,7 +257,7 @@ class FamilyGroup(MacroAgent):
         if len(obs_dict) == 0:
             return {}, (), {}
 
-        family_dict, crowd_dict = self.split_dict(obs_dict)
+        family_dict, crowd_dict = split_dict(obs_dict)
 
         family_obs, family_keys = pack(family_dict)
 
@@ -262,7 +269,6 @@ class FamilyGroup(MacroAgent):
         )
 
         family_actions_dict = unpack(family_actions, family_keys)
-
 
         augment_observations(crowd_dict, family_actions_dict)
 
@@ -287,6 +293,8 @@ class FamilyGroup(MacroAgent):
             else:
                 extra[key] = value
 
+        extra["augmented_obs"] = {**crowd_dict, **family_dict}
+
         return actions_dict, states, extra
 
     def evaluate(
@@ -296,12 +304,6 @@ class FamilyGroup(MacroAgent):
     ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
         # TODO: Next
         ...
-
-    def split_dict(self, obs_batch: dict[AgentName, Observation]) -> tuple[dict[AgentName, Observation], dict[AgentName, Observation]]:
-        family_obs = {k: v for k, v in obs_batch.items() if "Family" in k}
-        crowd_obs = {k: v for k, v in obs_batch.items() if "Person" in k}
-
-        return family_obs, crowd_obs
 
 
     def parameters(self) -> Iterable[torch.nn.Parameter]:
@@ -316,34 +318,29 @@ class FamilyGroup(MacroAgent):
     def value(
         self, obs_batch: dict[AgentName, Observation], action_batch: dict[AgentName, Action], **kwargs
     ) -> dict[str, Tensor]:
-        family_obs, crowd_obs = self.split_dict(obs_batch)
-
-        # TODO: fix this
+        family_obs, crowd_obs = split_dict(obs_batch)
+        family_actions, crowd_actions = split_dict(action_batch)
 
         family_obs, family_keys = pack(family_obs)
         family_values = self.family_agent.value(family_obs)
 
+        augment_observations(crowd_obs, family_actions)
 
-        obs, keys = pack(obs_batch)
-        values = self.agent.value(obs)
-        return unpack(values, keys)
+        crowd_obs, crowd_keys = pack(crowd_obs)
+
+        crowd_values = self.agent.value(crowd_obs)
+
+        crowd_values = unpack(crowd_values, crowd_keys)
+        family_values = unpack(family_values, family_keys)
+
+        values = {**crowd_values, **family_values}
+
+        return values
 
     def value_pack(self, obs_batch: dict[AgentName, Observation], action_batch: dict[AgentName, Action], **kwargs) -> Tensor:
         obs, _ = pack(obs_batch)
         values = self.agent.value(obs)
         return values
-
-    T = TypeVar("T")
-
-    def embed(self, value: T) -> dict[PolicyName, T]:
-        return {self.policy_name: value}
-
-
-
-    def embed_evaluate(
-        self, obs: Observation, action: Action
-    ) -> Tuple[Tensor, Tensor, Tensor]:
-        return self.evaluate(self.embed(obs), self.embed(action))[self.policy_name]
 
     def save(
         self,

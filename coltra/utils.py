@@ -1,16 +1,13 @@
 import socket
 from sys import platform
 from typing import (
-    Dict,
     List,
     Union,
     Tuple,
-    Any,
     Callable,
     Optional,
     Iterator,
     Type,
-    Generator,
 )
 
 import numpy as np
@@ -31,8 +28,6 @@ from torch.optim.adagrad import Adagrad
 from torch.optim.adamw import AdamW
 from torch.optim.adamax import Adamax
 from torch.optim.sgd import SGD
-
-from collections import defaultdict
 
 from torch.utils.tensorboard import SummaryWriter
 
@@ -222,18 +217,6 @@ def minibatches(
         batch_end = min(batch_start + batch_size, data_size)
 
         yield indices[batch_start:batch_end], batch
-
-
-def pack(dict_: dict[str, Observation]) -> Tuple[Observation, List[str]]:
-    keys = list(dict_.keys())
-    values = Observation.stack_tensor([dict_[key] for key in keys])
-
-    return values, keys
-
-
-def unpack(arrays: Any, keys: List[str]) -> dict[str, Any]:
-    value_dict = {key: arrays[i] for i, key in enumerate(keys)}
-    return value_dict
 
 
 def parse_agent_name(name: str) -> dict[str, str]:
