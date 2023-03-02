@@ -14,7 +14,8 @@ from typing import (
     TypeVar,
     Type,
     Sequence,
-    Iterator, Tuple,
+    Iterator,
+    Tuple,
 )
 
 import numpy as np
@@ -26,6 +27,7 @@ Array = Union[np.ndarray, torch.Tensor]
 AgentName = str
 AgentNameStub = str
 PolicyName = str
+
 
 def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
     if isinstance(tensor, Tensor):
@@ -305,7 +307,9 @@ class OnPolicyBuffer:
 
             self.data.setdefault(agent_id, AgentOnPolicyBuffer()).append(record)
 
-    def tensorify(self, data: dict[str, AgentOnPolicyBuffer]) -> dict[str, OnPolicyRecord]:
+    def tensorify(
+        self, data: dict[str, AgentOnPolicyBuffer]
+    ) -> dict[str, OnPolicyRecord]:
         result = {}
         for agent_id, agent_buffer in data.items():  # str -> AgentMemoryBuffer
             result[agent_id] = OnPolicyRecord(
@@ -318,7 +322,11 @@ class OnPolicyBuffer:
             )
         return result
 
-    def crowd_tensorify(self, data: Optional[dict[str, AgentOnPolicyBuffer]] = None, last_value: Optional[Value] = None) -> OnPolicyRecord:
+    def crowd_tensorify(
+        self,
+        data: Optional[dict[str, AgentOnPolicyBuffer]] = None,
+        last_value: Optional[Value] = None,
+    ) -> OnPolicyRecord:
         if data is None:
             data = self.data
         tensor_data = self.tensorify(data).values()
@@ -335,10 +343,12 @@ class OnPolicyBuffer:
             last_value=last_value,
         )
 
-    def hetero_tensorify(self,
-                         data: Optional[dict[AgentName, AgentOnPolicyBuffer]] = None,
-                         last_value: Optional[dict[AgentName, Value]] = None,
-                         policy_mapping: dict[AgentNameStub, PolicyName] = None) -> dict[PolicyName, OnPolicyRecord]:
+    def hetero_tensorify(
+        self,
+        data: Optional[dict[AgentName, AgentOnPolicyBuffer]] = None,
+        last_value: Optional[dict[AgentName, Value]] = None,
+        policy_mapping: dict[AgentNameStub, PolicyName] = None,
+    ) -> dict[PolicyName, OnPolicyRecord]:
         if data is None:
             data = self.data
 
@@ -351,10 +361,18 @@ class OnPolicyBuffer:
         result = {}
         for policy in policies:
 
-            policy_last_value, _ = pack_tensor({k: v for k, v in last_value.items() if k.startswith(policy_rev[policy])})
+            policy_last_value, _ = pack_tensor(
+                {
+                    k: v
+                    for k, v in last_value.items()
+                    if k.startswith(policy_rev[policy])
+                }
+            )
 
             result[policy] = self.crowd_tensorify(
-                data={k: v for k, v in data.items() if k.startswith(policy_rev[policy])},
+                data={
+                    k: v for k, v in data.items() if k.startswith(policy_rev[policy])
+                },
                 last_value=policy_last_value,
             )
 
@@ -391,6 +409,7 @@ class OnPolicyBuffer:
     #             last_value=last_value,
     #         ),
     #     )
+
 
 @dataclass
 class DQNRecord(Record):
@@ -492,8 +511,8 @@ class TensorDict(Mapping):
         return iter(self.names)
 
 
-K = TypeVar('K', bound=str)
-V = TypeVar('V')
+K = TypeVar("K", bound=str)
+V = TypeVar("V")
 
 
 def split_dict(dict_batch: dict[K, V]) -> tuple[dict[K, V], dict[K, V]]:
@@ -509,6 +528,7 @@ def pack(dict_: dict[str, Observation]) -> Tuple[Observation, List[str]]:
 
     return values, keys
 
+
 def pack_tensor(dict_: dict[str, Array]) -> Tuple[Tensor, List[str]]:
     keys = list(dict_.keys())
     if isinstance(dict_[keys[0]], torch.Tensor):
@@ -517,6 +537,7 @@ def pack_tensor(dict_: dict[str, Array]) -> Tuple[Tensor, List[str]]:
         values = torch.as_tensor(np.stack([dict_[key] for key in keys]))
 
     return values, keys
+
 
 def unpack(arrays: Any, keys: List[str]) -> dict[str, Any]:
     value_dict = {key: arrays[i] for i, key in enumerate(keys)}

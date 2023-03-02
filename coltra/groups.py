@@ -70,7 +70,10 @@ class MacroAgent(abc.ABC):
 
     @abc.abstractmethod
     def value(
-        self, obs_batch: dict[AgentName, Observation], action_batch: dict[AgentName, Action], **kwargs
+        self,
+        obs_batch: dict[AgentName, Observation],
+        action_batch: dict[AgentName, Action],
+        **kwargs,
     ) -> dict[AgentName, Tensor]:
         pass
 
@@ -217,7 +220,6 @@ class HomogeneousGroup(MacroAgent):
         self.agent.model.load_state_dict(weights)
 
 
-
 class FamilyGroup(MacroAgent):
     """
     A macroagent with a family agent whose actions get added to the crowd agent's observations
@@ -290,7 +292,9 @@ class FamilyGroup(MacroAgent):
         actions_dict.update(family_actions_dict)
 
         extra = {key: unpack(value, crowd_keys) for key, value in extra.items()}
-        family_extra = {key: unpack(value, family_keys) for key, value in family_extra.items()}
+        family_extra = {
+            key: unpack(value, family_keys) for key, value in family_extra.items()
+        }
 
         for key, value in family_extra.items():
             if key in extra:
@@ -309,9 +313,12 @@ class FamilyGroup(MacroAgent):
     ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
         # Assumption: observations are already augmented
 
-        return {policy: self.agents[policy].evaluate(obs_batch[policy], action_batch[policy])
-                for policy in self.policies}
-
+        return {
+            policy: self.agents[policy].evaluate(
+                obs_batch[policy], action_batch[policy]
+            )
+            for policy in self.policies
+        }
 
     def parameters(self) -> Iterable[torch.nn.Parameter]:
         return self.agent.model.parameters()
@@ -323,7 +330,10 @@ class FamilyGroup(MacroAgent):
         self.agent.cpu()
 
     def value(
-        self, obs_batch: dict[AgentName, Observation], action_batch: dict[AgentName, Action], **kwargs
+        self,
+        obs_batch: dict[AgentName, Observation],
+        action_batch: dict[AgentName, Action],
+        **kwargs,
     ) -> dict[str, Tensor]:
         family_obs, crowd_obs = split_dict(obs_batch)
         family_actions, crowd_actions = split_dict(action_batch)
@@ -344,7 +354,12 @@ class FamilyGroup(MacroAgent):
 
         return values
 
-    def value_pack(self, obs_batch: dict[AgentName, Observation], action_batch: dict[AgentName, Action], **kwargs) -> Tensor:
+    def value_pack(
+        self,
+        obs_batch: dict[AgentName, Observation],
+        action_batch: dict[AgentName, Action],
+        **kwargs,
+    ) -> Tensor:
         obs, _ = pack(obs_batch)
         values = self.agent.value(obs)
         return values
@@ -378,7 +393,9 @@ class FamilyGroup(MacroAgent):
 
         device = None if torch.cuda.is_available() else "cpu"
         agent = torch.load(os.path.join(base_path, agent_fname), map_location=device)
-        family_agent = torch.load(os.path.join(base_path, family_fname), map_location=device)
+        family_agent = torch.load(
+            os.path.join(base_path, family_fname), map_location=device
+        )
         group = cls(agent, family_agent)
 
         if weight_idx == -1:
@@ -417,11 +434,16 @@ class FamilyGroup(MacroAgent):
         weights_path = os.path.join(base_path, "saved_weights", f"weights_{idx}")
         weights = torch.load(weights_path, map_location=self.agent.model.device)
 
-        family_weights_path = os.path.join(base_path, "saved_weights", f"family_weights_{idx}")
-        family_weights = torch.load(family_weights_path, map_location=self.family_agent.model.device)
+        family_weights_path = os.path.join(
+            base_path, "saved_weights", f"family_weights_{idx}"
+        )
+        family_weights = torch.load(
+            family_weights_path, map_location=self.family_agent.model.device
+        )
 
         self.agent.model.load_state_dict(weights)
         self.family_agent.model.load_state_dict(family_weights)
+
 
 # class HeterogeneousGroup(MacroAgent):
 #     """

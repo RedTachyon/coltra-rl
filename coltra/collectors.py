@@ -10,6 +10,7 @@ from coltra.groups import HomogeneousGroup, FamilyGroup, MacroAgent
 
 from coltra.utils import attention_string
 
+
 def collect_crowd_data(
     agents: HomogeneousGroup,
     env: MultiAgentEnv,
@@ -165,9 +166,13 @@ def collect_family_data(
 
     # last_values = agents.value(obs_array).detach().view(-1)
 
-    data = memory.hetero_tensorify(last_value=last_values, policy_mapping=agents.policy_mapping)
+    data = memory.hetero_tensorify(
+        last_value=last_values, policy_mapping=agents.policy_mapping
+    )
 
-    data_shapes = {k: (v.reward.shape[0] // num_steps, num_steps) for k, v in data.items()}
+    data_shapes = {
+        k: (v.reward.shape[0] // num_steps, num_steps) for k, v in data.items()
+    }
     # data_shape = tuple(last_values.shape) + (num_steps,)
     return data, metrics, data_shapes
 

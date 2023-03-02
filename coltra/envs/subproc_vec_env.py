@@ -274,7 +274,6 @@ class SubprocVecEnv(MultiAgentEnv):
     def action_spaces(self):
         return self.get_attr("action_spaces")[0]
 
-
     # def __getattr__(self, name):
     #     """
     #     Redirects all the other calls to the first environment. Slightly hacky.

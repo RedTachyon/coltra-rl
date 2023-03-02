@@ -177,7 +177,9 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
         self.behaviors = {key: value for key, value in behaviors.items()}
 
         # semi-hardcoded computation of obs/action spaces, slightly different api than gym
-        self.behavior_name = [name for name in self.behaviors.keys() if not name.startswith("Family")][0]
+        self.behavior_name = [
+            name for name in self.behaviors.keys() if not name.startswith("Family")
+        ][0]
         obs_spec, action_spec = self.behaviors[self.behavior_name]
         action_size = action_spec.continuous_size
 
@@ -208,7 +210,10 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             for single_obs_spec in obs_spec:
                 name = Sensor.from_string(single_obs_spec.name).to_string()
                 observations_dict[name] = Box(
-                    low=-np.inf, high=np.inf, shape=single_obs_spec.shape, dtype=np.float32
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=single_obs_spec.shape,
+                    dtype=np.float32,
                 )
 
             self.observation_spaces[behavior_name] = ObservationSpace(observations_dict)
@@ -221,12 +226,11 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
                 }
             )
 
-
     def get_observation_space(self, name: str) -> ObservationSpace:
-        return self.observation_spaces[name[:name.find("&")]]
+        return self.observation_spaces[name[: name.find("&")]]
 
     def get_action_space(self, name: str) -> ActionSpace:
-        return self.action_spaces[name[:name.find("&")]]
+        return self.action_spaces[name[: name.find("&")]]
 
     def _get_step_info(
         self, step: bool = False
@@ -419,4 +423,3 @@ class UnitySimpleCrowdEnv(MultiAgentEnv):
             ]
         )
         return venv
-

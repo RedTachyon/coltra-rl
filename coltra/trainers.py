@@ -137,7 +137,9 @@ class PPOCrowdTrainer(Trainer):
 
             mean_reward = metrics["crowd/mean_episode_reward"]
             best_so_far = max(best_so_far, mean_reward)
-            pbar.set_description(f"Reward: {mean_reward:8.3f}; Best: {best_so_far:8.3f}")
+            pbar.set_description(
+                f"Reward: {mean_reward:8.3f}; Best: {best_so_far:8.3f}"
+            )
 
             ########################################## Save the updated agent ##########################################
 
@@ -187,7 +189,6 @@ class PPOCrowdTrainer(Trainer):
 
             write_dict(extra_metric, step, self.writer)
 
-
             if trial is not None:
                 trial.report(mean_reward, step)
                 if trial.should_prune():
@@ -196,6 +197,7 @@ class PPOCrowdTrainer(Trainer):
                     raise optuna.TrialPruned()
 
         return metrics
+
 
 class PPOFamilyTrainer(Trainer):
     """This performs coltra in a basic paradigm, with homogeneous agents"""
@@ -300,7 +302,9 @@ class PPOFamilyTrainer(Trainer):
 
             mean_reward = metrics["crowd/mean_episode_reward"]
             best_so_far = max(best_so_far, mean_reward)
-            pbar.set_description(f"Reward: {mean_reward:8.3f}; Best: {best_so_far:8.3f}")
+            pbar.set_description(
+                f"Reward: {mean_reward:8.3f}; Best: {best_so_far:8.3f}"
+            )
 
             ########################################## Save the updated agent ##########################################
 
@@ -349,7 +353,6 @@ class PPOFamilyTrainer(Trainer):
                 # extra_metric[f"stats/{key}_l1"] = np.mean(collector_metrics[key][-2])
 
             write_dict(extra_metric, step, self.writer)
-
 
             if trial is not None:
                 trial.report(mean_reward, step)

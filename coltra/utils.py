@@ -389,8 +389,10 @@ def attention_string(attention: dict[str, torch.Tensor]) -> str:
     return "\n".join(" ".join([str(x) for x in val.tolist()]) for val in values)
 
 
-def augment_observations(crowd_obs: dict[str, Observation], family_act: dict[str, Action]) -> dict[str, Observation]:
-    """Appends family continuous actions to the agents' vector observations. In-place. """
+def augment_observations(
+    crowd_obs: dict[str, Observation], family_act: dict[str, Action]
+) -> dict[str, Observation]:
+    """Appends family continuous actions to the agents' vector observations. In-place."""
     # action = family_act.continuous
     for agent_id, obs in crowd_obs.items():
 
@@ -411,7 +413,9 @@ def get_matching_action(agent_id: str, family_act: dict[str, Action]) -> Action:
         if get_group_identifier(family_id) == team_env_ident:
             return action
 
-    raise ValueError(f"Could not find action for agent {agent_id} in family actions {family_act}")
+    raise ValueError(
+        f"Could not find action for agent {agent_id} in family actions {family_act}"
+    )
 
 
 def get_group_identifier(agent_id: str) -> str:
@@ -421,6 +425,6 @@ def get_group_identifier(agent_id: str) -> str:
     if len(parts) == 2:  # only team and id
         team_env_ident = parts[0].split("=")[1]
     else:  # team, id, and env
-        team_env_ident = parts[0].split("=")[1] + '_' +  parts[2].split("=")[1]
+        team_env_ident = parts[0].split("=")[1] + "_" + parts[2].split("=")[1]
 
     return team_env_ident

@@ -312,7 +312,6 @@ class CrowdPPOptimizer:
         return metrics
 
 
-
 class FamilyPPOptimizer:
     """
     An optimizer for a single homogeneous crowd agent. Estimates the gradient from the whole batch (no SGD).
@@ -339,7 +338,6 @@ class FamilyPPOptimizer:
         self.family_optimizer = get_optimizer(self.config.optimizer)(
             agents.family_agent.parameters(), **self.config.OptimizerKwargs.to_dict()
         )
-
 
         self.gamma: float = self.config.gamma
         self.eps: float = self.config.eps
@@ -565,4 +563,3 @@ class FamilyPPOptimizer:
         write_dict(metrics, step, writer)
 
         return metrics
-
