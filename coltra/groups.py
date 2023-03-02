@@ -88,6 +88,8 @@ class HomogeneousGroup(MacroAgent):
         self.policy_name = "crowd"
         self.policy_mapping = {"": self.policy_name}
         self.agent = agent
+        self.agents = {self.policy_name: agent}
+        self.policies = [self.policy_name]
 
     def act(
         self,
@@ -248,6 +250,9 @@ class FamilyGroup(MacroAgent):
         self.agent = agent
         self.family_agent = family_agent
 
+        self.agents = {"crowd": agent, "family": family_agent}
+        self.policies = ["crowd", "family"]
+
     def act(
         self,
         obs_dict: dict[AgentName, Observation],
@@ -302,8 +307,10 @@ class FamilyGroup(MacroAgent):
         obs_batch: dict[PolicyName, Observation],
         action_batch: dict[PolicyName, Action],
     ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
-        # TODO: Next
-        ...
+        # Assumption: observations are already augmented
+
+        return {policy: self.agents[policy].evaluate(obs_batch[policy], action_batch[policy])
+                for policy in self.policies}
 
 
     def parameters(self) -> Iterable[torch.nn.Parameter]:
@@ -348,10 +355,15 @@ class FamilyGroup(MacroAgent):
     ):
         agent_fname: str = "agent.pt"
         model_fname: str = "model.pt"
+        family_fname: str = "family_agent.pt"
+        family_model_fname: str = "family_model.pt"
+
         mapping_fname: str = "policy_mapping.pt"
 
         torch.save(self.agent, os.path.join(base_path, agent_fname))
         torch.save(self.agent.model, os.path.join(base_path, model_fname))
+        torch.save(self.family_agent, os.path.join(base_path, family_fname))
+        torch.save(self.family_agent.model, os.path.join(base_path, family_model_fname))
         torch.save(self.policy_mapping, os.path.join(base_path, mapping_fname))
 
     @classmethod
@@ -361,9 +373,13 @@ class FamilyGroup(MacroAgent):
 
         weight_fname: str = "weights"
 
+        family_fname: str = "family_agent.pt"
+        family_model_fname: str = "family_model.pt"
+
         device = None if torch.cuda.is_available() else "cpu"
         agent = torch.load(os.path.join(base_path, agent_fname), map_location=device)
-        group = cls(agent)
+        family_agent = torch.load(os.path.join(base_path, family_fname), map_location=device)
+        group = cls(agent, family_agent)
 
         if weight_idx == -1:
             weight_idx = max(
@@ -375,14 +391,7 @@ class FamilyGroup(MacroAgent):
             )
 
         if weight_idx is not None:
-            weights = torch.load(
-                os.path.join(
-                    base_path, "saved_weights", f"{weight_fname}_{weight_idx}"
-                ),
-                map_location=device,
-            )
-
-            group.agent.model.load_state_dict(weights)
+            group.load_state(base_path=base_path, idx=weight_idx)
 
         if not torch.cuda.is_available():
             group.cpu()
@@ -399,10 +408,20 @@ class FamilyGroup(MacroAgent):
             os.path.join(weights_dir, f"weights_{idx}"),
         )
 
+        torch.save(
+            self.family_agent.model.state_dict(),
+            os.path.join(weights_dir, f"family_weights_{idx}"),
+        )
+
     def load_state(self, base_path: str, idx: int = -1):
         weights_path = os.path.join(base_path, "saved_weights", f"weights_{idx}")
         weights = torch.load(weights_path, map_location=self.agent.model.device)
+
+        family_weights_path = os.path.join(base_path, "saved_weights", f"family_weights_{idx}")
+        family_weights = torch.load(family_weights_path, map_location=self.family_agent.model.device)
+
         self.agent.model.load_state_dict(weights)
+        self.family_agent.model.load_state_dict(family_weights)
 
 # class HeterogeneousGroup(MacroAgent):
 #     """
