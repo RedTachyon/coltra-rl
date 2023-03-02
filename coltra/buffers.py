@@ -347,13 +347,16 @@ class OnPolicyBuffer:
         self,
         data: Optional[dict[AgentName, AgentOnPolicyBuffer]] = None,
         last_value: Optional[dict[AgentName, Value]] = None,
-        policy_mapping: dict[AgentNameStub, PolicyName] = None,
+        policy_mapping: Optional[dict[AgentNameStub, PolicyName]] = None,
     ) -> dict[PolicyName, OnPolicyRecord]:
         if data is None:
             data = self.data
 
         if policy_mapping is None:
             policy_mapping = {"": "crowd"}
+
+        if last_value is None:
+            last_value = {}  # TODO: fix this? But I probably won't use it ever
 
         policy_rev = {v: k for k, v in policy_mapping.items()}
         policies = set(policy_mapping.values())

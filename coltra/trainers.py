@@ -12,7 +12,7 @@ import yaml
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import trange
 
-from coltra.collectors import collect_crowd_data
+from coltra.collectors import collect_crowd_data, collect_family_data
 from coltra.configs import TrainerConfig
 from coltra.envs import MultiAgentEnv
 from coltra.groups import HomogeneousGroup, FamilyGroup
@@ -200,7 +200,7 @@ class PPOCrowdTrainer(Trainer):
 
 
 class PPOFamilyTrainer(Trainer):
-    """This performs coltra in a basic paradigm, with homogeneous agents"""
+    """This performs coltra with two hierarchical agents - family and person"""
 
     def __init__(
         self,
@@ -226,8 +226,12 @@ class PPOFamilyTrainer(Trainer):
 
         self.path: Optional[str]
 
-        self.ppo = CrowdPPOptimizer(
-            self.agents, config=self.config.PPOConfig.to_dict(), seed=seed
+        self.crowd_ppo = CrowdPPOptimizer(
+            self.agents.agent, config=self.config.PPOConfig.to_dict(), seed=seed, policy_name="crowd"
+        )
+
+        self.family_ppo = CrowdPPOptimizer(
+            self.agents.family_agent, config=self.config.PPOConfig.to_dict(), seed=seed, policy_name="family"
         )
 
         # Setup tensorboard
@@ -274,6 +278,7 @@ class PPOFamilyTrainer(Trainer):
         metrics = {}
 
         best_so_far = -np.inf
+        best_so_far_family = -np.inf
 
         if save_path:
             self.agents.save(save_path)
@@ -283,7 +288,7 @@ class PPOFamilyTrainer(Trainer):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
 
-            full_batch, collector_metrics, shape = collect_crowd_data(
+            full_batch, collector_metrics, shape = collect_family_data(
                 agents=self.agents,
                 env=self.env,
                 num_steps=self.config.steps,
@@ -294,27 +299,33 @@ class PPOFamilyTrainer(Trainer):
 
             ############################################## Update policy ##############################################
             # Perform the PPO update
-            metrics = self.ppo.train_on_data(
-                full_batch, shape, step, writer=self.writer
+            crowd_metrics = self.crowd_ppo.train_on_data(
+                {"crowd": full_batch["crowd"]}, shape["crowd"], step, writer=self.writer
+            )
+
+            family_metrics = self.family_ppo.train_on_data(
+                {"family": full_batch["family"]}, shape["family"], step, writer=self.writer
             )
 
             end_time = step_timer.checkpoint()
 
-            mean_reward = metrics["crowd/mean_episode_reward"]
+            metrics = {**crowd_metrics, **family_metrics}
+
+            mean_reward = crowd_metrics["crowd/mean_episode_reward"]
+            family_mean_reward = family_metrics["family/mean_episode_reward"]
+
             best_so_far = max(best_so_far, mean_reward)
+            best_so_far_family = max(best_so_far_family, family_mean_reward)
+
             pbar.set_description(
-                f"Reward: {mean_reward:8.3f}; Best: {best_so_far:8.3f}"
+                f"Reward: {mean_reward:8.3f}/{family_mean_reward:8.3f}; Best: {best_so_far:8.3f}/{best_so_far_family:8.3f}"
             )
 
             ########################################## Save the updated agent ##########################################
 
             # Save the agent to disk
             if save_path and (step % self.config.save_freq == 0):
-                # torch.save(old_returns, os.path.join(save_path, "returns.pt"))
-                torch.save(
-                    self.agents.agent.model.state_dict(),
-                    os.path.join(save_path, "saved_weights", f"weights_{step}"),
-                )
+                self.agents.save_state(save_path, step)
 
             # Write remaining metrics to tensorboard
             extra_metric = {

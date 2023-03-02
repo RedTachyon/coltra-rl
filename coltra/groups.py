@@ -87,8 +87,8 @@ class HomogeneousGroup(MacroAgent):
     A simple macroagent with a single policy
     """
 
-    def __init__(self, agent: Agent):
-        self.policy_name = "crowd"
+    def __init__(self, agent: Agent, policy_name: str = "crowd"):
+        self.policy_name = policy_name
         self.policy_mapping = {"": self.policy_name}
         self.agent = agent
         self.agents = {self.policy_name: agent}
