@@ -14,12 +14,12 @@ from mlagents_envs.base_env import (
 )
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityEnvironmentException
-from mlagents_envs.side_channel.engine_configuration_channel import (
-    EngineConfigurationChannel,
-)
-from mlagents_envs.side_channel.environment_parameters_channel import (
-    EnvironmentParametersChannel,
-)
+from mlagents_envs.side_channel.engine_configuration_channel import (  # type: ignore
+    EngineConfigurationChannel,  # type: ignore
+)  # type: ignore
+from mlagents_envs.side_channel.environment_parameters_channel import (  # type: ignore
+    EnvironmentParametersChannel,  # type: ignore
+)  # type: ignore
 
 from coltra.envs.side_channels import StatsChannel, StringChannel, AttentionChannel
 from coltra.buffers import Observation, Action
