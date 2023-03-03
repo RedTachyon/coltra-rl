@@ -1,7 +1,7 @@
 ---
 trainer:
   steps: 200
-  workers: 8
+  workers: 2
 
   tensorboard_name:
   save_freq: 100
@@ -58,7 +58,7 @@ environment:
   num_agents: 5
   initializer: "Family"
   dynamics: "PolarAcceleration"
-  observer: "Relative"
+  observer: "Family"
   rewarder: "FamilyRewarder"
 
   # Reward function
