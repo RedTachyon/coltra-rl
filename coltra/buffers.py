@@ -308,8 +308,10 @@ class OnPolicyBuffer:
             self.data.setdefault(agent_id, AgentOnPolicyBuffer()).append(record)
 
     def tensorify(
-        self, data: dict[str, AgentOnPolicyBuffer]
+        self, data: Optional[dict[str, AgentOnPolicyBuffer]] = None
     ) -> dict[str, OnPolicyRecord]:
+        if data is None:
+            data = self.data
         result = {}
         for agent_id, agent_buffer in data.items():  # str -> AgentMemoryBuffer
             result[agent_id] = OnPolicyRecord(
