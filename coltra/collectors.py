@@ -178,7 +178,7 @@ def collect_family_data(
 
 
 def collect_renders(
-    agents: HomogeneousGroup,
+    agents: MacroAgent,
     env: MultiAgentEnv,
     num_steps: int,
     deterministic: bool = True,

@@ -325,9 +325,11 @@ class FamilyGroup(MacroAgent):
 
     def cuda(self):
         self.agent.cuda()
+        self.family_agent.cuda()
 
     def cpu(self):
         self.agent.cpu()
+        self.family_agent.cpu()
 
     def value(
         self,
@@ -354,15 +356,15 @@ class FamilyGroup(MacroAgent):
 
         return values
 
-    def value_pack(
-        self,
-        obs_batch: dict[AgentName, Observation],
-        action_batch: dict[AgentName, Action],
-        **kwargs,
-    ) -> Tensor:
-        obs, _ = pack(obs_batch)
-        values = self.agent.value(obs)
-        return values
+    # def value_pack(
+    #     self,
+    #     obs_batch: dict[AgentName, Observation],
+    #     action_batch: dict[AgentName, Action],
+    #     **kwargs,
+    # ) -> Tensor:
+    #     obs, _ = pack(obs_batch)
+    #     values = self.agent.value(obs)
+    #     return values
 
     def save(
         self,
