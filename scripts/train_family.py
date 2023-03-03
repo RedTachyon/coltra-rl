@@ -142,7 +142,7 @@ if __name__ == "__main__":
         crowd_agent = CAgent(crowd_model)
 
         family_model = MLPModel(model_config, env.observation_spaces[family_key], env.action_spaces[family_key])
-        family_agent = Agent(family_model)
+        family_agent = CAgent(family_model)
 
         family = FamilyGroup(crowd_agent, family_agent)
 
