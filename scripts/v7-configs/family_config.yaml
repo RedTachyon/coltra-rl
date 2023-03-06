@@ -103,7 +103,7 @@ environment:
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: true
+  enable_obstacles: false
   block_scale: 3
 
   random_mass: true
