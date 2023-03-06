@@ -53,7 +53,7 @@ class Parser(BaseParser):
     }
 
     _abbrev = {
-        "path": "p",
+        "path": "a",
         "iters": "i",
         "env": "e",
         "name": "n",
