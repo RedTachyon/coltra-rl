@@ -409,11 +409,11 @@ class FamilyGroup(MacroAgent):
                 ]
             )
 
-        if weight_idx is not None:
-            group.load_state(base_path=base_path, idx=weight_idx)
-
         if not torch.cuda.is_available():
             group.cpu()
+
+        if weight_idx is not None:
+            group.load_state(base_path=base_path, idx=weight_idx)
 
         return group
 
