@@ -1,7 +1,7 @@
 ---
 trainer:
   steps: 200
-  workers: 2
+  workers: 8
 
   tensorboard_name:
   save_freq: 100
@@ -65,7 +65,7 @@ environment:
   potential: 1
   goal: 10
   collision: -0.5
-  step_reward: -0.005
+  step_reward: -1.0
 
   standstill_weight: 0
   standstill_exponent: 0
@@ -78,11 +78,13 @@ environment:
   comfort_distance: 0
   comfort_distance_weight: 0
 
-  family_goal_radius: 0.5
+  family_goal_radius: 2
 
   energy_weight: 1
   final_energy_weight: 1
   potential_energy_scale: 3
+
+  alignment_weight: 0.1
 
   # Observations
   sight_radius: 10
