@@ -62,7 +62,7 @@ environment:
   rewarder: "EnergyPotential"
 
   # Physics
-  max_speed: 2.0
+  max_speed: 4.0
   max_acceleration: 5.0
   rotation_speed: 3.0
 
@@ -86,6 +86,7 @@ environment:
   energy_weight: 1
   final_energy_weight: 1
   potential_energy_scale: 3
+  complex_energy: true
 
   # Observations
   sight_radius: 10
