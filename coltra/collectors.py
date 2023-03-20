@@ -3,9 +3,8 @@ from typing import Tuple, Optional, Any, Callable
 import numpy as np
 from tqdm import trange
 
-from coltra.envs.unity_envs import UnitySimpleCrowdEnv
 from coltra.buffers import OnPolicyRecord, OnPolicyBuffer
-from coltra.envs import MultiAgentEnv
+from coltra.envs.base_env import MultiAgentEnv
 from coltra.groups import HomogeneousGroup, FamilyGroup, MacroAgent
 
 from coltra.utils import attention_string
@@ -222,6 +221,8 @@ def collect_renders(
         )
 
         if show_attention:
+            from coltra.envs.unity_envs import UnitySimpleCrowdEnv
+
             attention = extra["attention"]
             attention_msg = attention_string(attention)
             assert isinstance(

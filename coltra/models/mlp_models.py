@@ -22,6 +22,7 @@ from coltra.envs.spaces import ObservationSpace
 from coltra.utils import get_activation, AffineBeta
 from coltra.models.base_models import FCNetwork, BaseModel, BaseQModel
 from coltra.configs import MLPConfig, QMLPConfig
+from .model_utils import ContCategorical
 
 
 class MLPModel(BaseModel):
@@ -315,3 +316,82 @@ class MLPQModel(BaseQModel):
         self, obs: Observation, state: tuple = ()
     ) -> tuple[torch.Tensor, tuple]:
         return self.q_network(obs.vector), ()
+
+
+class PlatformMLPModel(BaseModel):
+    def __init__(self, config: dict, observation_space: Space, action_space: Space):
+        super().__init__(config, observation_space, action_space)
+
+        Config: MLPConfig = MLPConfig.clone()
+
+        Config.update(config)
+        self.config = Config
+
+        if isinstance(observation_space, ObservationSpace):
+            self.input_size = observation_space.vector.shape[0]
+        else:
+            self.input_size = observation_space.shape[0]
+
+        self.sigma0 = self.config.sigma0
+        # self.input_size = self.config.input_size
+        self.latent_size = self.config.hidden_sizes[-1]
+
+        self.activation: Callable = get_activation(self.config.activation)
+
+        heads: tuple[int, ...] = (4,)
+        is_policy: tuple[bool, ...] = (True,)
+
+
+        # Create the policy network
+        self.policy_network = FCNetwork(
+            input_size=self.input_size,
+            output_sizes=heads,
+            hidden_sizes=self.config.hidden_sizes,
+            activation=self.config.activation,
+            initializer=self.config.initializer,
+            is_policy=is_policy,
+        )
+
+        self.value_network = FCNetwork(
+            input_size=self.input_size,
+            output_sizes=[1],
+            hidden_sizes=self.config.hidden_sizes,
+            activation=self.config.activation,
+            initializer=self.config.initializer,
+            is_policy=is_policy,
+        )
+
+        self.logstd = nn.Parameter(
+            torch.tensor(self.config.sigma0) * torch.ones(1, 1)
+        )
+
+        self.config = self.config.to_dict()  # Convert to a dictionary for pickling
+
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = True
+    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
+
+        action_distribution: Distribution
+
+        [param, *action_types] = self.policy_network(x.vector)
+        normal_dist = Normal(loc=param, scale=torch.exp(self.logstd))
+        categorical_dist = Categorical(logits=action_types)
+
+        action_distribution = ContCategorical(categorical_dist, normal_dist)
+        extra_outputs = {}
+
+        if get_value:
+            value = self.value(x)
+            extra_outputs["value"] = value
+
+        return action_distribution, state, extra_outputs
+
+    def latent(self, x: Observation, state: Tuple) -> Tensor:
+        return self.policy_network.latent(x.vector)
+
+    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
+        [value] = self.value_network(x.vector)
+        return value
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
+        return self.value_network.latent(x.vector)
