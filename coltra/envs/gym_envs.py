@@ -57,6 +57,10 @@ class MultiGymEnv(MultiAgentEnv):
             self.s_env.action_space, gym.spaces.Discrete
         )
 
+        self.is_continuous_action = isinstance(
+            self.s_env.action_space, gym.spaces.Box
+        )
+
         self.observation_space = ObservationSpace(vector=self.s_env.observation_space)
 
         action_space_key = "discrete" if self.is_discrete_action else "continuous"
@@ -75,8 +79,10 @@ class MultiGymEnv(MultiAgentEnv):
         action = action_dict[self.name]
         if self.is_discrete_action:
             action = action.discrete
-        else:
+        elif self.is_continuous_action:
             action = action.continuous
+        else:
+            pass
 
         obs, reward, terminated, truncated, info = self.s_env.step(action)
         done = terminated or truncated

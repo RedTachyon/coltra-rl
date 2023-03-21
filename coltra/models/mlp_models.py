@@ -338,8 +338,8 @@ class PlatformMLPModel(BaseModel):
 
         self.activation: Callable = get_activation(self.config.activation)
 
-        heads: tuple[int, ...] = (4,)
-        is_policy: tuple[bool, ...] = (True,)
+        heads: tuple[int, ...] = (1, 3)
+        is_policy: tuple[bool, ...] = (True, True)
 
 
         # Create the policy network
@@ -373,7 +373,7 @@ class PlatformMLPModel(BaseModel):
 
         action_distribution: Distribution
 
-        [param, *action_types] = self.policy_network(x.vector)
+        [param, action_types] = self.policy_network(x.vector)
         normal_dist = Normal(loc=param, scale=torch.exp(self.logstd))
         categorical_dist = Categorical(logits=action_types)
 
@@ -395,3 +395,11 @@ class PlatformMLPModel(BaseModel):
 
     def latent_value(self, x: Observation, state: Tuple) -> Tensor:
         return self.value_network.latent(x.vector)
+
+    def cpu(self):
+        super(BaseModel, self).cpu()
+        self.device = "cpu"
+
+    def cuda(self, *args, **kwargs):
+        super(BaseModel, self).cuda(*args, **kwargs)
+        self.device = "cuda"

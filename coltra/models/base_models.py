@@ -47,13 +47,16 @@ class BaseModel(nn.Module):
             assert isinstance(self.action_space, Discrete)
             self.num_actions = self.action_space.n
             self.action_low, self.action_high = None, None
-        else:
+        elif isinstance(self.action_space, Box):
             assert isinstance(self.action_space, Box)
             self.num_actions = self.action_space.shape[0]
             self.action_low, self.action_high = (
                 torch.tensor(self.action_space.low),
                 torch.tensor(self.action_space.high),
             )
+        else:
+            self.num_actions = None
+            self.action_low, self.action_high = None, None
 
         self.observation_space = observation_space
 

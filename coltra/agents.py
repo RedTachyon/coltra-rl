@@ -11,6 +11,7 @@ import gymnasium as gym
 
 from coltra.models.base_models import BaseModel
 from coltra.buffers import Observation, Action
+from coltra.models.model_utils import ContCategorical
 
 
 class Agent:
@@ -262,6 +263,82 @@ class DAgent(Agent):
         obs_batch = obs_batch.tensor(self.model.device)
         values = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
+
+
+class MixedAgent(Agent):
+    model: BaseModel
+
+    def __init__(self, model: BaseModel, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model = model
+        self.stateful = model.stateful
+
+    def act(
+        self,
+        obs_batch: Observation,
+        state_batch: Tuple = (),
+        deterministic: bool = False,
+        get_value: bool = False,
+        **kwargs,
+    ) -> Tuple[Action, Tuple, dict]:
+
+        obs_batch = obs_batch.tensor(self.model.device)
+        state_batch = tuple(s.to(self.model.device) for s in state_batch)
+
+        action_distribution: ContCategorical
+        states: Tuple
+        actions: Tensor
+
+        with torch.no_grad():
+            action_distribution, states, extra_outputs = self.model(
+                obs_batch, state_batch, get_value=get_value
+            )
+
+            if deterministic:
+                actions = action_distribution.deterministic_sample()
+            else:
+                actions = action_distribution.sample()
+
+        # extra = {}
+        if get_value:
+            value = extra_outputs["value"]
+            extra_outputs["value"] = value.squeeze(-1).cpu().numpy()
+
+        return Action(discrete=actions[...,0].cpu().numpy(), continuous=actions[...,1].cpu().numpy()), states, extra_outputs
+
+    def evaluate(
+        self, obs_batch: Observation, action_batch: Action
+    ) -> Tuple[Tensor, Tensor, Tensor]:
+        """
+        Computes action logprobs, observation values and policy entropy for each of the (obs, action)
+        transitions. Works on discrete actions.
+
+        Args:
+            obs_batch: observations collected with the collector
+            action_batch: actions taken by the agent
+
+        Returns:
+            action_logprobs: tensor of action logprobs (batch_size, )
+            values: tensor of observation values (batch_size, )
+            entropies: tensor of entropy values (batch_size, )
+        """
+        obs_batch = obs_batch.tensor(self.model.device)
+        action_batch = action_batch.tensor(self.model.device)
+        # state_batch = data_batch['states']
+
+        action_distribution, _, extra_outputs = self.model(obs_batch, get_value=True)
+        values = extra_outputs["value"].sum(-1)
+        # Sum across dimensions of the action
+        action_logprobs = action_distribution.log_prob(action_batch)
+        entropies = action_distribution.entropy()
+
+        return action_logprobs, values, entropies
+
+    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+        obs_batch = obs_batch.tensor(self.model.device)
+        values = self.model.value(obs_batch.tensor(self.model.device), ())
+        return values
+
 
 
 class ToyAgent(Agent):
