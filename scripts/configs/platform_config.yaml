@@ -4,7 +4,7 @@ trainer:
   workers: 8
 
   tensorboard_name:
-  save_freq: 10
+  save_freq: 100
 
   PPOConfig:
     optimizer: adam
@@ -15,16 +15,16 @@ trainer:
       weight_decay: 0
       amsgrad: false
 
-    gamma: 0.99
+    gamma: 1
     use_ugae: false
     eta: 0.0
-    gae_lambda: 0.9
+    gae_lambda: 1
 
     advantage_normalization: true
 
     eps: 0.2
     target_kl: 0.03
-    entropy_coeff: 0.1
+    entropy_coeff: 0.0
     entropy_decay_time: 100
     min_entropy: 0.0
     value_coeff: 1.0
@@ -36,11 +36,11 @@ trainer:
 
 model:
   beta: false
-  activation: relu
+  activation: tanh
 
-  hidden_sizes: [256, 256]
+  hidden_sizes: [64, 64, 64, 64]
 
-  sigma0: 1.0
+  sigma0: 0.5
   std_head: false
 
   initializer: orthogonal

@@ -304,7 +304,7 @@ class MixedAgent(Agent):
             value = extra_outputs["value"]
             extra_outputs["value"] = value.squeeze(-1).cpu().numpy()
 
-        return Action(discrete=actions[...,0].cpu().numpy(), continuous=actions[...,1].cpu().numpy()), states, extra_outputs
+        return Action(discrete=actions[...,0].cpu().numpy(), continuous=actions[...,1:].cpu().numpy()), states, extra_outputs
 
     def evaluate(
         self, obs_batch: Observation, action_batch: Action

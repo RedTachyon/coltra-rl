@@ -64,7 +64,8 @@ class PlatformerWrapper(gym.Wrapper):
         super().__init__(env)
         self.observation_space = gym.spaces.Box(0, 1, shape=(10,), dtype=np.float32)
         # self.action_space = self.env.action_space
-        self.action_space = Tuple((Discrete(3), Box(-np.inf, np.inf, (1,), np.float32)))
+        # self.action_space = Tuple((Discrete(3), Box(-np.inf, np.inf, (1,), np.float32)))
+        self.action_space = Tuple((Discrete(3), Box(-np.inf, np.inf, (3,), np.float32)))
         # self.action_space = Box(np.array([0, 0]), np.array([3, 1]), dtype=np.float32)
 
         self.param_scales = np.array([30, 720, 430], dtype=np.float32)
@@ -74,8 +75,9 @@ class PlatformerWrapper(gym.Wrapper):
         return self.observation(obs), info
 
     def step(self, action):
-        obs, *rest = self.env.step(self.action(action))
-        return self.observation(obs), *rest
+        obs, reward, *rest, info = self.env.step(self.action(action))
+        info["m_original_reward"] = np.array([reward])
+        return self.observation(obs), reward, *rest, info
 
     def observation(self, obs):
         (state, time) = obs
@@ -87,8 +89,8 @@ class PlatformerWrapper(gym.Wrapper):
 
     def action(self, action: Action):
         disc, cont = int(action.discrete), action.continuous
-        param = np.zeros((3, 1))
-        param[disc] = self.param_scales[disc] * sigmoid(cont)
+        # param = np.zeros((3, 1))
+        param = (self.param_scales * sigmoid(cont - 2.5))[:, None]
 
         return (disc, param)
 

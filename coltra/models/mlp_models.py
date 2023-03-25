@@ -338,7 +338,7 @@ class PlatformMLPModel(BaseModel):
 
         self.activation: Callable = get_activation(self.config.activation)
 
-        heads: tuple[int, ...] = (1, 3)
+        heads: tuple[int, ...] = (3, 3)  # (param, action_type)
         is_policy: tuple[bool, ...] = (True, True)
 
 
