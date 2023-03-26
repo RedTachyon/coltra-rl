@@ -343,13 +343,41 @@ class PlatformMLPModel(BaseModel):
 
 
         # Create the policy network
+        # self.policy_network = FCNetwork(
+        #     input_size=self.input_size,
+        #     output_sizes=heads,
+        #     hidden_sizes=self.config.hidden_sizes,
+        #     activation=self.config.activation,
+        #     initializer=self.config.initializer,
+        #     is_policy=is_policy,
+        # )
+
+
         self.policy_network = FCNetwork(
             input_size=self.input_size,
-            output_sizes=heads,
+            output_sizes=[64],
             hidden_sizes=self.config.hidden_sizes,
             activation=self.config.activation,
             initializer=self.config.initializer,
-            is_policy=is_policy,
+            is_policy=False,
+        )
+
+        self.category_network = FCNetwork(
+            input_size=64,
+            output_sizes=[3],
+            hidden_sizes=[32, 32, 32],
+            activation=self.config.activation,
+            initializer=self.config.initializer,
+            is_policy=False,
+        )
+
+        self.param_network = FCNetwork(
+            input_size=64,
+            output_sizes=[3],
+            hidden_sizes=[32, 32, 32],
+            activation=self.config.activation,
+            initializer=self.config.initializer,
+            is_policy=True,
         )
 
         self.value_network = FCNetwork(
@@ -373,7 +401,13 @@ class PlatformMLPModel(BaseModel):
 
         action_distribution: Distribution
 
-        [param, action_types] = self.policy_network(x.vector)
+        # [param, action_types] = self.policy_network(x.vector)
+
+
+        [latent] = self.policy_network(x.vector)
+        [action_types] = self.category_network(latent)
+        [param] = self.param_network(latent)
+
         normal_dist = Normal(loc=param, scale=torch.exp(self.logstd))
         categorical_dist = Categorical(logits=action_types)
 

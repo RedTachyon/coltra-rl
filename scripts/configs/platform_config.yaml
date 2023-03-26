@@ -22,7 +22,7 @@ trainer:
 
     advantage_normalization: true
 
-    eps: 0.2
+    eps: 0.1
     target_kl: 0.03
     entropy_coeff: 0.0
     entropy_decay_time: 100
