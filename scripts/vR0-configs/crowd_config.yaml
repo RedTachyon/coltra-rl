@@ -59,7 +59,7 @@ environment:
   initializer: "Circle"
   dynamics: "PolarAcceleration"
   observer: "Egocentric"
-  rewarder: "EnergyPotential"
+  rewarder: "DecisionRewarder"
 
   # Physics
   max_speed: 4.0
@@ -87,6 +87,21 @@ environment:
   final_energy_weight: 1
   potential_energy_scale: 2
   complex_energy: true
+
+  # Unified reward
+
+  r_bmr: 1.0
+  r_drag: 1.0
+  r_dynamics: 0.0
+  r_potential: 1.0
+  r_s_matching: 0.0
+  r_s_matching_exp: 0.0
+  r_speeding: 0.0
+  r_exp_v_matching: 0.0
+  r_exp_v_sigma: 0.0
+  r_v_matching: 0.0
+  r_goal: 10.0
+  r_final: 1.0
 
   # Observations
   sight_radius: 10
