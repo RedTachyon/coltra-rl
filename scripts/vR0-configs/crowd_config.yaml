@@ -55,7 +55,7 @@ model:
 
 
 environment:
-  num_agents: 12
+  num_agents: 20
   initializer: "Circle"
   dynamics: "PolarAcceleration"
   observer: "Egocentric"
@@ -117,7 +117,7 @@ environment:
 
   # Spawn
   spawn_noise_scale: 1.5
-  spawn_scale: 9
+  spawn_scale: 7
 
   grid_spawn: true
   group_spawn_scale: 1.5
@@ -126,7 +126,7 @@ environment:
   block_scale: 3
 
   random_mass: true
-  random_energy: true
+  random_energy: false
 
   shared_goal: true
 
