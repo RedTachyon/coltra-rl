@@ -55,6 +55,8 @@ SCENARIOS = ["Circle", "CircleBlock" "Corridor", "Crossway", "Random"]
 
 Curriculum = Callable[[Optional[dict], int, int], dict]
 
+SimpleCurriculum = dict[int, dict[str, Any]]
+
 
 def fixed_curriculum(config: dict | None = None, seed: int = 0, step: int = 0) -> dict:
     """

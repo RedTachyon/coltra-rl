@@ -17,6 +17,7 @@ from coltra.configs import TrainerConfig
 from coltra.envs import MultiAgentEnv
 from coltra.groups import HomogeneousGroup, FamilyGroup
 from coltra.policy_optimization import CrowdPPOptimizer
+from coltra.schedule import SimpleCurriculum
 from coltra.utils import Timer, write_dict
 
 
@@ -98,7 +99,7 @@ class PPOCrowdTrainer(Trainer):
         save_path: Optional[str] = None,
         collect_kwargs: Optional[dict[str, Any]] = None,
         trial: Optional[optuna.Trial] = None,
-        update_iter: Optional[int] = None,  # TODO: DIRTY HACK, remove this after the experiments
+        curriculum: Optional[SimpleCurriculum] = None
     ) -> dict[str, float]:
 
         if save_path is None:
@@ -119,9 +120,10 @@ class PPOCrowdTrainer(Trainer):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
 
-            if step == update_iter:
-                collect_kwargs["r_drag"] = 0.0
-                collect_kwargs["r_dynamics"] = 1.0
+            if curriculum is not None and step in curriculum:
+                update_kwargs = curriculum[step]
+                collect_kwargs = {**collect_kwargs, **update_kwargs}
+
 
             full_batch, collector_metrics, shape = collect_crowd_data(
                 agents=self.agents,

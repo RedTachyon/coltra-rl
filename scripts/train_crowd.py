@@ -94,6 +94,7 @@ if __name__ == "__main__":
         model_config = config["model"]
         env_config = config["environment"]
         model_type = config["model_type"]
+        curriculum = config.get("env_curriculum", None)
 
         assert model_type in (
             "blind",
@@ -170,7 +171,7 @@ if __name__ == "__main__":
             disable_tqdm=False,
             save_path=trainer.path,
             collect_kwargs=env_config,
-            update_iter=args.accel_iter
+            curriculum=curriculum
         )
 
         print("Evaluating...")

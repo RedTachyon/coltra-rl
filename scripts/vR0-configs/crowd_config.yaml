@@ -138,5 +138,9 @@ environment:
 
   show_attention: false
   backwards_allowed: false
+env_curriculum:
+  200:
+    r_drag: 0.0
+    r_dynamics: 1.0
 
 model_type: "relation"
