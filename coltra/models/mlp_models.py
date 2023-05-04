@@ -386,7 +386,7 @@ class PlatformMLPModel(BaseModel):
             hidden_sizes=self.config.hidden_sizes,
             activation=self.config.activation,
             initializer=self.config.initializer,
-            is_policy=is_policy,
+            is_policy=False,
         )
 
         self.logstd = nn.Parameter(
