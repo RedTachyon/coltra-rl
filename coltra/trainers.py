@@ -98,6 +98,7 @@ class PPOCrowdTrainer(Trainer):
         save_path: Optional[str] = None,
         collect_kwargs: Optional[dict[str, Any]] = None,
         trial: Optional[optuna.Trial] = None,
+        update_iter: Optional[int] = None,  # TODO: DIRTY HACK, remove this after the experiments
     ) -> dict[str, float]:
 
         if save_path is None:
@@ -117,6 +118,10 @@ class PPOCrowdTrainer(Trainer):
         for step in (pbar := trange(1, num_iterations + 1, disable=disable_tqdm)):
             ########################################### Collect the data ###############################################
             timer.checkpoint()
+
+            if step == update_iter:
+                collect_kwargs["r_drag"] = 0.0
+                collect_kwargs["r_dynamics"] = 1.0
 
             full_batch, collector_metrics, shape = collect_crowd_data(
                 agents=self.agents,

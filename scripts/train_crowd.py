@@ -41,6 +41,7 @@ class Parser(BaseParser):
     worker_id: Optional[int] = None
     project: Optional[str] = None
     extra_config: Optional[str] = None
+    accel_iter: Optional[int] = None
 
     _help = {
         "config": "Config file for coltra. If preceded by 'wandb:', will use wandb to fetch config.",
@@ -50,6 +51,7 @@ class Parser(BaseParser):
         "worker_id": "Worker id",
         "project": "Name of wandb project",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
+        "accel_iter": "Number of iterations after which acceleration is enabled in the reward function."
     }
 
     _abbrev = {
@@ -60,6 +62,7 @@ class Parser(BaseParser):
         "worker_id": "w",
         "project": "p",
         "extra_config": "ec",
+        "accel_iter": "ai"
     }
 
 
@@ -167,6 +170,7 @@ if __name__ == "__main__":
             disable_tqdm=False,
             save_path=trainer.path,
             collect_kwargs=env_config,
+            update_iter=args.accel_iter
         )
 
         print("Evaluating...")
