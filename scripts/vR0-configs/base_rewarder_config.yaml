@@ -1,7 +1,7 @@
 ---
 trainer:
   steps: 200
-  workers: 4
+  workers: 2
 
   tensorboard_name:
   save_freq: 100
@@ -55,8 +55,8 @@ model:
 
 
 environment:
-  num_agents: 5
-  initializer: "Car"
+  num_agents: 20
+  initializer: "Circle"
   dynamics: "PolarAcceleration"
   observer: "Egocentric"
   rewarder: "DecisionRewarder"
@@ -69,7 +69,7 @@ environment:
   # Reward function
   potential: 1
   goal: 10
-  collision: -0.05
+  collision: -0.01
   step_reward: -0.005
 
   standstill_weight: 0
@@ -94,14 +94,14 @@ environment:
   r_drag: 0.0
   r_dynamics: 0.0
   r_potential: 1.0
-  r_s_matching: 0.0
+  r_s_matching: 1.0
   r_s_matching_exp: 1.0
-  r_speeding: 1.0
+  r_speeding: 0.0
   r_exp_v_matching: 0.0
-  r_exp_v_sigma: 0.0
+  r_exp_v_sigma: 0.85
   r_v_matching: 0.0
   r_goal: 10.0
-  r_final: 1.0
+  r_final: 0.0
 
   # Observations
   sight_radius: 10
@@ -122,7 +122,7 @@ environment:
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: true
+  enable_obstacles: false
   block_scale: 3
 
   random_mass: true
