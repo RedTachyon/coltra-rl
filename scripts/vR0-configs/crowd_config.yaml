@@ -1,7 +1,7 @@
 ---
 trainer:
   steps: 200
-  workers: 4
+  workers: 2
 
   tensorboard_name:
   save_freq: 100
@@ -55,7 +55,7 @@ model:
 
 
 environment:
-  num_agents: 12
+  num_agents: 20
   initializer: "Circle"
   dynamics: "PolarAcceleration"
   observer: "Egocentric"
@@ -98,7 +98,7 @@ environment:
   r_s_matching_exp: 0.0
   r_speeding: 0.0
   r_exp_v_matching: 0.0
-  r_exp_v_sigma: 0.0
+  r_exp_v_sigma: 0.85
   r_v_matching: 0.0
   r_goal: 10.0
   r_final: 1.0
