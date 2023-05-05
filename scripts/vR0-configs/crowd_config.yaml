@@ -69,7 +69,7 @@ environment:
   # Reward function
   potential: 1
   goal: 10
-  collision: -0.1
+  collision: -0.05
   step_reward: -0.005
 
   standstill_weight: 0
