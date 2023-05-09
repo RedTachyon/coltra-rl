@@ -37,7 +37,7 @@ class Parser(BaseParser):
     config: str = "v7-configs/crowd_config.yaml"
     iters: int = 500
     env: str
-    name: str
+    name: Optional[str] = None
     worker_id: Optional[int] = None
     project: Optional[str] = None
     extra_config: Optional[str] = None
@@ -104,7 +104,9 @@ if __name__ == "__main__":
             "attention",
         ), ValueError(f"Wrong model type {model_type} in the config.")
 
-        trainer_config["tensorboard_name"] = args.name
+        if args.name:
+            trainer_config["tensorboard_name"] = args.name
+
         trainer_config["PPOConfig"]["use_gpu"] = CUDA
 
         workers = trainer_config["workers"]
