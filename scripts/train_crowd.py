@@ -138,7 +138,7 @@ if __name__ == "__main__":
             project="crowdai" if args.project is None else args.project,
             sync_tensorboard=True,
             config=config,
-            name=args.name,
+            name=trainer_config["tensorboard_name"],
         )
 
         if model_type == "relation":
