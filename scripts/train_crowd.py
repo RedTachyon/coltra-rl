@@ -38,20 +38,20 @@ class Parser(BaseParser):
     iters: int = 500
     env: str
     name: Optional[str] = None
+    unique: bool = False
     worker_id: Optional[int] = None
     project: Optional[str] = None
     extra_config: Optional[str] = None
-    accel_iter: Optional[int] = None
 
     _help = {
         "config": "Config file for coltra. If preceded by 'wandb:', will use wandb to fetch config.",
         "iters": "Number of coltra iterations",
         "env": "Path to the Unity environment binary",
         "name": "Name of the tb directory to store the logs",
+        "unique": "Whether to use a unique name for the tb directory",
         "worker_id": "Worker id",
         "project": "Name of wandb project",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
-        "accel_iter": "Number of iterations after which acceleration is enabled in the reward function."
     }
 
     _abbrev = {
@@ -59,10 +59,10 @@ class Parser(BaseParser):
         "iters": "i",
         "env": "e",
         "name": "n",
+        "unique": "u",
         "worker_id": "w",
         "project": "p",
         "extra_config": "ec",
-        "accel_iter": "ai"
     }
 
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         if CUDA:
             agents.cuda()
 
-        trainer = PPOCrowdTrainer(agents, env, trainer_config)
+        trainer = PPOCrowdTrainer(agents, env, trainer_config, use_uuid=args.unique)
         with open(os.path.join(trainer.path, "full_config.yaml"), "w") as f:
             yaml.dump(config, f)
 
