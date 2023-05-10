@@ -94,6 +94,7 @@ environment:
   r_drag: 0.0
   r_dynamics: 0.0
   r_potential: 1.0
+  r_diff_potential: 0.0
   r_s_matching: 1.0
   r_s_matching_exp: 1.0
   r_speeding: 0.0
