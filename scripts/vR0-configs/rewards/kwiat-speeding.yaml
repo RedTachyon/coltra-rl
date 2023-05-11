@@ -97,7 +97,7 @@ environment:
   r_diff_potential: 0.0
   r_s_matching: 0.0
   r_s_matching_exp: 1.0
-  r_speeding: 1.0
+  r_speeding: 10.0
   r_exp_v_matching: 0.0
   r_exp_v_sigma: 0.85
   r_v_matching: 0.0
