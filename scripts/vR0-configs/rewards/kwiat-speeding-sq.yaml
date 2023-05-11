@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: kwiat-speeding
+  tensorboard_name: kwiat-speeding-sq
   save_freq: 100
 
   PPOConfig:
