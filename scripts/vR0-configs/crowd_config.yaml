@@ -69,7 +69,7 @@ environment:
   # Reward function
   potential: 1
   goal: 10
-  collision: -0.01
+  collision: -0.02
   step_reward: -0.005
 
   standstill_weight: 0
@@ -100,7 +100,7 @@ environment:
   r_exp_v_matching: 0.0
   r_exp_v_sigma: 0.85
   r_v_matching: 0.0
-  r_goal: 10.0
+  r_goal: 50.0
   r_final: 1.0
 
   # Observations

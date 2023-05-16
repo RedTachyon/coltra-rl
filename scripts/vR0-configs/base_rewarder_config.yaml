@@ -93,13 +93,13 @@ environment:
   r_bmr: 0.0
   r_drag: 0.0
   r_dynamics: 0.0
-  r_potential: 1.0
-  r_s_matching: 1.0
-  r_s_matching_exp: 1.0
+  r_potential: 0.0
+  r_s_matching: 0.0
+  r_s_matching_exp: 0.0
   r_speeding: 0.0
   r_exp_v_matching: 0.0
   r_exp_v_sigma: 0.85
-  r_v_matching: 0.0
+  r_v_matching: 1.0
   r_goal: 10.0
   r_final: 0.0
 

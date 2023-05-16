@@ -56,7 +56,7 @@ model:
 
 environment:
   num_agents: 20
-  initializer: "Circle"
+  initializer: "Choke"
   dynamics: "PolarAcceleration"
   observer: "Egocentric"
   rewarder: "DecisionRewarder"
@@ -123,7 +123,7 @@ environment:
   grid_spawn: true
   group_spawn_scale: 1.5
 
-  enable_obstacles: false
+  enable_obstacles: true
   block_scale: 3
 
   random_mass: true
