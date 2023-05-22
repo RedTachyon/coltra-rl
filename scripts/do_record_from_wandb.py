@@ -48,10 +48,6 @@ if __name__ == "__main__":
     args = Parser()
 
     api = wandb.Api()
-    runs = list(api.runs(args.project_name))
-    runs = runs[args.skip:]
-
-    num_runs = len(runs)
 
     run = api.run(args.run_path)
 
