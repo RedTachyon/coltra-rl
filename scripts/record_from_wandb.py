@@ -89,9 +89,11 @@ if __name__ == "__main__":
         )
         env.reset(**env_config)
 
-        os.mkdir(os.path.join(full_path, "trajectories"))
-        os.mkdir(os.path.join(full_path, "videos"))
-        os.mkdir(os.path.join(full_path, "images"))
+        for dirname in ["trajectories", "videos", "images"]:
+            try:
+                os.mkdir(os.path.join(full_path, dirname))
+            except FileExistsError:
+                pass
 
         sns.set()
         UNIT_SIZE = 3
