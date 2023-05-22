@@ -58,7 +58,7 @@ if __name__ == "__main__":
             print(f"Skipping {run.name}")
             continue
 
-        wandb.init(id=run.id, project=args.project_name, resume="allow")
+        wandb.init(id=run.id, project=args.project_name.split('/')[1], resume="allow")
         print(f"Recording {run.name}")
 
         out_file = run.files("output.log")[0].download(replace=True, root="tmp")
