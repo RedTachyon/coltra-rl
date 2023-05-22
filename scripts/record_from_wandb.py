@@ -64,7 +64,10 @@ if __name__ == "__main__":
         out_file = run.files("output.log")[0].download(replace=True, root="tmp")
         out_txt: str = out_file.read()
 
-        path = re.search(r"/home/kwiatkowski/tb_logs/(.+)\n", out_txt).group(1)
+        # path = re.search(r"/home/kwiatkowski/tb_logs/(.+)\n", out_txt).group(1)
+        path = re.search(r"/tb_logs/(.+)\n", out_txt).group(1)
+
+
         print(f"Found path: {path}")
 
         full_path = f"/home/ariel/titan_logs/tb_logs/{path}"
