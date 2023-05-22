@@ -19,17 +19,20 @@ from coltra.utils import find_free_worker
 class Parser(BaseParser):
     project_name: str
     env_path: str
+    skip: int = 0
     force: bool = False
 
     _help = {
         "project_name": "Name of the wandb project",
         "env_path": "Path to the Unity environment binary",
+        "skip": "Number of runs to skip",
         "force": "Whether to force the recording even if the video already exists",
     }
 
     _abbrev = {
         "project_name": "p",
         "env_path": "e",
+        "skip": "s",
         "force": "f",
     }
 
@@ -48,17 +51,19 @@ if __name__ == "__main__":
     args = Parser()
 
     api = wandb.Api()
-    runs = api.runs(args.project_name)
+    runs = list(api.runs(args.project_name))
+    runs = runs[args.skip:]
 
     num_runs = len(runs)
 
+    # missing: /home/ariel/titan_logs/tb_logs/xu_2023-05-19_20-00-58_QAywRTce89t87gZpuV5TME/
     for i, run in enumerate(runs):
         print(f"Processing run {i+1}/{num_runs}")
         if not args.force and has_video(run):
             print(f"Skipping {run.name}")
             continue
 
-        wandb.init(id=run.id, project=args.project_name.split('/')[1], resume="allow")
+        wandb.init(id=run.id, project=args.project_name.split('/')[1], resume="allow", reinit=True)
         print(f"Recording {run.name}")
 
         out_file = run.files("output.log")[0].download(replace=True, root="tmp")
