@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: curriculum
+  tensorboard_name: energy
   save_freq: 100
 
   PPOConfig:
