@@ -42,6 +42,7 @@ class Parser(BaseParser):
     worker_id: Optional[int] = None
     project: Optional[str] = None
     extra_config: Optional[str] = None
+    run_eval: bool = False
 
     _help = {
         "config": "Config file for coltra. If preceded by 'wandb:', will use wandb to fetch config.",
@@ -52,6 +53,7 @@ class Parser(BaseParser):
         "worker_id": "Worker id",
         "project": "Name of wandb project",
         "extra_config": "Extra config items to override the config file. Should be passed in a json format.",
+        "run_eval": "Whether to run evaluation after training",
     }
 
     _abbrev = {
@@ -63,6 +65,7 @@ class Parser(BaseParser):
         "worker_id": "w",
         "project": "p",
         "extra_config": "ec",
+        "run_eval": "re",
     }
 
 
@@ -196,111 +199,112 @@ if __name__ == "__main__":
 
         env_config["evaluation_mode"] = 1.0
 
-        worker_id = find_free_worker(500)
-        env = UnitySimpleCrowdEnv(
-            file_name=args.env,
-            virtual_display=(800, 800),
-            no_graphics=False,
-            worker_id=worker_id,
-            extra_params=env_config,
-        )
-        env.reset(**env_config)
-
-        os.mkdir(os.path.join(trainer.path, "trajectories"))
-        os.mkdir(os.path.join(trainer.path, "videos"))
-        os.mkdir(os.path.join(trainer.path, "images"))
-
-        sns.set()
-        UNIT_SIZE = 3
-        plt.rcParams["figure.figsize"] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
-
-        # mode = "circle"
-        mode = env_config["initializer"]
-        for i in range(3):
-            idx = i % 3
-            d = idx == 0
-
-            trajectory_path = os.path.join(
-                trainer.path,
-                "trajectories",
-                f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}.json",
+        if args.run_eval:
+            worker_id = find_free_worker(500)
+            env = UnitySimpleCrowdEnv(
+                file_name=args.env,
+                virtual_display=(800, 800),
+                no_graphics=False,
+                worker_id=worker_id,
+                extra_params=env_config,
             )
+            env.reset(**env_config)
 
-            dashboard_path = os.path.join(
-                trainer.path,
-                "images",
-                f"dashboard_{mode}_{'det' if d else 'rnd'}_{idx}.png",
-            )
+            os.mkdir(os.path.join(trainer.path, "trajectories"))
+            os.mkdir(os.path.join(trainer.path, "videos"))
+            os.mkdir(os.path.join(trainer.path, "images"))
 
-            env.reset(save_path=trajectory_path, **env_config)
-            print(
-                f"Collecting data for {'' if d else 'non'}deterministic {mode} video number {idx}"
-            )
+            sns.set()
+            UNIT_SIZE = 3
+            plt.rcParams["figure.figsize"] = (8 * UNIT_SIZE, 4 * UNIT_SIZE)
 
-            renders, returns = collect_renders(
-                agents,
-                env,
-                num_steps=trainer_config["steps"],
-                disable_tqdm=False,
-                env_kwargs=env_config,
-                deterministic=d,
-            )
+            # mode = "circle"
+            mode = env_config["initializer"]
+            for i in range(3):
+                idx = i % 3
+                d = idx == 0
 
-            print(f"Mean return: {np.mean(returns)}")
+                trajectory_path = os.path.join(
+                    trainer.path,
+                    "trajectories",
+                    f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}.json",
+                )
 
-            # Generate the dashboard
-            print("Generating dashboard")
-            trajectory = du.read_trajectory(trajectory_path)
+                dashboard_path = os.path.join(
+                    trainer.path,
+                    "images",
+                    f"dashboard_{mode}_{'det' if d else 'rnd'}_{idx}.png",
+                )
 
-            plt.clf()
-            du.make_dashboard(trajectory, save_path=dashboard_path)
+                env.reset(save_path=trajectory_path, **env_config)
+                print(
+                    f"Collecting data for {'' if d else 'non'}deterministic {mode} video number {idx}"
+                )
 
-            # Upload to wandb
-            print("Uploading dashboard")
-            wandb.log(
-                {
-                    f"dashboard_{idx}": wandb.Image(
-                        dashboard_path,
-                        caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}",
-                    )
-                },
-                commit=False,
-            )
+                renders, returns = collect_renders(
+                    agents,
+                    env,
+                    num_steps=trainer_config["steps"],
+                    disable_tqdm=False,
+                    env_kwargs=env_config,
+                    deterministic=d,
+                )
 
-            frame_size = renders.shape[1:3]
+                print(f"Mean return: {np.mean(returns)}")
 
-            print("Recording a video")
-            video_path = os.path.join(
-                trainer.path, "videos", f"video_{mode}_{'det' if d else 'rnd'}_{i}.webm"
-            )
-            out = cv2.VideoWriter(
-                video_path, cv2.VideoWriter_fourcc(*"VP90"), 24, frame_size[::-1]
-            )
-            for frame in renders[..., ::-1]:
-                out.write(frame)
+                # Generate the dashboard
+                print("Generating dashboard")
+                trajectory = du.read_trajectory(trajectory_path)
 
-            out.release()
+                plt.clf()
+                du.make_dashboard(trajectory, save_path=dashboard_path)
 
-            print(f"Video saved to {video_path}")
+                # Upload to wandb
+                print("Uploading dashboard")
+                wandb.log(
+                    {
+                        f"dashboard_{idx}": wandb.Image(
+                            dashboard_path,
+                            caption=f"Dashboard {mode} {'det' if d else 'rng'} {i}",
+                        )
+                    },
+                    commit=False,
+                )
 
-            wandb.log(
-                {
-                    f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(
-                        video_path
-                    )
-                },
-                commit=False,
-            )
+                frame_size = renders.shape[1:3]
 
-            print("Video uploaded to wandb")
+                print("Recording a video")
+                video_path = os.path.join(
+                    trainer.path, "videos", f"video_{mode}_{'det' if d else 'rnd'}_{i}.webm"
+                )
+                out = cv2.VideoWriter(
+                    video_path, cv2.VideoWriter_fourcc(*"VP90"), 24, frame_size[::-1]
+                )
+                for frame in renders[..., ::-1]:
+                    out.write(frame)
 
-            trajectory_artifact = wandb.Artifact(
-                name=f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}", type="json"
-            )
-            trajectory_artifact.add_file(trajectory_path)
-            wandb.log_artifact(trajectory_artifact)
+                out.release()
 
-        wandb.log({}, commit=True)
+                print(f"Video saved to {video_path}")
+
+                wandb.log(
+                    {
+                        f"video_{mode}_{'det' if d else 'rnd'}_{idx}": wandb.Video(
+                            video_path
+                        )
+                    },
+                    commit=False,
+                )
+
+                print("Video uploaded to wandb")
+
+                trajectory_artifact = wandb.Artifact(
+                    name=f"trajectory_{mode}_{'det' if d else 'rnd'}_{idx}", type="json"
+                )
+                trajectory_artifact.add_file(trajectory_path)
+                wandb.log_artifact(trajectory_artifact)
+
+            wandb.log({}, commit=True)
         env.close()
         wandb.finish()
 
