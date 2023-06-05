@@ -22,5 +22,5 @@ for file in "$config_dir"/*; do
 		switch_flag=0
 	fi
 
-	python train_crowd.py -c "$file" -i 1000 -e ../builds/crowd-vR2/crowd.x86_64 -p "$python_p_arg" -w "$current_worker_id" -u
+	python train_crowd.py -c "$file" -i 1000 -e ../builds/crowd-vR2a/crowd.x86_64 -p "$python_p_arg" -w "$current_worker_id" -u
 done
