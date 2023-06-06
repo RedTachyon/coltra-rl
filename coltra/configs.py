@@ -37,6 +37,7 @@ class PPOConfig(BaseConfig):
     min_entropy: float = 0.001
     value_coeff: float = 1.0  # Technically irrelevant
     advantage_normalization: bool = False
+    rewind: bool = False
 
     # Number of gradient updates = ppo_epochs * ceil(batch_size / minibatch_size)
     ppo_epochs: int = 3

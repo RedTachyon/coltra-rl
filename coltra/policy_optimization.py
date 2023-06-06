@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 from typing import Dict, Any, Optional, Tuple, Union
 
@@ -175,6 +177,8 @@ class CrowdPPOptimizer:
         # Define variable to prevent line overflow later
         batch_size = self.config.minibatch_size
 
+        saved_state_dict: Optional[dict] = None
+
         for ppo_step in range(self.config.ppo_epochs):
             returns, advantages = discount_experience(
                 rewards,
@@ -219,6 +223,8 @@ class CrowdPPOptimizer:
                     raise ValueError("NaN detected in KL Divergence!")
                 if kl_divergence > self.config.target_kl:
                     broken = True
+                    if self.config.rewind and saved_state_dict is not None:
+                        self.agents.agent.model.load_state_dict(saved_state_dict)
                     break
 
                 ######################################### Compute the loss #############################################
@@ -242,6 +248,9 @@ class CrowdPPOptimizer:
                     + value_loss.mean()
                     - (entropy_coeff * m_entropy.mean())
                 )
+
+                if self.config.rewind:
+                    saved_state_dict = copy.deepcopy(self.agents.agent.model.state_dict())
 
                 ############################################# Update step ##############################################
                 self.policy_optimizer.zero_grad()
