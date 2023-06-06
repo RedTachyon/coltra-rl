@@ -154,7 +154,6 @@ env_curriculum:
     r_goal: 10.0
   200:
     # removed
-    r_s_matching_exp: 0.0
     r_speeding: 0.0
     # same
     r_potential: 1.0
