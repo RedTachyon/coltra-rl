@@ -29,6 +29,7 @@ trainer:
     entropy_decay_time: 100
     min_entropy: 0.0
     value_coeff: 1.0
+    rewind: true
 
     ppo_epochs: 20
     minibatch_size: 2048
