@@ -1,6 +1,7 @@
 import os
 import re
 import yaml
+import subprocess
 
 import numpy as np
 import cv2
@@ -37,6 +38,12 @@ class Parser(BaseParser):
 def has_video(run: wandb.apis.public.Run):
     return any(key.startswith('video') for key in run.summary.keys())
 
+def copy_logs(path: str):
+    src = f"titan:/home/kwiatkowski/tb_logs/{path}"
+    dest = f"/home/ariel/titan_logs/tb_logs/{path}"
+    result = subprocess.run(['scp', '-r', src, dest], check=True, text=True, capture_output=True)
+    print(f'Successfully copied {src} to {dest}')
+
 # Sketch of the code to be generated
 #  Iterate over all runs in the project
 #   For each run, check if any key in `run.summary` starts with `video`
@@ -65,6 +72,8 @@ if __name__ == "__main__":
 
     # path = re.search(r"/home/kwiatkowski/tb_logs/(.+)\n", out_txt).group(1)
     path = re.search(r"/tb_logs/(.+)\n", out_txt).group(1)
+
+    copy_logs(path)
 
 
     print(f"Found path: {path}")

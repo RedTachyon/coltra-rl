@@ -11,12 +11,14 @@ class Parser(BaseParser):
     env_path: str
     skip: int = 0
     force: bool = False
+    only_finished: bool = False
 
     _help = {
         "project_name": "Name of the wandb project",
         "env_path": "Path to the Unity environment binary",
         "skip": "Number of runs to skip",
         "force": "Whether to force the recording even if the video already exists",
+        "only_finished": "Whether to only record videos for finished runs",
     }
 
     _abbrev = {
@@ -24,6 +26,7 @@ class Parser(BaseParser):
         "env_path": "e",
         "skip": "s",
         "force": "f",
+        "only_finished": "o",
     }
 
 
@@ -47,7 +50,6 @@ if __name__ == "__main__":
 
     num_runs = len(runs)
 
-    # missing: /home/ariel/titan_logs/tb_logs/xu_2023-05-19_20-00-58_QAywRTce89t87gZpuV5TME/
     for i, run in enumerate(runs):
         print(f"Processing run {i + 1}/{num_runs}")
         if not args.force and has_video(run):
@@ -55,6 +57,10 @@ if __name__ == "__main__":
             continue
 
         run_path = '/'.join(run.path)
+
+        if args.only_finished and run.state != 'finished':
+            print(f"Skipping {run.name} because it is not finished")
+            continue
 
         # Run `do_record_from_wandb.py` as a separate process
 
