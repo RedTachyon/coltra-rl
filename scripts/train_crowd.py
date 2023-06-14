@@ -171,6 +171,10 @@ if __name__ == "__main__":
         with open(os.path.join(trainer.path, "full_config.yaml"), "w") as f:
             yaml.dump(config, f)
 
+        path_artifact = wandb.Artifact(
+            "save_path", type="save_path", metadata={"save_path": trainer.path}
+        )
+        wandb.log_artifact(path_artifact)
         trainer.train(
             args.iters,
             disable_tqdm=False,
