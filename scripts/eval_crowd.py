@@ -1,6 +1,7 @@
 import os
 import sys
 from typing import Optional
+import shutil
 
 import cv2
 import wandb
@@ -171,7 +172,7 @@ if __name__ == "__main__":
                 env.reset(**env_config)
 
                 try:
-                    os.rmdir(os.path.join(args.agent_path, "tmp"))
+                    shutil.rmtree(os.path.join(args.agent_path, "tmp"))
                 except FileNotFoundError:
                     pass
 
@@ -275,7 +276,7 @@ if __name__ == "__main__":
 
 
         wandb.finish()
-        os.rmdir(os.path.join(args.agent_path, "tmp"))
+        shutil.rmtree(os.path.join(args.agent_path, "tmp"))
 
     finally:
         print("Cleaning up")
