@@ -170,6 +170,11 @@ if __name__ == "__main__":
 
                 env.reset(**env_config)
 
+                try:
+                    os.rmdir(os.path.join(args.agent_path, "tmp"))
+                except FileNotFoundError:
+                    pass
+
                 os.mkdir(os.path.join(args.agent_path, "tmp"))
                 os.mkdir(os.path.join(args.agent_path, "tmp", "eval_trajectories"))
                 os.mkdir(os.path.join(args.agent_path, "tmp", "eval_videos"))
