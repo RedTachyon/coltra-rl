@@ -153,7 +153,7 @@ if __name__ == "__main__":
             sys.exit(0)
 
         worker_id = find_free_worker(500)
-        render_env = UnitySimpleCrowdEnv(
+        env = UnitySimpleCrowdEnv(
             file_name=args.env,
             virtual_display=(800, 800),
             no_graphics=False,
