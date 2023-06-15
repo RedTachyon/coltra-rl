@@ -106,20 +106,22 @@ if __name__ == "__main__":
             "Car": [1, 2, 5, 10],
         }
 
+        env = UnitySimpleCrowdEnv(
+            file_name=args.env,
+            no_graphics=True,
+            extra_params=env_config
+        )
+
+        env.set_timescale(100.)
+
         for scenario, nums_agents in scenarios.items():
             for num_agents in nums_agents:
                 env_config["num_agents"] = num_agents
                 env_config["initializer"] = scenario
 
-                env = UnitySimpleCrowdEnv(
-                    file_name=args.env,
-                    no_graphics=True,
-                    extra_params=env_config
-                )
+                env.reset(**env_config)
 
-                env.reset()
-
-                metrics = evaluate(env, agents, n_episodes=5, n_steps=200, disable_tqdm=False)
+                metrics = evaluate(env, agents, n_episodes=5, n_steps=200, disable_tqdm=False, reset_kwargs=env_config)
 
                 for metric, values in metrics.items():
                     wandb.log(
