@@ -260,7 +260,7 @@ if __name__ == "__main__":
                     print("Video uploaded to wandb")
 
                     trajectory_artifact = wandb.Artifact(
-                        name=f"{scenario}{num_agents}/trajectory_{mode}_{'det' if d else 'rnd'}_{idx}", type="json"
+                        name=f"{scenario}{num_agents}_trajectory_{mode}_{'det' if d else 'rnd'}_{idx}", type="json"
                     )
                     trajectory_artifact.add_file(trajectory_path)
                     wandb.log_artifact(trajectory_artifact)
