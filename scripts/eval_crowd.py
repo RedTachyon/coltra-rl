@@ -44,9 +44,9 @@ def evaluate(
     metrics = {
         "returns": [],
         "e_energy": [],
-        "e_energyComplex": [],
-        "e_energyPlus": [],
-        "e_energyComplexPlus": []
+        "e_energy_complex": [],
+        "e_energy_plus": [],
+        "e_energy_complex_Plus": []
     }
     current_return = 0.0
     for ep in trange(n_episodes, disable=disable_tqdm):
