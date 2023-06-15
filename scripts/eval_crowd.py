@@ -115,7 +115,9 @@ if __name__ == "__main__":
         env.set_timescale(100.)
 
         for scenario, nums_agents in scenarios.items():
+            print(f"Evaluating scenario {scenario}")
             for num_agents in nums_agents:
+                print(f"Num agents: {num_agents}")
                 env_config["num_agents"] = num_agents
                 env_config["initializer"] = scenario
 
@@ -127,7 +129,7 @@ if __name__ == "__main__":
                     wandb.log(
                         {
                             f"eval/{scenario}/{metric}": np.mean(values),
-                            f"eval/{scenario}/{metric}_std": np.std(values),
+                            # f"eval/{scenario}/{metric}_std": np.std(values),
                             "global_step": num_agents,
                         },
                     )
