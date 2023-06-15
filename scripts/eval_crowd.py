@@ -87,7 +87,6 @@ if __name__ == "__main__":
 
         wandb.init(
             project="crowdai" if args.project is None else args.project,
-            sync_tensorboard=True,
             config=config,
             name="eval_" + trainer_config["tensorboard_name"],
         )
@@ -128,7 +127,7 @@ if __name__ == "__main__":
                             f"eval/{scenario}/{metric}": np.mean(values),
                             f"eval/{scenario}/{metric}_std": np.std(values),
                         },
-                        step=num_agents,
+                        global_step=num_agents,
                     )
 
                 env.close()
