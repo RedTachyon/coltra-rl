@@ -132,7 +132,7 @@ if __name__ == "__main__":
                         },
                     )
 
-                env.close()
+        env.close()
 
         wandb.finish()
 
