@@ -126,8 +126,8 @@ if __name__ == "__main__":
                         {
                             f"eval/{scenario}/{metric}": np.mean(values),
                             f"eval/{scenario}/{metric}_std": np.std(values),
+                            "global_step": num_agents,
                         },
-                        global_step=num_agents,
                     )
 
                 env.close()
