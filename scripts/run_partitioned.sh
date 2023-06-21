@@ -24,17 +24,19 @@ fi
 
 echo "Processing files in the range ${start_index}-${end_index}..."
 
-# Find files matching the pattern
-files=$(find "$config_dir" -maxdepth 1 -name "${start_index}-*.yaml")
+# Iterate over the range of indices
+for ((i=start_index; i<=end_index; i++)); do
+    file="${config_dir}/${i}-*.yaml"
 
-# Print the files that will be used in the loop
-echo "Files to be processed:"
-for file in $files; do
-    echo "$file"
-done
+    # Get the name of the file
+    file_name=$(ls $file)
 
-# Iterate over each file
-for file in $files; do
+    # Check if the file exists
+    if [ ! -f "$file_name" ]; then
+        echo "File $file not found."
+        continue
+    fi
+
     if [ $switch_flag -eq 0 ]; then
         current_worker_id=$worker_id
         switch_flag=1
@@ -43,5 +45,5 @@ for file in $files; do
         switch_flag=0
     fi
 
-    python train_crowd.py -c "$file" -i 1000 -e ../builds/crowd-vR2a/crowd.x86_64 -p "$python_p_arg" -w "$current_worker_id" -u
+    python train_crowd.py -c "$file_name" -i 1000 -e ../builds/crowd-vR2a/crowd.x86_64 -p "$python_p_arg" -w "$current_worker_id" -u
 done
