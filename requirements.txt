@@ -18,7 +18,7 @@ coverage>=7.1.0
 wandb>=0.13.9
 pybullet==3.2.5
 opencv-python~=4.7.0.68
-PettingZoo[sisl]>=1.22.3
+PettingZoo>=1.22.3
 supersuit>=3.7.1
 cloudpickle~=2.2.1
 pillow~=9.4.0
