@@ -22,6 +22,9 @@ if (( start_index < 0 || start_index > 9 || end_index < 0 || end_index > 9 || st
     exit 1
 fi
 
+echo "Processing files in the range ${start_index}-${end_index}..."
+
+
 # Iterate over each file in the specified directory
 for ((i=start_index; i<=end_index; i++)); do
     file="${config_dir}/${i}-*.yaml"
