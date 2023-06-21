@@ -11,7 +11,7 @@ NUM_RUNS=${3:-invalid}
 #for i in {0..$NUM_RUNS}
 for ((i=0; i<NUM_RUNS; i++))
 do
-    CUDA_VISIBLE_DEVICES=$((i/2)) python $CURDIR/train_crowd_slurm.py -c $CONFIG -i 1000 -e $COLTRA/builds/crowd-vR2a/crowd.x86_64 -p $PROJECTNAME -w $((i*10)) &
+    CUDA_VISIBLE_DEVICES=$((i/2)) python $CURDIR/train_crowd_slurm.py -c "$CONFIG" -i 1000 -e $COLTRA/builds/crowd-vR2a/crowd.x86_64 -p "$PROJECTNAME" -w $((i*10)) &
     sleep 1
 done
 wait
