@@ -8,7 +8,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:4
-#SBATCH --cpus-per-task=80
+#SBATCH --cpus-per-task=60
 #SBATCH --hint=nomultithread
 #SBATCH --exclusive
 #SBATCH -A axs@v100
