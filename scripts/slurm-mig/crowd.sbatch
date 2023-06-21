@@ -24,7 +24,7 @@ echo $NUM_RUNS
 module purge
 
 source $HOME/.bashrc
-conda activate coltra
+conda activate coltra-rl
 
 wandb offline
 
