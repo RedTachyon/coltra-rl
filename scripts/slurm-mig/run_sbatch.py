@@ -46,6 +46,7 @@ if __name__ == "__main__":
             else:
                 out = subprocess.run(cmd, shell=True, capture_output=True)
                 print(out.stdout.decode("utf-8"))
+                if out.stderr: print(out.stderr.decode("utf-8"))
 
             print(f"{i}/{total} Running {cmd}")
             print()
