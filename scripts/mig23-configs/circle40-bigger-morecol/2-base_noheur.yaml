@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: base
+  tensorboard_name: base_noheur
   save_freq: 100
 
   PPOConfig:
@@ -78,7 +78,7 @@ environment:
   block_scale: 3
 
   random_mass: true
-  random_energy: false
+  random_energy: true
 
   shared_goal: true
 
@@ -161,6 +161,5 @@ env_curriculum:
     # new
     r_bmr: 1.0
     r_dynamics: 1.0
-    r_avg_final: 1.0
 
 model_type: "relation"

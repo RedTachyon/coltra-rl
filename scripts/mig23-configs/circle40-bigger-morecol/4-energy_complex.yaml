@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: kwiat-speeding-sq
+  tensorboard_name: energy_complex
   save_freq: 100
 
   PPOConfig:
@@ -78,7 +78,7 @@ environment:
   block_scale: 3
 
   random_mass: true
-  random_energy: false
+  random_energy: true
 
   shared_goal: true
 
@@ -148,10 +148,11 @@ environment:
 
 env_curriculum:
   1:
+    # same
     r_potential: 1.0
-    r_s_matching_exp: 2.0
-    r_s_matching: 10.0
     r_goal: 10.0
-
+    # new
+    r_bmr: 1.0
+    r_dynamics: 1.0
 
 model_type: "relation"

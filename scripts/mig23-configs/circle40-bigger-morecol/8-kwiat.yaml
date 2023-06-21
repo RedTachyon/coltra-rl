@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: energy-curriculum
+  tensorboard_name: kwiat
   save_freq: 100
 
   PPOConfig:
@@ -78,7 +78,7 @@ environment:
   block_scale: 3
 
   random_mass: true
-  random_energy: false
+  random_energy: true
 
   shared_goal: true
 
@@ -99,7 +99,7 @@ environment:
   r_final: 0.0
   r_avg_final: 0.0
 
-  collision: -0.05
+  collision: -0.2
 
 
   # Observations
@@ -149,12 +149,8 @@ environment:
 env_curriculum:
   1:
     r_potential: 1.0
+    r_s_matching_exp: 2.0
+    r_s_matching: 10.0
     r_goal: 10.0
-    r_bmr: 1.0
-    r_drag: 1.0
-    r_avg_final: 1.0
-  200:
-    r_drag: 0.0
-    r_dynamics: 1.0
 
 model_type: "relation"
