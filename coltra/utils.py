@@ -302,11 +302,11 @@ def is_worker_free(worker_id: int, base_port: int = 5005):
     return status
 
 
-def find_free_worker(max_value: int = 100) -> int:
+def find_free_worker(max_value: int = 1000, step: int = 10) -> int:
     """
     Finds a free worker ID.
     """
-    for worker_id in range(max_value):
+    for worker_id in range(0, max_value, step):
         if is_worker_free(worker_id):
             return worker_id
 
