@@ -30,6 +30,8 @@ if __name__ == "__main__":
         files = sorted(files)
         total = len(files)
         for file in files:
+            i += 1
+
             if not file.endswith(".yaml"): continue
             full_path = os.path.join(root, file)
             cmd = [
@@ -47,6 +49,5 @@ if __name__ == "__main__":
 
             print(f"{i}/{total} Running {cmd}")
 
-            i += 1
 
     print(f"Submitted {i} jobs")
