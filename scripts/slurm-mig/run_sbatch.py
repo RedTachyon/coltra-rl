@@ -45,7 +45,7 @@ if __name__ == "__main__":
                 out = subprocess.run(cmd, shell=True, capture_output=True)
                 print(out.stdout.decode("utf-8"))
 
-            print(f"{i}/{total} Running {' '.join(cmd)}")
+            print(f"{i}/{total} Running {cmd}")
 
             i += 1
 
