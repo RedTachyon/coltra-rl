@@ -1,17 +1,17 @@
 #!/bin/bash
-#SBATCH --job-name=crowd-onejob
+#SBATCH --job-name=crowd-mig
 ##SBATCH --partition=gpu_p2
 #SBATCH --qos=qos_gpu-t3
 #SBATCH --output=logs/JobGPU%j.out # output file (%j = job ID)
 #SBATCH --error=logs/JobGPU%j.err # error file (%j = job ID)
-#SBATCH --time=05:00:00 # maximum allocation time "(HH:MM:SS)"
+#SBATCH --time=20:00:00 # maximum allocation time "(HH:MM:SS)"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-##SBATCH --hint=nomultithread
+#SBATCH --hint=nomultithread
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=12
 #SBATCH --exclusive
-#SBATCH -A ibc@v100
+#SBATCH -A axs@v100
 
 # Environment variables to import: (all str names)
 
