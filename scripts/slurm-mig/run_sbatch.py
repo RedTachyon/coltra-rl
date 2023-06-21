@@ -48,6 +48,7 @@ if __name__ == "__main__":
                 print(out.stdout.decode("utf-8"))
 
             print(f"{i}/{total} Running {cmd}")
+            print()
 
 
     print(f"Submitted {i} jobs")
