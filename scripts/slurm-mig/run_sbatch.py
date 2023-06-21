@@ -36,7 +36,7 @@ if __name__ == "__main__":
             full_path = os.path.join(root, file)
             cmd = [
                 "sbatch",
-                f"--export=ALL,CONFIG_PATH={full_path},PROJECTNAME={args.project_name},NUM_RUNS=8",
+                f"--export=ALL,CONFIG={full_path},PROJECTNAME={args.project_name},NUM_RUNS=8",
                 "crowd.sbatch",
                 ]
 
