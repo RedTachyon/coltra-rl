@@ -45,7 +45,7 @@ def copy_logs(path: str, source: str):
     source_map = {
         "titan": "titan:/home/kwiatkowski/tb_logs",
         "london": "london:/home/kwiatkowski/tb_logs",
-        "jeanzay": "/gpfswork/rech/axs/utu66tc/tb_logs"
+        "jeanzay": "jeanzay:/gpfswork/rech/axs/utu66tc/tb_logs"
     }
     base_path = source_map[source]
     src = f"{base_path}/{path}"
@@ -73,14 +73,16 @@ if __name__ == "__main__":
     #     print(f"Skipping {run.name}")
     #     continue
 
-    wandb.init(id=run.id, project=args.run_path.split('/')[1], resume="allow", reinit=True)
+    run = wandb.init(id=run.id, project=args.run_path.split('/')[1], resume="allow", reinit=True)
     print(f"Recording {run.name}")
 
     out_file = run.files("output.log")[0].download(replace=True, root="tmp")
     out_txt: str = out_file.read()
 
-    # path = re.search(r"/home/kwiatkowski/tb_logs/(.+)\n", out_txt).group(1)
-    path = re.search(r"/tb_logs/(.+)\n", out_txt).group(1)
+    path = re.search(r"/tb_logs/(.+?)(?=[\n'])", out_txt).group(1)
+
+    # path_artifact = run.use_artifact("save_path:latest").metadata["save_path"]
+    # path = re.search(r"/tb_logs/(.+)", path_artifact).group(1)
 
     copy_logs(path, args.source)
 
