@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: energy_nopot
+  tensorboard_name: xu
   save_freq: 100
 
   PPOConfig:

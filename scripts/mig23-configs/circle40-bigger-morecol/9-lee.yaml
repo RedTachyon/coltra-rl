@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: kwiat
+  tensorboard_name: lee
   save_freq: 100
 
   PPOConfig:
