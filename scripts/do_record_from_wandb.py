@@ -20,17 +20,20 @@ from coltra.utils import find_free_worker
 class Parser(BaseParser):
     run_path: str
     env_path: str
+    source: str = "titan"
     force: bool = False
 
     _help = {
         "run_path": "Name of the wandb project",
         "env_path": "Path to the Unity environment binary",
+        "source": "Source of the run",
         "force": "Whether to force the recording even if the video already exists",
     }
 
     _abbrev = {
         "run_path": "r",
         "env_path": "e",
+        "source": "s",
         "force": "f",
     }
 
@@ -38,9 +41,15 @@ class Parser(BaseParser):
 def has_video(run: wandb.apis.public.Run):
     return any(key.startswith('video') for key in run.summary.keys())
 
-def copy_logs(path: str):
-    src = f"titan:/home/kwiatkowski/tb_logs/{path}"
-    dest = f"/home/ariel/titan_logs/tb_logs/{path}"
+def copy_logs(path: str, source: str):
+    source_map = {
+        "titan": "titan:/home/kwiatkowski/tb_logs",
+        "london": "london:/home/kwiatkowski/tb_logs",
+        "jeanzay": "/gpfswork/rech/axs/utu66tc/tb_logs"
+    }
+    base_path = source_map[source]
+    src = f"{base_path}/{path}"
+    dest = f"/home/ariel/remote_logs/tb_logs/{path}"
     result = subprocess.run(['scp', '-r', src, dest], check=True, text=True, capture_output=True)
     print(f'Successfully copied {src} to {dest}')
 
@@ -73,12 +82,12 @@ if __name__ == "__main__":
     # path = re.search(r"/home/kwiatkowski/tb_logs/(.+)\n", out_txt).group(1)
     path = re.search(r"/tb_logs/(.+)\n", out_txt).group(1)
 
-    copy_logs(path)
+    copy_logs(path, args.source)
 
 
     print(f"Found path: {path}")
 
-    full_path = f"/home/ariel/titan_logs/tb_logs/{path}"
+    full_path = f"/home/ariel/remote_logs/tb_logs/{path}"
 
     config_path = os.path.join(full_path, "full_config.yaml")
 

@@ -9,6 +9,7 @@ import wandb
 class Parser(BaseParser):
     project_name: str
     env_path: str
+    source: str = "titan"
     skip: int = 0
     force: bool = False
     only_finished: bool = False
@@ -16,6 +17,7 @@ class Parser(BaseParser):
     _help = {
         "project_name": "Name of the wandb project",
         "env_path": "Path to the Unity environment binary",
+        "source": "Source of the run",
         "skip": "Number of runs to skip",
         "force": "Whether to force the recording even if the video already exists",
         "only_finished": "Whether to only record videos for finished runs",
@@ -24,6 +26,7 @@ class Parser(BaseParser):
     _abbrev = {
         "project_name": "p",
         "env_path": "e",
+        "source": "c",
         "skip": "s",
         "force": "f",
         "only_finished": "o",
@@ -65,7 +68,7 @@ if __name__ == "__main__":
         # Run `do_record_from_wandb.py` as a separate process
 
         process = subprocess.Popen(
-            [sys.executable, "do_record_from_wandb.py", "--run_path", run_path, "--env_path", args.env_path],
+            [sys.executable, "do_record_from_wandb.py", "--run_path", run_path, "--env_path", args.env_path, "--source", args.source],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
