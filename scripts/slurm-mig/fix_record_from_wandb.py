@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
     for i, (run_id, save_path) in enumerate(runs):
         print(f"Processing run {i + 1}/{num_runs}")
-        run_path = f"redtachyon/js-crowd40-final/{run_id}"
+        run_path = f"redtachyon/jz-crowd40-final/{run_id}"
         run = api.run(run_path)
         if not args.force and has_video(run):
             print(f"Skipping {run.name}")
