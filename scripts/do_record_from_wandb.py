@@ -79,7 +79,8 @@ if __name__ == "__main__":
     out_file = run.files("output.log")[0].download(replace=True, root="tmp")
     out_txt: str = out_file.read()
 
-    path = re.search(r"/tb_logs/(.+?)(?=[\n'])", out_txt).group(1)
+    path = re.search(r"/tb_logs/([a-z].+?)[\n']", out_txt).group(1)
+
 
     # path_artifact = run.use_artifact("save_path:latest").metadata["save_path"]
     # path = re.search(r"/tb_logs/(.+)", path_artifact).group(1)
