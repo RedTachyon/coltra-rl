@@ -111,8 +111,8 @@ environment:
   rays_per_direction: 10
   ray_length: 10
   ray_degrees: 90
-  ray_agent_vision: true
-  destroy_raycasts: true
+  ray_agent_vision: false
+  destroy_raycasts: false
 
 
 
