@@ -71,7 +71,7 @@ environment:
   spawn_noise_scale: 1.5
   spawn_scale: 7
 
-  grid_spawn: true
+  grid_spawn: false
   group_spawn_scale: 1.5
 
   enable_obstacles: true
