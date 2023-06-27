@@ -223,7 +223,7 @@ class CrowdPPOptimizer:
                     raise ValueError("NaN detected in KL Divergence!")
                 if kl_divergence > self.config.target_kl:
                     broken = True
-                    if self.config.rewind and gradient_updates >= self.config.min_rewind_steps and saved_state_dict is not None:
+                    if self.config.rewind and gradient_updates > self.config.min_rewind_steps and saved_state_dict is not None:
                         self.agents.agent.model.load_state_dict(saved_state_dict)
                     break
 
@@ -278,7 +278,7 @@ class CrowdPPOptimizer:
         # Training-related metrics
         metrics[f"meta/{agent_id}/kl_divergence"] = kl_divergence
         metrics[f"meta/{agent_id}/ppo_steps_made"] = ppo_step + 1
-        metrics[f"meta/{agent_id}/gradient_updates"] = gradient_updates + 1
+        metrics[f"meta/{agent_id}/gradient_updates"] = gradient_updates
         metrics[f"meta/{agent_id}/policy_loss"] = policy_loss.mean().cpu().item()
         metrics[f"meta/{agent_id}/value_loss"] = torch.sqrt(value_loss.mean()).cpu().item()
         metrics[f"meta/{agent_id}/mean_value"] = old_values.mean().cpu().item()
