@@ -223,7 +223,7 @@ class CrowdPPOptimizer:
                     raise ValueError("NaN detected in KL Divergence!")
                 if kl_divergence > self.config.target_kl:
                     broken = True
-                    if self.config.rewind and saved_state_dict is not None:
+                    if self.config.rewind and gradient_updates >= self.config.min_rewind_steps and saved_state_dict is not None:
                         self.agents.agent.model.load_state_dict(saved_state_dict)
                     break
 

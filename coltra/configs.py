@@ -38,6 +38,7 @@ class PPOConfig(BaseConfig):
     value_coeff: float = 1.0  # Technically irrelevant
     advantage_normalization: bool = False
     rewind: bool = False
+    min_rewind_steps: int = 0
 
     # Number of gradient updates = ppo_epochs * ceil(batch_size / minibatch_size)
     ppo_epochs: int = 3
