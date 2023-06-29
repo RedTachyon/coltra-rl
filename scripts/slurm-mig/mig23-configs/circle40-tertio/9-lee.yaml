@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: lee-lowcol
+  tensorboard_name: lee-samecol
   save_freq: 100
 
   PPOConfig:
