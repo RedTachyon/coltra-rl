@@ -3,7 +3,7 @@ trainer:
   steps: 200
   workers: 2
 
-  tensorboard_name: base-nopot-nofinal
+  tensorboard_name: base-nopot-nogoal
   save_freq: 100
 
   PPOConfig:
