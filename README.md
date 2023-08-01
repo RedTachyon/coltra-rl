@@ -8,7 +8,8 @@ Coltra, a portmanteau of **Col**lect and **tra**in is the RL framework I've been
 
 
 At the time of writing, it only contains an implementation of PPO, although I intend to change that soon. 
-And if my initial designs were correct, that should prove to be quite easy.
+And if my initial designs were correct, that should prove to be quite easy. Note: the current code
+is tightly connected with my thesis work. After I defend, I might start decoupling it, and we'll see what happens then.
 
 My main philosophy of coltra is that it should be easy to modify, and easy to access literally any detail of the RL algorithm that you might want. 
 For that reason, I expect that many potential users would even create their own forks, adapting the code to their own needs.
