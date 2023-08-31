@@ -304,7 +304,14 @@ class MixedAgent(Agent):
             value = extra_outputs["value"]
             extra_outputs["value"] = value.squeeze(-1).cpu().numpy()
 
-        return Action(discrete=actions[...,0].cpu().numpy(), continuous=actions[...,1:].cpu().numpy()), states, extra_outputs
+        return (
+            Action(
+                discrete=actions[..., 0].cpu().numpy(),
+                continuous=actions[..., 1:].cpu().numpy(),
+            ),
+            states,
+            extra_outputs,
+        )
 
     def evaluate(
         self, obs_batch: Observation, action_batch: Action
@@ -338,7 +345,6 @@ class MixedAgent(Agent):
         obs_batch = obs_batch.tensor(self.model.device)
         values = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
-
 
 
 class ToyAgent(Agent):
@@ -442,3 +448,10 @@ class RandomDAgent(ToyAgent):
             (),
             {"value": np.zeros((batch_size,))},
         )
+
+
+def AutoAgent(model: BaseModel) -> Agent:
+    if model.discrete:
+        return DAgent(model)
+    else:
+        return CAgent(model)
