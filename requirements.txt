@@ -1,6 +1,6 @@
 typarse==3.4.0
 numpy==1.23.5
-gymnasium~=0.27.1
+gymnasium~=0.29.1
 jupyter>=1.0.0
 jupyterlab>=3.5.3
 mlagents-envs~=0.28.0
