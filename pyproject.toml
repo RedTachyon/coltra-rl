@@ -11,6 +11,53 @@ license = "GNU GPLv3"
 authors = [
     { name = "Ariel Kwiatkowski", email = "ariel.j.kwiatkowski@gmail.com" },
 ]
+dependencies = [
+  "typarse==3.4.0",
+  "numpy==1.23.5",
+  "gymnasium~=0.29.1",
+  "PyYAML>=6.0",
+  "torch>=1.13.1",
+  "tqdm>=4.64.1",
+  "numba>=0.56.4",
+  "PettingZoo>=1.22.3",
+  "supersuit>=3.7.1",
+  "cloudpickle~=2.2.1",
+  "pillow~=9.4.0",
+  "setuptools~=65.6.3",
+  "protobuf==3.20"
+]
+
+
+[project.optional-dependencies]
+unity = [
+  "mlagents-envs~=0.28.0",
+]
+visualization = [
+  "matplotlib==3.6.3",
+  "seaborn>=0.12.2",
+  "ipykernel>=6.20.2"
+]
+experiments = [
+  "tensorboard>=2.11.2",
+  "wandb>=0.13.9",
+  "optuna~=3.1.0",
+  "shortuuid==1.0.11"
+]
+dev = [
+  "pytest>=7.2.1",
+  "coverage>=7.1.0",
+  "jupyter>=1.0.0",
+  "jupyterlab>=3.5.3",
+  "pyvirtualdisplay~=3.0",
+  "black==22.3.0",
+  "pytype==2023.1.17",
+]
+extra = [
+  "jax==0.4.1",
+  "jaxlib==0.4.1",
+  "pybullet==3.2.5",
+]
+
 
 [project.urls]
 Homepage = "https://github.com/redtachyon/coltra-rl"
@@ -22,3 +69,4 @@ path = "coltra/__init__.py"
 include = [
     "/coltra",
 ]
+
