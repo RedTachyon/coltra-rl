@@ -205,7 +205,7 @@ class ImageMLPModel(FlattenMLPModel):
             return obs
         image: torch.Tensor = obs.image
 
-        if image.shape == 3:  # no batch
+        if len(image.shape) == 3:  # no batch
             dim = 0
         else:  # image.shape == 4, batch
             dim = 1
@@ -243,7 +243,7 @@ class RayMLPModel(FlattenMLPModel):
             return obs
 
         rays = obs.rays
-        if rays.shape == 1:  # no batch
+        if len(rays.shape) == 1:  # no batch
             dim = 0
         else:  # rays.shape == 2, batch
             dim = 1
@@ -281,7 +281,7 @@ class BufferMLPModel(FlattenMLPModel):
             return obs
         buffer: torch.Tensor = obs.buffer
 
-        if buffer.shape == 2:  # no batch
+        if len(buffer.shape) == 2:  # no batch
             dim = 0
         else:  # image.shape == 3, batch
             dim = 1
@@ -341,7 +341,6 @@ class PlatformMLPModel(BaseModel):
         heads: tuple[int, ...] = (3, 3)  # (param, action_type)
         is_policy: tuple[bool, ...] = (True, True)
 
-
         # Create the policy network
         # self.policy_network = FCNetwork(
         #     input_size=self.input_size,
@@ -351,7 +350,6 @@ class PlatformMLPModel(BaseModel):
         #     initializer=self.config.initializer,
         #     is_policy=is_policy,
         # )
-
 
         self.policy_network = FCNetwork(
             input_size=self.input_size,
@@ -389,9 +387,7 @@ class PlatformMLPModel(BaseModel):
             is_policy=False,
         )
 
-        self.logstd = nn.Parameter(
-            torch.tensor(self.config.sigma0) * torch.ones(1, 1)
-        )
+        self.logstd = nn.Parameter(torch.tensor(self.config.sigma0) * torch.ones(1, 1))
 
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
@@ -402,7 +398,6 @@ class PlatformMLPModel(BaseModel):
         action_distribution: Distribution
 
         # [param, action_types] = self.policy_network(x.vector)
-
 
         [latent] = self.policy_network(x.vector)
         [action_types] = self.category_network(latent)
