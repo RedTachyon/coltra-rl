@@ -5,5 +5,5 @@ from coltra.trainers import PPOCrowdTrainer
 from coltra.envs import MultiAgentEnv
 from coltra.buffers import Action, Observation
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 VERSION = __version__

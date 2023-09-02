@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "coltra-rl"
+name = "coltra"
 dynamic = ["version"]
-description = "Coltra-RL is a simple moddable RL algorithm implementation"
+description = "Coltra is a simple moddable RL algorithm implementation"
 readme = "README.md"
 license = "MIT"
 authors = [
@@ -24,7 +24,8 @@ dependencies = [
   "cloudpickle~=2.2.1",
   "pillow~=9.4.0",
   "setuptools~=65.6.3",
-  "protobuf==3.20"
+  "optuna~=3.1.0",
+  "shortuuid==1.0.11",
 ]
 
 
@@ -40,8 +41,6 @@ visualization = [
 experiments = [
   "tensorboard>=2.11.2",
   "wandb>=0.13.9",
-  "optuna~=3.1.0",
-  "shortuuid==1.0.11"
 ]
 dev = [
   "pytest>=7.2.1",
