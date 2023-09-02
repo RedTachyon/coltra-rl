@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "coltra-rl"
+dynamic = ["version"]
+description = "Coltra-RL is a simple moddable RL algorithm implementation"
+readme = "README.md"
+license = "GNU GPLv3"
+authors = [
+    { name = "Ariel Kwiatkowski", email = "ariel.j.kwiatkowski@gmail.com" },
+]
+
+[project.urls]
+Homepage = "https://github.com/redtachyon/coltra-rl"
+
+[tool.hatch.version]
+path = "coltra/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/coltra",
+]
