@@ -33,7 +33,7 @@ from coltra.envs.base_env import (
     InfoDict,
 )
 from coltra.envs.spaces import ObservationSpace, ActionSpace
-from coltra.utils import find_free_worker, disable_unity_logs
+from coltra.unity_utils import find_free_worker, disable_unity_logs
 
 
 class Sensor(Enum):

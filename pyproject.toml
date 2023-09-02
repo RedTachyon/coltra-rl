@@ -7,7 +7,7 @@ name = "coltra-rl"
 dynamic = ["version"]
 description = "Coltra-RL is a simple moddable RL algorithm implementation"
 readme = "README.md"
-license = "GNU GPLv3"
+license = "MIT"
 authors = [
     { name = "Ariel Kwiatkowski", email = "ariel.j.kwiatkowski@gmail.com" },
 ]
