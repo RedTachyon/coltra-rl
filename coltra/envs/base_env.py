@@ -1,5 +1,7 @@
 from typing import List, Tuple, Any
 
+from gymnasium import Space
+
 from coltra.buffers import Observation, Action, Reward, Done
 
 
@@ -17,6 +19,9 @@ class MultiAgentEnv:
     Base class for a gym-like environment for multiple agents. An agent is identified with its id (string),
     and most interactions are communicated through that API (actions, states, etc)
     """
+
+    observation_space: Space
+    action_space: Space
 
     def __init__(self, **kwargs):
         self.config = {}

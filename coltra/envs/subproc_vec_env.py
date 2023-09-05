@@ -6,7 +6,6 @@ import numpy as np
 
 from coltra.buffers import Observation
 from coltra.envs.base_env import MultiAgentEnv
-from coltra.utils import parse_agent_name
 
 
 class CloudpickleWrapper(object):
@@ -312,3 +311,94 @@ def _flatten_info(
             ]
 
     return all_metrics
+
+
+from typing import List, Callable
+import numpy as np
+from coltra.envs.base_env import MultiAgentEnv
+from coltra.utils import parse_agent_name
+
+
+class SequentialVecEnv(MultiAgentEnv):
+    def __init__(self, env_fns: List[Callable[[], MultiAgentEnv]]):
+        super().__init__()
+        self.envs = [fn() for fn in env_fns]
+        self.num_envs = len(self.envs)
+        self.observation_space = self.envs[0].observation_space
+        self.action_space = self.envs[0].action_space
+
+    def step(self, actions):
+        results = []
+        for i, env in enumerate(self.envs):
+            action = {
+                "&".join(k.split("&")[:-1]): a
+                for k, a in actions.items()
+                if int(parse_agent_name(k)["env"]) == i
+            }
+            results.append(env.step(action))
+
+        obs, rews, dones, infos = zip(*results)
+        return (
+            _gather_subproc(obs),
+            _gather_subproc(rews),
+            _gather_subproc(dones),
+            _flatten_info(infos),
+        )
+
+    def seed(self, seed=None):
+        return [
+            env.seed(seed + i if seed is not None else None)
+            for i, env in enumerate(self.envs)
+        ]
+
+    def reset(self, **kwargs):
+        obs = [env.reset(**kwargs) for env in self.envs]
+        return _gather_subproc(obs)
+
+    def close(self):
+        for env in self.envs:
+            env.close()
+
+    def get_images(self):
+        return [env.render("rgb_array") for env in self.envs]
+
+    def render(self, **kwargs):
+        return self.envs[0].render("rgb_array")
+
+    def get_attr(self, attr_name, indices=None):
+        indices = self._get_indices(indices)
+        return [getattr(self.envs[i], attr_name) for i in indices]
+
+    def set_attr(self, attr_name, value, indices=None):
+        indices = self._get_indices(indices)
+        for i in indices:
+            setattr(self.envs[i], attr_name, value)
+
+    def env_method(self, method_name, *method_args, indices=None, **method_kwargs):
+        indices = self._get_indices(indices)
+        return [
+            getattr(self.envs[i], method_name)(*method_args, **method_kwargs)
+            for i in indices
+        ]
+
+    def get_envs(self):
+        return self.envs
+
+    def _get_indices(self, indices):
+        if indices is None:
+            return range(self.num_envs)
+        elif isinstance(indices, int):
+            return [indices]
+        return indices
+
+    @property
+    def behaviors(self):
+        return self.get_attr("behaviors")[0]
+
+    @property
+    def observation_spaces(self):
+        return self.get_attr("observation_spaces")[0]
+
+    @property
+    def action_spaces(self):
+        return self.get_attr("action_spaces")[0]
