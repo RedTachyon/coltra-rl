@@ -26,6 +26,7 @@ def test_sequential_venv_reset_and_step():
             assert name in reward
             assert name in done
 
+    assert isinstance(info["m_stat"], np.ndarray)
     assert info["m_stat"].shape[0] == 8
 
 
