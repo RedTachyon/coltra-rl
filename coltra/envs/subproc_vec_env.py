@@ -345,12 +345,6 @@ class SequentialVecEnv(MultiAgentEnv):
             _flatten_info(infos),
         )
 
-    def seed(self, seed=None):
-        return [
-            env.seed(seed + i if seed is not None else None)
-            for i, env in enumerate(self.envs)
-        ]
-
     def reset(self, **kwargs):
         obs = [env.reset(**kwargs) for env in self.envs]
         return _gather_subproc(obs)
