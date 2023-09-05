@@ -1,9 +1,7 @@
 from typing import List, Tuple, Any
 
-from gymnasium import Space
-
 from coltra.buffers import Observation, Action, Reward, Done
-
+from coltra.envs.spaces import ActionSpace, ObservationSpace
 
 ObsDict = dict[str, Observation]
 ActionDict = dict[str, Action]
@@ -20,8 +18,8 @@ class MultiAgentEnv:
     and most interactions are communicated through that API (actions, states, etc)
     """
 
-    observation_space: Space
-    action_space: Space
+    observation_space: ObservationSpace
+    action_space: ActionSpace
 
     def __init__(self, **kwargs):
         self.config = {}
