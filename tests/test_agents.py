@@ -135,7 +135,7 @@ def test_fancy_mlp_agent():
 
     assert agent.get_initial_state() == ()
 
-    values = model.value(obs.tensor())
+    values, _ = model.value(obs.tensor())
 
     assert isinstance(values, Tensor)
     assert values.shape == (5, 1)  # Squeezing happens in the agent
@@ -196,7 +196,7 @@ def test_discrete_fancy_mlp_agent():
 
     assert agent.get_initial_state() == ()
 
-    values = model.value(obs.tensor())
+    values, _ = model.value(obs.tensor())
 
     assert isinstance(values, Tensor)
     assert values.shape == (5, 1)  # Squeezing happens in the agent
@@ -285,3 +285,73 @@ def test_saving_wrapper():
     assert np.allclose(agent._obs_var, loaded_agent._obs_var)
 
     shutil.rmtree("temp")
+
+
+#
+#
+# def test_lstm_agent():
+#     obs = Observation(
+#         vector=np.random.randn(5, 81).astype(np.float32),
+#         buffer=np.random.randn(5, 10, 4).astype(np.float32),
+#     )
+#
+#     model = LSTMModel(
+#         {
+#             "discrete": False,
+#             "hidden_sizes": [32, 32],
+#             "lstm_size": 32,
+#         },
+#         observation_space=ObservationSpace(
+#             {
+#                 "vector": Box(-np.inf, np.inf, (81,)),
+#                 "buffer": Box(-np.inf, np.inf, (10, 4)),
+#             }
+#         ),
+#         action_space=Box(
+#             low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
+#         ),
+#     )
+#
+#     assert hasattr(model, "lstm")  # Check LSTM layer exists
+#     assert len(model.pre_mlp.hidden_layers) == 2  # Check pre-MLP layers
+#     assert len(model.post_mlp.hidden_layers) == 2  # Check post-MLP layers
+#
+#     agent = CAgent(model)
+#     initial_state = agent.get_initial_state()
+#     assert initial_state[0].shape == (1, 5, 32)  # Validate initial hidden state
+#     assert initial_state[1].shape == (1, 5, 32)  # Validate initial cell state
+#
+#     actions, new_state, extra = agent.act(
+#         obs_batch=obs, state=initial_state, get_value=True
+#     )
+#     assert actions.continuous.shape == (5, 2)
+#     assert new_state[0].shape == (1, 5, 32)
+#     assert new_state[1].shape == (1, 5, 32)
+#     assert extra["value"].shape == (5,)
+#
+#     actions, new_state, extra = agent.act(
+#         obs_batch=obs, state=new_state, get_value=True, deterministic=True
+#     )
+#     assert actions.continuous.shape == (5, 2)
+#     assert new_state[0].shape == (1, 5, 32)
+#     assert new_state[1].shape == (1, 5, 32)
+#     assert extra["value"].shape == (5,)
+#
+#     logprobs, values, entropies = agent.evaluate(obs, actions, state=new_state)
+#     assert logprobs.shape == (5,)
+#     assert values.shape == (5,)
+#     assert entropies.shape == (5,)
+#
+#     assert isinstance(logprobs, Tensor)
+#     assert isinstance(values, Tensor)
+#     assert isinstance(entropies, Tensor)
+#
+#     values, _ = model.value(obs.tensor(), state=new_state)
+#     assert isinstance(values, Tensor)
+#     assert values.shape == (5, 1)
+#
+#     if torch.cuda.is_available():
+#         model.cuda()
+#         assert model.device == "cuda"
+#     model.cpu()
+#     assert model.device == "cpu"

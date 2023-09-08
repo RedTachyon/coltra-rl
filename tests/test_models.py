@@ -12,8 +12,6 @@ from coltra.buffers import Observation
 from coltra.envs.spaces import ObservationSpace
 from coltra.models import FCNetwork, MLPModel
 
-# from coltra.models.raycast_models import LeeNetwork, LeeModel
-from coltra.models.raycast_models import LeeNetwork, LeeModel
 from coltra.models.relational_models import RelationNetwork, RelationModel
 from coltra.utils import AffineBeta
 
@@ -62,36 +60,6 @@ def test_empty_fc():
 
     assert isinstance(out, Tensor)
     assert not torch.allclose(out, torch.zeros_like(out))
-
-
-def test_lee():
-    network = LeeNetwork(
-        input_size=4, output_sizes=(2, 4), rays_input_size=126, conv_filters=2
-    )
-
-    obs = Observation(vector=torch.randn(10, 4), rays=torch.randn(10, 126))
-
-    [out1, out2] = network(obs)
-
-    assert out1.shape == (10, 2)
-    assert out2.shape == (10, 4)
-
-    model = LeeModel(
-        {},
-        observation_space=ObservationSpace(
-            vector=Box(-np.inf, np.inf, (4,)), rays=Box(-np.inf, np.inf, (126,))
-        ),
-        action_space=Box(
-            low=-np.ones(2, dtype=np.float32), high=np.ones(2, dtype=np.float32)
-        ),
-    )
-    agent = CAgent(model)
-
-    action, state, extra = agent.act(obs, get_value=True)
-
-    assert action.continuous.shape == (10, 2)
-    assert state == ()
-    assert extra["value"].shape == (10,)
 
 
 def test_relnet():

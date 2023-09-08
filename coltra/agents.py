@@ -186,7 +186,7 @@ class CAgent(Agent):  # Continuous Agent
 
     def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         obs_batch = obs_batch.tensor(self.model.device)
-        values = self.model.value(obs_batch.tensor(self.model.device), ())
+        values, _ = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
 
 
@@ -261,7 +261,7 @@ class DAgent(Agent):
 
     def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         obs_batch = obs_batch.tensor(self.model.device)
-        values = self.model.value(obs_batch.tensor(self.model.device), ())
+        values, _ = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
 
 
@@ -343,7 +343,7 @@ class MixedAgent(Agent):
 
     def value(self, obs_batch: Observation, **kwargs) -> Tensor:
         obs_batch = obs_batch.tensor(self.model.device)
-        values = self.model.value(obs_batch.tensor(self.model.device), ())
+        values, _ = self.model.value(obs_batch.tensor(self.model.device), ())
         return values
 
 

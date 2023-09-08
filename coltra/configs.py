@@ -92,6 +92,20 @@ class MLPConfig(BaseConfig):
     initializer: str = "kaiming_uniform"
 
 
+class LSTMConfig(BaseConfig):
+    beta: bool = False
+    mode: Optional[str] = "logstd"
+
+    activation: str = "leaky_relu"
+    sigma0: float = 1.0
+
+    lstm_hidden_size: int = 64
+    pre_hidden_sizes: List[int] = [64, 64]
+    post_hidden_sizes: List[int] = [64, 64]
+
+    initializer: str = "kaiming_uniform"
+
+
 class RelationConfig(BaseConfig):
     activation: str = "tanh"
     initializer: str = "orthogonal"

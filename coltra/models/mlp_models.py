@@ -92,7 +92,7 @@ class MLPModel(BaseModel):
             hidden_sizes=self.config.hidden_sizes,
             activation=self.config.activation,
             initializer=self.config.initializer,
-            is_policy=is_policy,
+            is_policy=False,
         )
 
         if self.action_mode == "logstd":
@@ -106,7 +106,7 @@ class MLPModel(BaseModel):
 
     def forward(
         self, x: Observation, state: Tuple = (), get_value: bool = True
-    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
+    ) -> Tuple[Distribution, tuple, dict[str, Tensor]]:
 
         action_distribution: Distribution
 
@@ -137,7 +137,7 @@ class MLPModel(BaseModel):
         extra_outputs = {}
 
         if get_value:
-            value = self.value(x)
+            value, _ = self.value(x)
             extra_outputs["value"] = value
 
         return action_distribution, state, extra_outputs
@@ -145,9 +145,9 @@ class MLPModel(BaseModel):
     def latent(self, x: Observation, state: Tuple) -> Tensor:
         return self.policy_network.latent(x.vector)
 
-    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
+    def value(self, x: Observation, state: Tuple = ()) -> tuple[Tensor, tuple]:
         [value] = self.value_network(x.vector)
-        return value
+        return value, state
 
     def latent_value(self, x: Observation, state: Tuple) -> Tensor:
         return self.value_network.latent(x.vector)
@@ -165,13 +165,13 @@ class FlattenMLPModel(MLPModel):
 
     def forward(
         self, x: Observation, state: Tuple = (), get_value: bool = True
-    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
+    ) -> Tuple[Distribution, tuple, dict[str, Tensor]]:
         return super().forward(self._flatten(x), state, get_value)
 
     def latent(self, x: Observation, state: Tuple = ()) -> Tensor:
         return super().latent(self._flatten(x), state)
 
-    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
+    def value(self, x: Observation, state: Tuple = ()) -> tuple[Tensor, tuple]:
         return super().value(self._flatten(x), state)
 
     def latent_value(self, x: Observation, state: Tuple) -> Tensor:
@@ -316,119 +316,3 @@ class MLPQModel(BaseQModel):
         self, obs: Observation, state: tuple = ()
     ) -> tuple[torch.Tensor, tuple]:
         return self.q_network(obs.vector), ()
-
-
-class PlatformMLPModel(BaseModel):
-    def __init__(self, config: dict, observation_space: Space, action_space: Space):
-        super().__init__(config, observation_space, action_space)
-
-        Config: MLPConfig = MLPConfig.clone()
-
-        Config.update(config)
-        self.config = Config
-
-        if isinstance(observation_space, ObservationSpace):
-            self.input_size = observation_space.vector.shape[0]
-        else:
-            self.input_size = observation_space.shape[0]
-
-        self.sigma0 = self.config.sigma0
-        # self.input_size = self.config.input_size
-        self.latent_size = self.config.hidden_sizes[-1]
-
-        self.activation: Callable = get_activation(self.config.activation)
-
-        heads: tuple[int, ...] = (3, 3)  # (param, action_type)
-        is_policy: tuple[bool, ...] = (True, True)
-
-        # Create the policy network
-        # self.policy_network = FCNetwork(
-        #     input_size=self.input_size,
-        #     output_sizes=heads,
-        #     hidden_sizes=self.config.hidden_sizes,
-        #     activation=self.config.activation,
-        #     initializer=self.config.initializer,
-        #     is_policy=is_policy,
-        # )
-
-        self.policy_network = FCNetwork(
-            input_size=self.input_size,
-            output_sizes=[64],
-            hidden_sizes=self.config.hidden_sizes,
-            activation=self.config.activation,
-            initializer=self.config.initializer,
-            is_policy=False,
-        )
-
-        self.category_network = FCNetwork(
-            input_size=64,
-            output_sizes=[3],
-            hidden_sizes=[32, 32, 32],
-            activation=self.config.activation,
-            initializer=self.config.initializer,
-            is_policy=False,
-        )
-
-        self.param_network = FCNetwork(
-            input_size=64,
-            output_sizes=[3],
-            hidden_sizes=[32, 32, 32],
-            activation=self.config.activation,
-            initializer=self.config.initializer,
-            is_policy=True,
-        )
-
-        self.value_network = FCNetwork(
-            input_size=self.input_size,
-            output_sizes=[1],
-            hidden_sizes=self.config.hidden_sizes,
-            activation=self.config.activation,
-            initializer=self.config.initializer,
-            is_policy=False,
-        )
-
-        self.logstd = nn.Parameter(torch.tensor(self.config.sigma0) * torch.ones(1, 1))
-
-        self.config = self.config.to_dict()  # Convert to a dictionary for pickling
-
-    def forward(
-        self, x: Observation, state: Tuple = (), get_value: bool = True
-    ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
-
-        action_distribution: Distribution
-
-        # [param, action_types] = self.policy_network(x.vector)
-
-        [latent] = self.policy_network(x.vector)
-        [action_types] = self.category_network(latent)
-        [param] = self.param_network(latent)
-
-        normal_dist = Normal(loc=param, scale=torch.exp(self.logstd))
-        categorical_dist = Categorical(logits=action_types)
-
-        action_distribution = ContCategorical(categorical_dist, normal_dist)
-        extra_outputs = {}
-
-        if get_value:
-            value = self.value(x)
-            extra_outputs["value"] = value
-
-        return action_distribution, state, extra_outputs
-
-    def latent(self, x: Observation, state: Tuple) -> Tensor:
-        return self.policy_network.latent(x.vector)
-
-    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
-        [value] = self.value_network(x.vector)
-        return value
-
-    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
-        return self.value_network.latent(x.vector)
-
-    def cpu(self):
-        super(BaseModel, self).cpu()
-        self.device = "cpu"
-
-    def cuda(self, *args, **kwargs):
-        super(BaseModel, self).cuda(*args, **kwargs)
-        self.device = "cuda"

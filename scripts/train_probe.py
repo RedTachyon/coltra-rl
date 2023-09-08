@@ -12,7 +12,6 @@ from coltra.groups import HomogeneousGroup
 from coltra.models.mlp_models import MLPModel
 from coltra.models.relational_models import RelationModel
 from coltra.trainers import PPOCrowdTrainer
-from coltra.models.raycast_models import LeeModel
 from coltra.envs import probe_env_classes
 
 import wandb

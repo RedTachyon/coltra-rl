@@ -183,9 +183,9 @@ class RelationModel(BaseModel):
 
         return action_distribution, (), extra_outputs
 
-    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
+    def value(self, x: Observation, state: Tuple = ()) -> tuple[Tensor, tuple]:
         [value] = self.value_network(x)
-        return value
+        return value, state
 
     def latent(self, x: Observation, state: Tuple) -> Tensor:
         latent = self.policy_network.latent(x)
@@ -215,7 +215,7 @@ class FlattenRelationModel(RelationModel):
     def latent(self, x: Observation, state: Tuple = ()) -> Tensor:
         return super().latent(self._flatten(x), state)
 
-    def value(self, x: Observation, state: Tuple = ()) -> Tensor:
+    def value(self, x: Observation, state: Tuple = ()) -> tuple[Tensor, tuple]:
         return super().value(self._flatten(x), state)
 
     def latent_value(self, x: Observation, state: Tuple) -> Tensor:
