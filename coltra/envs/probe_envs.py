@@ -5,12 +5,12 @@ import numpy as np
 
 from coltra.buffers import Observation, Action
 from coltra.envs.base_env import MultiAgentEnv
-from coltra.envs.spaces import ObservationSpace
-from coltra.envs.subproc_vec_env import SubprocVecEnv
+from coltra.envs.spaces import ObservationSpace, ActionSpace
+from coltra.envs.subproc_vec_env import SubprocVecEnv, SequentialVecEnv
 from coltra.utils import np_float
 
 
-class ConstRewardEnv(MultiAgentEnv):
+class ConstRewardEnv(MultiAgentEnv):  # 0
     def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
         super().__init__()
         self.num_agents = num_agents
@@ -49,12 +49,12 @@ class ConstRewardEnv(MultiAgentEnv):
         return 0
 
     @classmethod
-    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
+    def get_venv(cls, workers: int = 8, **kwargs) -> MultiAgentEnv:
+        venv = SequentialVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
 
-class ObsDependentRewardEnv(MultiAgentEnv):
+class ObsDependentRewardEnv(MultiAgentEnv):  # 1
     def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
         super().__init__()
         self.num_agents = num_agents
@@ -102,12 +102,12 @@ class ObsDependentRewardEnv(MultiAgentEnv):
         return 0
 
     @classmethod
-    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
+    def get_venv(cls, workers: int = 8, **kwargs) -> MultiAgentEnv:
+        venv = SequentialVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
 
-class ActionDependentRewardEnv(MultiAgentEnv):
+class ActionDependentRewardEnv(MultiAgentEnv):  # 2
     def __init__(self, num_agents: int = 1, seed: Optional[int] = None):
         super().__init__()
         self.num_agents = num_agents
@@ -148,12 +148,12 @@ class ActionDependentRewardEnv(MultiAgentEnv):
         return 0
 
     @classmethod
-    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
+    def get_venv(cls, workers: int = 8, **kwargs) -> MultiAgentEnv:
+        venv = SequentialVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
 
-class StateActionDependentRewardEnv(MultiAgentEnv):
+class StateActionDependentRewardEnv(MultiAgentEnv):  # 3
     def __init__(
         self, num_agents: int = 1, ep_end_prob: float = 0.1, seed: Optional[int] = None
     ):
@@ -217,14 +217,14 @@ class StateActionDependentRewardEnv(MultiAgentEnv):
         return 0
 
     @classmethod
-    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
+    def get_venv(cls, workers: int = 8, **kwargs) -> MultiAgentEnv:
+        venv = SequentialVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
 
-class EpisodicMetricEnv(MultiAgentEnv):
+class EpisodicMetricEnv(MultiAgentEnv):  # 4
     def __init__(
-        self, num_agents: int = 1, ep_len: int = 2, seed: Optional[int] = None
+        self, num_agents: int = 1, ep_len: int = 4, seed: Optional[int] = None
     ):
         super().__init__()
         self.num_agents = num_agents
@@ -283,8 +283,88 @@ class EpisodicMetricEnv(MultiAgentEnv):
         return 0
 
     @classmethod
-    def get_venv(cls, workers: int = 8, **kwargs) -> SubprocVecEnv:
-        venv = SubprocVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
+    def get_venv(cls, workers: int = 8, **kwargs) -> MultiAgentEnv:
+        venv = SequentialVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
+        return venv
+
+
+class MemoryEnv(MultiAgentEnv):  # 5
+    def __init__(
+        self,
+        num_agents: int = 1,
+        delay: int = 0,
+        cooloff: int = 9,
+        seed: Optional[int] = None,
+    ):
+        super().__init__()
+        self.num_agents = num_agents
+        self.active_agents = [f"Agent{i}" for i in range(num_agents)]
+        self.rng = np.random.default_rng(seed)
+
+        self.delay = delay
+        self.cooloff = cooloff
+
+        self.observation_space = ObservationSpace({"vector": Box(0, 1, (2,))})
+        self.action_space = ActionSpace({"discrete": Discrete(2)})
+
+        self.initial_obs = {}
+        self.step_count = {}
+
+    def reset(self, *args, **kwargs):
+        if num_agents := kwargs.get("num_agents"):
+            self.num_agents = num_agents
+            self.active_agents = [f"Agent{i}" for i in range(num_agents)]
+
+        # initial_obs_value = self.rng.choice([[1, 0], [0, 1]], size=(1, 2))
+        initial_obs_value = {
+            agent_id: (
+                np.array([1, 0], dtype=np.float32)
+                if self.rng.random() < 0.5
+                else np.array([0, 1], dtype=np.float32)
+            )
+            for agent_id in self.active_agents
+        }
+        initial_obs = {
+            agent_id: Observation(vector=initial_obs_value[agent_id])
+            for agent_id in self.active_agents
+        }
+
+        self.initial_obs = initial_obs_value
+        self.step_count = {agent_id: 0 for agent_id in self.active_agents}
+
+        return initial_obs
+
+    def step(self, actions: dict[str, Action]):
+        obs = {}
+        reward = {}
+        done = {}
+
+        for agent_id in self.active_agents:
+            self.step_count[agent_id] += 1
+
+            if self.step_count[agent_id] <= self.delay:
+                obs[agent_id] = Observation(vector=np.array([0, 0], dtype=np.float32))
+                reward[agent_id] = np.float32(0)
+            elif self.step_count[agent_id] == self.delay + 1:
+                obs[agent_id] = Observation(vector=np.array([0, 0], dtype=np.float32))
+                if np.argmax(self.initial_obs[agent_id]) == actions[agent_id].discrete:
+                    reward[agent_id] = np.float32(1)
+                else:
+                    reward[agent_id] = np.float32(-1)
+            else:
+                obs[agent_id] = Observation(vector=np.array([0, 0], dtype=np.float32))
+
+                reward[agent_id] = np.float32(0)
+
+            done[agent_id] = self.step_count[agent_id] >= self.delay + self.cooloff
+
+        info = {"m_stat": np_float(1)}
+
+        return obs, reward, done, info
+
+    @classmethod
+    def get_venv(cls, workers: int = 8, **kwargs) -> MultiAgentEnv:
+        venv = SequentialVecEnv([cls.get_env_creator(**kwargs) for _ in range(workers)])
         return venv
 
 
@@ -294,4 +374,5 @@ probe_env_classes = [
     ActionDependentRewardEnv,
     StateActionDependentRewardEnv,
     EpisodicMetricEnv,
+    MemoryEnv,
 ]

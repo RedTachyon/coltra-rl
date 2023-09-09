@@ -23,8 +23,8 @@ def test_forward_pass():
     assert len(outputs) == 2  # Because we have two output heads
     assert outputs[0].shape == (5, 2)  # The size of the first output head is [2]
     assert outputs[1].shape == (5, 3)  # The size of the second output head is [3]
-    assert new_state[0].shape == (1, 5, 16)  # Hidden state shape
-    assert new_state[1].shape == (1, 5, 16)  # Cell state shape
+    assert new_state[0].shape == (5, 16)  # Hidden state shape
+    assert new_state[1].shape == (5, 16)  # Cell state shape
 
 
 # Initialization
@@ -68,8 +68,8 @@ def test_lstm_model_forward():
 
     assert isinstance(action_dist, torch.distributions.Normal)
     assert "value" in extra_outputs
-    assert new_state[0][0].shape == (1, 1, 32)
-    assert new_state[0][1].shape == (1, 1, 32)
+    assert new_state[0][0].shape == (1, 32)
+    assert new_state[0][1].shape == (1, 32)
 
 
 # Latent representation

@@ -22,18 +22,12 @@ class Parser(BaseParser):
     probe: int = 0
     iters: int = 500
     name: str
-    workers: int = 8
-    start_dir: Optional[str]
-    start_idx: Optional[int] = -1
 
     _help = {
         "config": "Config file for the coltra",
         "probe": "The index of the probe environment",
         "iters": "Number of coltra iterations",
         "name": "Name of the tb directory to store the logs",
-        "workers": "Number of parallel collection envs to use",
-        "start_dir": "Name of the tb directory containing the run from which we want to (re)start the coltra",
-        "start_idx": "From which iteration we should start (only if start_dir is set)",
     }
 
     _abbrev = {
@@ -41,9 +35,6 @@ class Parser(BaseParser):
         "probe": "p",
         "iters": "i",
         "name": "n",
-        "workers": "w",
-        "start_dir": "sd",
-        "start_idx": "si",
     }
 
 
@@ -75,11 +66,8 @@ if __name__ == "__main__":
     agent_cls = CAgent if isinstance(env.action_space, gym.spaces.Box) else DAgent
 
     agent: Agent
-    if args.start_dir:
-        agent = agent_cls.load(args.start_dir, weight_idx=args.start_idx)
-    else:
-        model = model_cls(model_config, env.observation_space, action_space)
-        agent = agent_cls(model)
+    model = model_cls(model_config, env.observation_space, action_space)
+    agent = agent_cls(model)
 
     agents = HomogeneousGroup(agent)
 

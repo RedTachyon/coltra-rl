@@ -188,6 +188,7 @@ class FCNetwork(nn.Module):
 
 
 class LSTMNetwork(nn.Module):
+    # TODO: states need to be recomputed every time in evaluation
     def __init__(
         self,
         input_size: int,
@@ -217,7 +218,7 @@ class LSTMNetwork(nn.Module):
         )
 
         # Define LSTM layer
-        self.lstm = nn.LSTM(pre_mlp_layer_sizes[-1], lstm_hidden_size, batch_first=True)
+        self.lstm = nn.LSTMCell(pre_mlp_layer_sizes[-1], lstm_hidden_size)
 
         # Define Post-MLP layers
         post_mlp_layer_sizes = (lstm_hidden_size,) + tuple(post_hidden_sizes)
@@ -237,6 +238,12 @@ class LSTMNetwork(nn.Module):
                 for output_size in output_sizes
             ]
         )
+
+        for name, param in self.lstm.named_parameters():
+            if "bias" in name:
+                nn.init.constant_(param, 0)
+            elif "weight" in name:
+                nn.init.orthogonal_(param, 1.0)
 
         # Weight Initialization
         if initializer:
@@ -263,15 +270,15 @@ class LSTMNetwork(nn.Module):
             x = self.activation(layer(x))
 
         # LSTM
-        x, hidden_state = self.lstm(x.unsqueeze(1), hidden_state)
-        x = x.squeeze(1)
+        hidden_state, cell_state = self.lstm(x, hidden_state)
 
+        x = hidden_state
         # Post-MLP
         for layer in self.post_mlp:
             x = self.activation(layer(x))
 
         # Output heads
-        return [head(x) for head in self.heads], hidden_state
+        return [head(x) for head in self.heads], (hidden_state, cell_state)
 
     def latent(self, x: Tensor, hidden_state: Tuple[Tensor, Tensor]) -> Tensor:
         # Pre-MLP
@@ -279,8 +286,9 @@ class LSTMNetwork(nn.Module):
             x = self.activation(layer(x))
 
         # LSTM
-        x, hidden_state = self.lstm(x.unsqueeze(1), hidden_state)
-        x = x.squeeze(1)
+        hidden_state, cell_state = self.lstm(x, hidden_state)
+
+        x = hidden_state
 
         # Post-MLP
         for layer in self.post_mlp:
@@ -292,10 +300,6 @@ class LSTMNetwork(nn.Module):
         self, batch_size: int = 1, requires_grad: bool = True
     ) -> Tuple[Tensor, Tensor]:
         return (
-            torch.zeros(
-                1, batch_size, self.lstm_hidden_size, requires_grad=requires_grad
-            ),
-            torch.zeros(
-                1, batch_size, self.lstm_hidden_size, requires_grad=requires_grad
-            ),
+            torch.zeros(batch_size, self.lstm_hidden_size, requires_grad=requires_grad),
+            torch.zeros(batch_size, self.lstm_hidden_size, requires_grad=requires_grad),
         )

@@ -1,6 +1,6 @@
 ---
 trainer:
-  steps: 10
+  steps: 9
   workers: 8
 
   num_agents: 1

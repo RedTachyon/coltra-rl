@@ -16,12 +16,43 @@ from typing import (
     Sequence,
     Iterator,
     Tuple,
+    NamedTuple,
 )
 
 import numpy as np
 
 import torch
 from torch import Tensor
+
+
+class LSTMStateT(NamedTuple):
+    policy_state: Tuple[Tensor, Tensor]
+    value_state: Tuple[Tensor, Tensor]
+
+    def cpu(self) -> LSTMStateT:
+        return LSTMStateT(
+            policy_state=(self.policy_state[0].cpu(), self.policy_state[1].cpu()),
+            value_state=(self.value_state[0].cpu(), self.value_state[1].cpu()),
+        )
+
+    def cuda(self) -> LSTMStateT:
+        return LSTMStateT(
+            policy_state=(self.policy_state[0].cuda(), self.policy_state[1].cuda()),
+            value_state=(self.value_state[0].cuda(), self.value_state[1].cuda()),
+        )
+
+    def slice(self, item: slice):
+        return LSTMStateT(
+            policy_state=(
+                self.policy_state[0][item, ...],
+                self.policy_state[1][item, ...],
+            ),
+            value_state=(
+                self.value_state[0][item, ...],
+                self.value_state[1][item, ...],
+            ),
+        )
+
 
 Array = Union[np.ndarray, torch.Tensor]
 AgentName = str
@@ -31,16 +62,23 @@ LSTMState = (
     tuple[tuple[Tensor, Tensor], tuple[Tensor, Tensor]]
     | tuple[tuple[Tensor, Tensor], tuple]
     | tuple
+    | LSTMStateT
 )
 
 
-def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
+def get_batch_size(tensor: Union[Tensor, Multitype, LSTMStateT]) -> int:
     if isinstance(tensor, Tensor):
         _tensor: Tensor = tensor  # Just for types
         return _tensor.shape[0]
-    else:
+    elif isinstance(tensor, Multitype):
         _multitensor: Multitype = tensor
         return _multitensor.batch_size
+    elif isinstance(tensor, LSTMStateT):
+        _lstm_state: LSTMStateT = tensor
+        return _lstm_state.policy_state[0].shape[0] if _lstm_state != () else -1
+    elif isinstance(tensor, tuple):  # Also LSTM state?
+        _tuple: tuple = tensor
+        return _tuple[0].shape[1] if _tuple != () else -1
 
 
 def is_array(x: Any) -> bool:
@@ -194,7 +232,7 @@ LogProb = Array  # float32
 Value = Array  # float32
 Done = Union[Array, bool]  # bool
 
-T = TypeVar("T", np.ndarray, torch.Tensor, Multitype)
+T = TypeVar("T", np.ndarray, torch.Tensor, Multitype, tuple)
 
 
 def concat(array_list: list[T], dim: int = 0) -> T:
@@ -219,6 +257,19 @@ def concat(array_list: list[T], dim: int = 0) -> T:
         return np.concatenate(array_list, axis=dim)
     elif isinstance(arr, torch.Tensor):
         return torch.cat(array_list, dim=dim)
+    elif isinstance(arr, tuple):
+        concatenated_states = LSTMStateT(
+            *(
+                tuple(
+                    torch.cat(
+                        [state_tuple[i][j] for state_tuple in array_list], dim=dim
+                    )
+                    for j in range(len(arr[0]))
+                )
+                for i in range(len(arr))
+            )
+        )
+        return concatenated_states
 
 
 R = TypeVar("R")  # Should be a subclass of Record
@@ -276,7 +327,7 @@ class OnPolicyRecord(Record):
     value: Value
     done: Done
     last_value: Optional[Value]
-    state: Optional[tuple] = None
+    state: Optional[LSTMStateT] = None
 
 
 @dataclass
@@ -591,15 +642,15 @@ def pack_lstm_states(state_dict: Dict[str, LSTMState]) -> Tuple[LSTMState, List[
     value_state_empty = len(states[0][1]) == 0
 
     # Policy states
-    policy_hiddens = torch.cat([state[0][0] for state in states], dim=1)
-    policy_cells = torch.cat([state[0][1] for state in states], dim=1)
+    policy_hiddens = torch.cat([state[0][0] for state in states], dim=0)
+    policy_cells = torch.cat([state[0][1] for state in states], dim=0)
 
     packed_state = (policy_hiddens, policy_cells)
 
     # Only pack value states if they are not empty
     if not value_state_empty:
-        value_hiddens = torch.cat([state[1][0] for state in states], dim=1)
-        value_cells = torch.cat([state[1][1] for state in states], dim=1)
+        value_hiddens = torch.cat([state[1][0] for state in states], dim=0)
+        value_cells = torch.cat([state[1][1] for state in states], dim=0)
         value_state = (value_hiddens, value_cells)
     else:
         value_state = ()
@@ -614,8 +665,8 @@ def unpack_lstm_states(state: LSTMState, keys: List[str]) -> Dict[str, LSTMState
     num_states = len(keys)
 
     # Unpack policy states
-    policy_hiddens_split = torch.split(policy_hiddens, [1] * num_states, dim=1)
-    policy_cells_split = torch.split(policy_cells, [1] * num_states, dim=1)
+    policy_hiddens_split = torch.split(policy_hiddens, [1] * num_states, dim=0)
+    policy_cells_split = torch.split(policy_cells, [1] * num_states, dim=0)
 
     # Initialize as empty tuples
     value_hiddens_split = ()
@@ -624,8 +675,8 @@ def unpack_lstm_states(state: LSTMState, keys: List[str]) -> Dict[str, LSTMState
     # Unpack value state if it is not empty
     if state[1]:
         value_hiddens, value_cells = state[1]
-        value_hiddens_split = torch.split(value_hiddens, [1] * num_states, dim=1)
-        value_cells_split = torch.split(value_cells, [1] * num_states, dim=1)
+        value_hiddens_split = torch.split(value_hiddens, [1] * num_states, dim=0)
+        value_cells_split = torch.split(value_cells, [1] * num_states, dim=0)
 
     unpacked_states = {
         keys[i]: (

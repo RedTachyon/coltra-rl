@@ -179,6 +179,7 @@ class HomogeneousGroup(MacroAgent):
 
         obs = obs_batch[self.policy_name]
         action = action_batch[self.policy_name]
+        state = state[self.policy_name] if state else ()
         return self.embed(self.agent.evaluate(obs, action, state))
 
     def embed_evaluate(

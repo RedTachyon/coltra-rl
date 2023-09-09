@@ -34,19 +34,21 @@ from coltra.buffers import (
     Observation,
     Action,
     DQNRecord,
+    LSTMStateT,
 )
 
 
 def minibatches(
-    *tensors: Union[Tensor, Multitype],
+    *tensors: Union[Tensor, Multitype, LSTMStateT],
     batch_size: int = 32,
     shuffle: bool = True,
     rng: Optional[Generator] = None,
 ):
     full_size = get_batch_size(tensors[0])
     for tensor in tensors:
-        assert (
-            get_batch_size(tensor) == full_size
+        assert get_batch_size(tensor) in (
+            full_size,
+            -1,
         ), "One of the tensors has a different batch size"
 
     if shuffle:
@@ -62,7 +64,14 @@ def minibatches(
     for i in range(0, full_size, batch_size):
         idx = indices[slice(i, i + batch_size)]
 
-        yield [tensor[idx, ...] for tensor in tensors]
+        yield [
+            tensor.slice(idx)
+            if isinstance(tensor, LSTMStateT)
+            else ()
+            if tensor == ()
+            else tensor[idx, ...]
+            for tensor in tensors
+        ]
 
 
 class CrowdPPOptimizer:
@@ -151,7 +160,7 @@ class CrowdPPOptimizer:
         rewards: Tensor = data.reward
         dones: Tensor = data.done
         last_values: Tensor = data.last_value
-        states: Optional[tuple] = data.state if data.state is not None else ()
+        states: Optional[LSTMStateT] = data.state if data.state is not None else ()
 
         # Evaluate actions to have values that require gradients
         with torch.no_grad():
@@ -203,18 +212,28 @@ class CrowdPPOptimizer:
 
             broken = False
 
-            for m_obs, m_action, m_old_logprob, m_return, m_advantage in minibatches(
+            for (
+                m_obs,
+                m_action,
+                m_old_logprob,
+                m_return,
+                m_advantage,
+                m_state,
+            ) in minibatches(
                 obs,
                 actions,
                 old_logprobs,
                 returns,
                 advantages,
+                states,
                 batch_size=batch_size,
                 shuffle=True,
                 rng=self.rng,
             ):
                 # Evaluate again after the PPO step, for new values and gradients, aka forward pass
-                m_logprob, m_value, m_entropy = agents.embed_evaluate(m_obs, m_action)
+                m_logprob, m_value, m_entropy = agents.embed_evaluate(
+                    m_obs, m_action, m_state
+                )
                 # Compute the KL divergence for early stopping
                 kl_divergence = torch.mean(m_old_logprob - m_logprob).item()
                 # log_ratio = m_logprob - m_old_logprob

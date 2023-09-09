@@ -8,7 +8,7 @@ from coltra.buffers import Observation, Action
 from coltra.envs.spaces import ObservationSpace, ActionSpace
 from coltra.utils import np_float
 from coltra.envs.base_env import MultiAgentEnv
-from coltra.envs.subproc_vec_env import SubprocVecEnv
+from coltra.envs.subproc_vec_env import SubprocVecEnv, SequentialVecEnv
 
 
 def import_bullet():
@@ -57,9 +57,7 @@ class MultiGymEnv(MultiAgentEnv):
             self.s_env.action_space, gym.spaces.Discrete
         )
 
-        self.is_continuous_action = isinstance(
-            self.s_env.action_space, gym.spaces.Box
-        )
+        self.is_continuous_action = isinstance(self.s_env.action_space, gym.spaces.Box)
 
         self.observation_space = ObservationSpace(vector=self.s_env.observation_space)
 
@@ -106,13 +104,13 @@ class MultiGymEnv(MultiAgentEnv):
     @classmethod
     def get_venv(
         cls, workers: int = 8, seed: Optional[int] = None, **env_kwargs
-    ) -> SubprocVecEnv:
+    ) -> SequentialVecEnv:
         if seed is None:
             seeds = [None] * workers
         else:
             seeds = [seed + i for i in range(workers)]
 
-        venv = SubprocVecEnv(
+        venv = SequentialVecEnv(
             [cls.get_env_creator(seed=seeds[i], **env_kwargs) for i in range(workers)]
         )
         return venv
