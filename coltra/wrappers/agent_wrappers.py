@@ -66,8 +66,12 @@ class ObsVecNormWrapper(AgentWrapper):
         norm_obs = self.normalize_obs(obs_batch)
         return self.agent.act(norm_obs, state_batch, deterministic, get_value, **kwargs)
 
-    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
-        return self.agent.value(self.normalize_obs(obs_batch))
+    def value(
+        self, obs_batch: Observation, state_batch: tuple = (), **kwargs
+    ) -> tuple[Tensor, tuple]:
+        return self.agent.value(
+            self.normalize_obs(obs_batch), state_batch=state_batch, **kwargs
+        )
 
     def evaluate(
         self, obs_batch: Observation, action_batch: Action
@@ -113,9 +117,13 @@ class RetNormWrapper(AgentWrapper):
         return self._ret_var * value + self._ret_mean
 
     def value(
-        self, obs_batch: Observation, real_value: bool = False, **kwargs
-    ) -> Tensor:
-        value = self.agent.value(obs_batch)
+        self,
+        obs_batch: Observation,
+        state_batch: tuple = (),
+        real_value: bool = False,
+        **kwargs,
+    ) -> tuple[Tensor, tuple]:
+        value, state = self.agent.value(obs_batch, state_batch=state_batch, **kwargs)
         if real_value:
             value = self.unnormalize_value(value)
-        return value
+        return value, state

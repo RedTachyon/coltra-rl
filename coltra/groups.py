@@ -108,7 +108,7 @@ class HomogeneousGroup(MacroAgent):
         obs_dict: dict[AgentName, Observation],
         deterministic: bool = False,
         get_value: bool = False,
-        state_dict: dict[AgentName, tuple] = None,
+        state_dict: Optional[dict[AgentName, tuple]] = None,
     ):
         if len(obs_dict) == 0:
             return {}, {}, {}
@@ -174,7 +174,7 @@ class HomogeneousGroup(MacroAgent):
         self,
         obs_batch: dict[PolicyName, Observation],
         action_batch: dict[PolicyName, Action],
-        state: dict[PolicyName, tuple] = None,
+        state: Optional[dict[PolicyName, tuple]] = None,
     ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
 
         obs = obs_batch[self.policy_name]
@@ -381,13 +381,13 @@ class FamilyGroup(MacroAgent):
         family_actions, crowd_actions = split_dict(action_batch)
 
         family_obs, family_keys = pack(family_obs)
-        family_values = self.family_agent.value(family_obs)
+        family_values = self.family_agent.value(family_obs, ())
 
         augment_observations(crowd_obs, family_actions)
 
         crowd_obs, crowd_keys = pack(crowd_obs)
 
-        crowd_values = self.agent.value(crowd_obs)
+        crowd_values = self.agent.value(crowd_obs, ())
 
         crowd_values = unpack(crowd_values, crowd_keys)
         family_values = unpack(family_values, family_keys)
