@@ -168,3 +168,68 @@ class LSTMModel(BaseModel):
         return self.policy_network.get_initial_state(
             batch_size, requires_grad
         ), self.value_network.get_initial_state(batch_size, requires_grad)
+
+
+class FlattenLSTMModel(LSTMModel):
+    """
+    An abstraction to create models that flatten several inputs into a single vector.
+    Need to implement `_flatten` for any new models, and the result will be a fully connected
+    model that only has a `vector` entry, flattened according to the custom model.
+    """
+
+    def _flatten(self, obs: Observation) -> Observation:
+        raise NotImplementedError
+
+    def forward(
+        self, x: Observation, state: Tuple = (), get_value: bool = False
+    ) -> Tuple[Distribution, tuple, dict[str, Tensor]]:
+        return super().forward(self._flatten(x), state, get_value)
+
+    def latent(self, x: Observation, state: Tuple = ()) -> Tensor:
+        return super().latent(self._flatten(x), state)
+
+    def value(self, x: Observation, state: Tuple = ()) -> tuple[Tensor, tuple]:
+        return super().value(self._flatten(x), state)
+
+    def latent_value(self, x: Observation, state: Tuple) -> Tensor:
+        return super().latent_value(self._flatten(x), state)
+
+
+class ImageLSTMModel(FlattenLSTMModel):
+    def __init__(
+        self, config: dict, observation_space: ObservationSpace, action_space: Space
+    ):
+        assert (
+            "image" in observation_space.spaces
+        ), "ImageLSTMModel requires an observation space with image"
+
+        vector_size = (
+            observation_space.vector.shape[0]
+            if "vector" in observation_space.spaces
+            else 0
+        )
+        image_size = np.prod(observation_space.spaces["image"].shape)
+        new_vector_size = vector_size + image_size
+
+        new_observation_space = ObservationSpace(
+            {"vector": Box(-np.inf, np.inf, (new_vector_size,))}
+        )
+
+        super().__init__(config, new_observation_space, action_space)
+
+    def _flatten(self, obs: Observation) -> Observation:
+        if not hasattr(obs, "image"):
+            return obs
+        image: torch.Tensor = obs.image
+
+        if len(image.shape) == 3:  # no batch
+            dim = 0
+        else:  # image.shape == 4, batch
+            dim = 1
+
+        vector = torch.flatten(image, start_dim=dim)
+
+        if hasattr(obs, "vector"):
+            vector = torch.cat([obs.vector, vector], dim=dim)
+
+        return Observation(vector=vector)
