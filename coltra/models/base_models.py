@@ -297,19 +297,19 @@ class LSTMNetwork(nn.Module):
         return x
 
     def get_initial_state(
-        self, batch_size: int = 1, requires_grad: bool = True
+        self, batch_size: int = 1, requires_grad: bool = True, device: str = "cpu"
     ) -> Tuple[Tensor, Tensor]:
         return (
             torch.zeros(
                 batch_size,
                 self.lstm_hidden_size,
                 requires_grad=requires_grad,
-                device=self.device,
+                device=device,
             ),
             torch.zeros(
                 batch_size,
                 self.lstm_hidden_size,
                 requires_grad=requires_grad,
-                device=self.device,
+                device=device,
             ),
         )

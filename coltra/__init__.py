@@ -6,5 +6,5 @@ from coltra.envs import MultiAgentEnv
 from coltra.buffers import Action, Observation
 from coltra import utils
 
-__version__ = "0.1.8"
+__version__ = "0.1.9"
 VERSION = __version__

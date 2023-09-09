@@ -166,8 +166,8 @@ class LSTMModel(BaseModel):
         self, batch_size: int = 1, requires_grad: bool = True
     ) -> Tuple:
         return self.policy_network.get_initial_state(
-            batch_size, requires_grad
-        ), self.value_network.get_initial_state(batch_size, requires_grad)
+            batch_size, requires_grad, self.device
+        ), self.value_network.get_initial_state(batch_size, requires_grad, self.device)
 
 
 class FlattenLSTMModel(LSTMModel):
