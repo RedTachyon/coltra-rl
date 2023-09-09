@@ -300,6 +300,16 @@ class LSTMNetwork(nn.Module):
         self, batch_size: int = 1, requires_grad: bool = True
     ) -> Tuple[Tensor, Tensor]:
         return (
-            torch.zeros(batch_size, self.lstm_hidden_size, requires_grad=requires_grad),
-            torch.zeros(batch_size, self.lstm_hidden_size, requires_grad=requires_grad),
+            torch.zeros(
+                batch_size,
+                self.lstm_hidden_size,
+                requires_grad=requires_grad,
+                device=self.device,
+            ),
+            torch.zeros(
+                batch_size,
+                self.lstm_hidden_size,
+                requires_grad=requires_grad,
+                device=self.device,
+            ),
         )
