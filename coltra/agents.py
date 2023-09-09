@@ -26,7 +26,7 @@ class Agent:
         obs_batch: Observation,
         state_batch: Tuple = (),
         deterministic: bool = False,
-        get_value: bool = False,
+        get_value: bool = True,
         **kwargs,
     ) -> Tuple[Action, Tuple, dict]:
         """Return: Action, State, Extras"""
@@ -38,7 +38,9 @@ class Agent:
         """Return: logprobs, values, entropies"""
         raise NotImplementedError
 
-    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+    def value(
+        self, obs_batch: Observation, state_batch: tuple, **kwargs
+    ) -> tuple[Tensor, tuple]:
         raise NotImplementedError
 
     def cuda(self):
@@ -54,9 +56,9 @@ class Agent:
     def state_dict(self, *args, **kwargs):
         return self.model.state_dict(*args, **kwargs)
 
-    def get_initial_state(self, requires_grad=True):
+    def get_initial_state(self, batch_size: int = 1, requires_grad=True):
         return getattr(self.model, "get_initial_state", lambda *x, **xx: ())(
-            requires_grad=requires_grad
+            batch_size=batch_size, requires_grad=requires_grad
         )
 
     def save(
@@ -125,18 +127,21 @@ class CAgent(Agent):  # Continuous Agent
     def act(
         self,
         obs_batch: Observation,  # [B, ...]
-        state_batch: Tuple = (),
+        state_batch: tuple = (),
         deterministic: bool = False,
-        get_value: bool = False,
+        get_value: bool = True,
         **kwargs,
-    ) -> Tuple[Action, Tuple, dict]:
+    ) -> Tuple[Action, tuple, dict]:
         """Computes the action for an observation,
         passes along the state for recurrent models, and optionally the value"""
         obs_batch = obs_batch.tensor(self.model.device)
-        state_batch = tuple(s.to(self.model.device) for s in state_batch)
+        state_batch = tuple(
+            tuple(tensor.to(self.model.device) for tensor in state)
+            for state in state_batch
+        )
 
         action_distribution: Normal
-        states: Tuple
+        states: tuple
         actions: Tensor
 
         with torch.no_grad():
@@ -184,10 +189,19 @@ class CAgent(Agent):  # Continuous Agent
 
         return action_logprobs, values, entropies
 
-    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+    def value(
+        self, obs_batch: Observation, state_batch: tuple = (), **kwargs
+    ) -> tuple[Tensor, tuple]:
         obs_batch = obs_batch.tensor(self.model.device)
-        values, _ = self.model.value(obs_batch.tensor(self.model.device), ())
-        return values
+        state_batch = tuple(
+            tuple(tensor.to(self.model.device) for tensor in state)
+            for state in state_batch
+        )
+
+        values, state_batch = self.model.value(
+            obs_batch.tensor(self.model.device), state_batch[1] if state_batch else ()
+        )
+        return values, state_batch
 
 
 class DAgent(Agent):
@@ -203,12 +217,15 @@ class DAgent(Agent):
         obs_batch: Observation,
         state_batch: Tuple = (),
         deterministic: bool = False,
-        get_value: bool = False,
+        get_value: bool = True,
         **kwargs,
     ) -> Tuple[Action, Tuple, dict]:
 
         obs_batch = obs_batch.tensor(self.model.device)
-        state_batch = tuple(s.to(self.model.device) for s in state_batch)
+        state_batch = tuple(
+            tuple(tensor.to(self.model.device) for tensor in state)
+            for state in state_batch
+        )
 
         action_distribution: Categorical
         states: Tuple
@@ -232,7 +249,10 @@ class DAgent(Agent):
         return Action(discrete=actions.cpu().numpy()), states, extra_outputs
 
     def evaluate(
-        self, obs_batch: Observation, action_batch: Action
+        self,
+        obs_batch: Observation,
+        action_batch: Action,
+        state_batch: tuple = (),
     ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Computes action logprobs, observation values and policy entropy for each of the (obs, action)
@@ -259,10 +279,19 @@ class DAgent(Agent):
 
         return action_logprobs, values, entropies
 
-    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+    def value(
+        self, obs_batch: Observation, state_batch: tuple = (), **kwargs
+    ) -> tuple[Tensor, tuple]:
         obs_batch = obs_batch.tensor(self.model.device)
-        values, _ = self.model.value(obs_batch.tensor(self.model.device), ())
-        return values
+        state_batch = tuple(
+            tuple(tensor.to(self.model.device) for tensor in state)
+            for state in state_batch
+        )
+
+        values, state_batch = self.model.value(
+            obs_batch.tensor(self.model.device), state_batch[1] if state_batch else ()
+        )
+        return values, state_batch
 
 
 class MixedAgent(Agent):
@@ -341,10 +370,10 @@ class MixedAgent(Agent):
 
         return action_logprobs, values, entropies
 
-    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> tuple[Tensor, tuple]:
         obs_batch = obs_batch.tensor(self.model.device)
         values, _ = self.model.value(obs_batch.tensor(self.model.device), ())
-        return values
+        return values, ()
 
 
 class ToyAgent(Agent):
@@ -367,9 +396,9 @@ class ToyAgent(Agent):
         zero = torch.zeros((obs_batch.batch_size,))
         return zero, zero, zero
 
-    def value(self, obs_batch: Observation, **kwargs) -> Tensor:
+    def value(self, obs_batch: Observation, **kwargs) -> tuple[Tensor, tuple]:
         zero = torch.zeros((obs_batch.batch_size, 1))
-        return zero
+        return zero, ()
 
 
 class RandomGymAgent(ToyAgent):

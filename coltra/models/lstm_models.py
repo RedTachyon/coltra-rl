@@ -31,6 +31,7 @@ LSTMState = tuple[Tensor, Tensor]
 class LSTMModel(BaseModel):
     def __init__(self, config: dict, observation_space: Space, action_space: Space):
         super().__init__(config, observation_space, action_space)
+        self._stateful = True
 
         Config: LSTMConfig = LSTMConfig.clone()
 

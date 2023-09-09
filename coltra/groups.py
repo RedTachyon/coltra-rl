@@ -10,7 +10,16 @@ import torch.nn
 from torch import Tensor
 from coltra.utils import augment_observations
 from coltra.agents import Agent
-from coltra.buffers import Observation, Action, split_dict, pack, unpack
+from coltra.buffers import (
+    Observation,
+    Action,
+    split_dict,
+    pack,
+    unpack,
+    pack_lstm_states,
+    unpack_lstm_states,
+    LSTMState,
+)
 
 AgentName = str
 AgentNameStub = str
@@ -99,22 +108,30 @@ class HomogeneousGroup(MacroAgent):
         obs_dict: dict[AgentName, Observation],
         deterministic: bool = False,
         get_value: bool = False,
+        state_dict: dict[AgentName, tuple] = None,
     ):
         if len(obs_dict) == 0:
-            return {}, (), {}
+            return {}, {}, {}
         obs, keys = pack(obs_dict)
+
+        states, s_keys = pack_lstm_states(state_dict)
+
         actions, states, extra = self.agent.act(
             obs_batch=obs,
-            state_batch=(),
+            state_batch=states,
             deterministic=deterministic,
             get_value=get_value,
         )
 
         actions_dict = unpack(actions, keys)
+        if states:
+            new_states_dict = unpack_lstm_states(states, s_keys)
+        else:
+            new_states_dict = state_dict
 
         extra = {key: unpack(value, keys) for key, value in extra.items()}
 
-        return actions_dict, states, extra
+        return actions_dict, new_states_dict, extra
 
     def parameters(self) -> Iterable[torch.nn.Parameter]:
         return self.agent.model.parameters()
@@ -126,15 +143,26 @@ class HomogeneousGroup(MacroAgent):
         self.agent.cpu()
 
     def value(
-        self, obs_batch: dict[AgentName, Observation], **kwargs
+        self,
+        obs_batch: dict[AgentName, Observation],
+        state_dict: dict[AgentName, LSTMState],
+        **kwargs,
     ) -> dict[str, Tensor]:
         obs, keys = pack(obs_batch)
-        values = self.agent.value(obs)
+        states, s_keys = pack_lstm_states(state_dict)
+        values = self.agent.value(obs, states)
         return unpack(values, keys)
 
-    def value_pack(self, obs_batch: dict[AgentName, Observation], **kwargs) -> Tensor:
+    def value_pack(
+        self,
+        obs_batch: dict[AgentName, Observation],
+        state_dict: dict[AgentName, LSTMState],
+        **kwargs,
+    ) -> Tensor:
         obs, _ = pack(obs_batch)
-        values = self.agent.value(obs)
+        states, _ = pack_lstm_states(state_dict)
+
+        values, _ = self.agent.value(obs, state_batch=states)
         return values
 
     T = TypeVar("T")
@@ -218,6 +246,14 @@ class HomogeneousGroup(MacroAgent):
         weights_path = os.path.join(base_path, "saved_weights", f"weights_{idx}")
         weights = torch.load(weights_path, map_location=self.agent.model.device)
         self.agent.model.load_state_dict(weights)
+
+    def get_initial_state(
+        self, obs_batch: dict[AgentName, Observation], requires_grad: bool = False
+    ) -> dict[AgentName, tuple]:
+        return {
+            agent_name: self.agent.get_initial_state(requires_grad=requires_grad)
+            for agent_name in obs_batch.keys()
+        }
 
 
 class FamilyGroup(MacroAgent):

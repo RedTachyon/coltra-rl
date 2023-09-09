@@ -39,10 +39,8 @@ def collect_crowd_data(
 
     # reset_start: change here in case I ever need to not reset
     obs_dict = env.reset(**env_kwargs)
+    states = agents.get_initial_state(obs_dict, requires_grad=False)
 
-    # state = {
-    #     agent_id: self.agents[agent_id].get_initial_state(requires_grad=False) for agent_id in self.agent_ids
-    # }
     metrics = {}
 
     for step in trange(num_steps, disable=disable_tqdm):
@@ -50,7 +48,9 @@ def collect_crowd_data(
         # obs_array, agent_keys = pack(obs_dict)
 
         # Centralize the action computation for better parallelization
-        action_dict, states, extra = agents.act(obs_dict, deterministic, get_value=True)
+        action_dict, new_states, extra = agents.act(
+            obs_dict, deterministic=deterministic, get_value=True, state_dict=states
+        )
         values_dict = extra["value"]
 
         # action_dict = unpack(
@@ -70,13 +70,16 @@ def collect_crowd_data(
         for key in all_metrics:
             metrics.setdefault(key, []).append(all_metrics[key])
 
-        memory.append(obs_dict, action_dict, reward_dict, values_dict, done_dict)
+        memory.append(
+            obs_dict, action_dict, reward_dict, values_dict, done_dict, state=states
+        )
 
         obs_dict = next_obs
+        states = new_states
 
     metrics = {key: np.concatenate(value) for key, value in metrics.items()}
 
-    last_values = agents.value_pack(obs_dict).detach().view(-1)
+    last_values = agents.value_pack(obs_dict, state_dict=states).detach().view(-1)
 
     # Get the last values
     # obs_array, agent_keys = pack(obs_dict)
@@ -217,7 +220,7 @@ def collect_renders(
         # Converts a dict to a compact array which will be fed to the network - needs rethinking
 
         action_dict, states, extra = agents.act(
-            obs_dict, deterministic, get_value=False
+            obs_dict, deterministic=deterministic, get_value=False
         )
 
         if show_attention:

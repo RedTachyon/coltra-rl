@@ -77,7 +77,9 @@ class BaseModel(nn.Module):
         raise NotImplementedError
 
     # Built-ins
-    def get_initial_state(self, requires_grad=True) -> Tuple:
+    def get_initial_state(
+        self, batch_size: int = 1, requires_grad: bool = True
+    ) -> Tuple:
         return ()
 
     @property

@@ -27,6 +27,11 @@ Array = Union[np.ndarray, torch.Tensor]
 AgentName = str
 AgentNameStub = str
 PolicyName = str
+LSTMState = (
+    tuple[tuple[Tensor, Tensor], tuple[Tensor, Tensor]]
+    | tuple[tuple[Tensor, Tensor], tuple]
+    | tuple
+)
 
 
 def get_batch_size(tensor: Union[Tensor, Multitype]) -> int:
@@ -271,6 +276,7 @@ class OnPolicyRecord(Record):
     value: Value
     done: Done
     last_value: Optional[Value]
+    state: Optional[tuple] = None
 
 
 @dataclass
@@ -280,6 +286,7 @@ class AgentOnPolicyBuffer(AgentBuffer):
     reward: list[Reward] = field(default_factory=list)
     value: list[Value] = field(default_factory=list)
     done: list[Done] = field(default_factory=list)
+    state: list[Optional[tuple]] = field(default_factory=list)
 
 
 @dataclass
@@ -293,6 +300,7 @@ class OnPolicyBuffer:
         reward: dict[str, Reward],
         value: dict[str, Value],
         done: dict[str, Done],
+        state: Optional[dict[str, tuple]] = None,
     ):
 
         for agent_id in obs:  # Assume the keys are identical
@@ -303,6 +311,7 @@ class OnPolicyBuffer:
                 value[agent_id],
                 done[agent_id],
                 None,
+                state[agent_id] if state and state[agent_id] else None,
             )
 
             self.data.setdefault(agent_id, AgentOnPolicyBuffer()).append(record)
@@ -314,6 +323,15 @@ class OnPolicyBuffer:
             data = self.data
         result = {}
         for agent_id, agent_buffer in data.items():  # str -> AgentMemoryBuffer
+            state_dict = {}
+            if agent_buffer.state:
+                for i, state in enumerate(agent_buffer.state):
+                    state_dict[f"agent_{i}"] = state
+
+                packed_state, _ = pack_lstm_states(state_dict)
+            else:
+                packed_state = None
+
             result[agent_id] = OnPolicyRecord(
                 obs=Observation.stack_tensor(agent_buffer.obs),
                 action=Action.stack_tensor(agent_buffer.action),
@@ -321,6 +339,7 @@ class OnPolicyBuffer:
                 value=torch.as_tensor(agent_buffer.value),
                 done=torch.as_tensor(agent_buffer.done),
                 last_value=None,
+                state=packed_state,
             )
         return result
 
@@ -332,6 +351,18 @@ class OnPolicyBuffer:
         if data is None:
             data = self.data
         tensor_data = self.tensorify(data).values()
+        all_states = [
+            agent_buffer.state
+            for agent_buffer in tensor_data
+            if agent_buffer.state is not None
+        ]
+
+        # Packing LSTM states if any are present
+        packed_state = None
+        if all_states:
+            state_dict = {f"agent_{i}": state for i, state in enumerate(all_states)}
+            packed_state, _ = pack_lstm_states(state_dict)
+
         return OnPolicyRecord(
             obs=Observation.cat_tensor(
                 [agent_buffer.obs for agent_buffer in tensor_data]
@@ -343,6 +374,7 @@ class OnPolicyBuffer:
             value=torch.cat([agent_buffer.value for agent_buffer in tensor_data]),
             done=torch.cat([agent_buffer.done for agent_buffer in tensor_data]),
             last_value=last_value,
+            state=packed_state,  # New packed state
         )
 
     def hetero_tensorify(
@@ -547,3 +579,62 @@ def pack_tensor(dict_: dict[str, Array]) -> Tuple[Tensor, List[str]]:
 def unpack(arrays: Any, keys: List[str]) -> dict[str, Any]:
     value_dict = {key: arrays[i] for i, key in enumerate(keys)}
     return value_dict
+
+
+def pack_lstm_states(state_dict: Dict[str, LSTMState]) -> Tuple[LSTMState, List[str]]:
+    keys = list(state_dict.keys())
+    states = [state_dict[key] for key in keys]
+
+    state_empty = len(states[0]) == 0 or len(states[0][0]) == 0
+    if state_empty:
+        return (), []
+    value_state_empty = len(states[0][1]) == 0
+
+    # Policy states
+    policy_hiddens = torch.cat([state[0][0] for state in states], dim=1)
+    policy_cells = torch.cat([state[0][1] for state in states], dim=1)
+
+    packed_state = (policy_hiddens, policy_cells)
+
+    # Only pack value states if they are not empty
+    if not value_state_empty:
+        value_hiddens = torch.cat([state[1][0] for state in states], dim=1)
+        value_cells = torch.cat([state[1][1] for state in states], dim=1)
+        value_state = (value_hiddens, value_cells)
+    else:
+        value_state = ()
+
+    packed_state = (packed_state, value_state)
+
+    return packed_state, keys
+
+
+def unpack_lstm_states(state: LSTMState, keys: List[str]) -> Dict[str, LSTMState]:
+    policy_hiddens, policy_cells = state[0]
+    num_states = len(keys)
+
+    # Unpack policy states
+    policy_hiddens_split = torch.split(policy_hiddens, [1] * num_states, dim=1)
+    policy_cells_split = torch.split(policy_cells, [1] * num_states, dim=1)
+
+    # Initialize as empty tuples
+    value_hiddens_split = ()
+    value_cells_split = ()
+
+    # Unpack value state if it is not empty
+    if state[1]:
+        value_hiddens, value_cells = state[1]
+        value_hiddens_split = torch.split(value_hiddens, [1] * num_states, dim=1)
+        value_cells_split = torch.split(value_cells, [1] * num_states, dim=1)
+
+    unpacked_states = {
+        keys[i]: (
+            (policy_hiddens_split[i], policy_cells_split[i]),
+            (value_hiddens_split[i], value_cells_split[i])
+            if value_hiddens_split
+            else (),
+        )
+        for i in range(num_states)
+    }
+
+    return unpacked_states
