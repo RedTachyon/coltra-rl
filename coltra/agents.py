@@ -26,14 +26,14 @@ class Agent:
         obs_batch: Observation,
         state_batch: Tuple = (),
         deterministic: bool = False,
-        get_value: bool = True,
+        get_value: bool = False,
         **kwargs,
     ) -> Tuple[Action, Tuple, dict]:
         """Return: Action, State, Extras"""
         raise NotImplementedError
 
     def evaluate(
-        self, obs_batch: Observation, action_batch: Action
+        self, obs_batch: Observation, action_batch: Action, state_batch: tuple = ()
     ) -> Tuple[Tensor, Tensor, Tensor]:
         """Return: logprobs, values, entropies"""
         raise NotImplementedError
@@ -129,7 +129,7 @@ class CAgent(Agent):  # Continuous Agent
         obs_batch: Observation,  # [B, ...]
         state_batch: tuple = (),
         deterministic: bool = False,
-        get_value: bool = True,
+        get_value: bool = False,
         **kwargs,
     ) -> Tuple[Action, tuple, dict]:
         """Computes the action for an observation,
@@ -162,7 +162,7 @@ class CAgent(Agent):  # Continuous Agent
         return Action(continuous=actions.cpu().numpy()), states, extra_outputs
 
     def evaluate(
-        self, obs_batch: Observation, action_batch: Action
+        self, obs_batch: Observation, action_batch: Action, state_batch: tuple = ()
     ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Computes action logprobs, observation values and policy entropy for each of the (obs, action, hidden_state)
@@ -179,9 +179,10 @@ class CAgent(Agent):  # Continuous Agent
         """
         obs_batch = obs_batch.tensor(self.model.device)
         action_batch = action_batch.tensor(self.model.device)
-        # state_batch = data_batch['states']
 
-        action_distribution, _, extra_outputs = self.model(obs_batch, get_value=True)
+        action_distribution, _, extra_outputs = self.model(
+            obs_batch, state=state_batch, get_value=True
+        )
         values = extra_outputs["value"].sum(-1)
         # Sum across dimensions of the action
         action_logprobs = action_distribution.log_prob(action_batch.continuous).sum(-1)
@@ -217,7 +218,7 @@ class DAgent(Agent):
         obs_batch: Observation,
         state_batch: Tuple = (),
         deterministic: bool = False,
-        get_value: bool = True,
+        get_value: bool = False,
         **kwargs,
     ) -> Tuple[Action, Tuple, dict]:
 
@@ -269,9 +270,10 @@ class DAgent(Agent):
         """
         obs_batch = obs_batch.tensor(self.model.device)
         action_batch = action_batch.tensor(self.model.device)
-        # state_batch = data_batch['states']
 
-        action_distribution, _, extra_outputs = self.model(obs_batch, get_value=True)
+        action_distribution, _, extra_outputs = self.model(
+            obs_batch, state=state_batch, get_value=True
+        )
         values = extra_outputs["value"].sum(-1)
         # Sum across dimensions of the action
         action_logprobs = action_distribution.log_prob(action_batch.discrete)

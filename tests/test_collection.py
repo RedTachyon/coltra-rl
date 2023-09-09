@@ -40,7 +40,7 @@ def test_const_reward():
     assert isinstance(data.value, Tensor)
 
 
-def test_lstm():
+def test_lstm_collection():
     env = ActionDependentRewardEnv(num_agents=10)
     model = LSTMModel(
         {}, observation_space=env.observation_space, action_space=env.action_space

@@ -108,7 +108,10 @@ class LSTMModel(BaseModel):
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
     def forward(
-        self, x: Observation, state: Tuple[LSTMState, LSTMState], get_value: bool = True
+        self,
+        x: Observation,
+        state: Tuple[LSTMState, LSTMState],
+        get_value: bool = False,
     ) -> Tuple[Distribution, tuple[LSTMState, LSTMState], dict[str, Tensor]]:
 
         action_distribution: Distribution

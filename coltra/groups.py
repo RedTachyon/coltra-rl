@@ -174,16 +174,19 @@ class HomogeneousGroup(MacroAgent):
         self,
         obs_batch: dict[PolicyName, Observation],
         action_batch: dict[PolicyName, Action],
+        state: dict[PolicyName, tuple] = None,
     ) -> dict[PolicyName, Tuple[Tensor, Tensor, Tensor]]:
 
         obs = obs_batch[self.policy_name]
         action = action_batch[self.policy_name]
-        return self.embed(self.agent.evaluate(obs, action))
+        return self.embed(self.agent.evaluate(obs, action, state))
 
     def embed_evaluate(
-        self, obs: Observation, action: Action
+        self, obs: Observation, action: Action, state: tuple = ()
     ) -> Tuple[Tensor, Tensor, Tensor]:
-        return self.evaluate(self.embed(obs), self.embed(action))[self.policy_name]
+        return self.evaluate(self.embed(obs), self.embed(action), self.embed(state))[
+            self.policy_name
+        ]
 
     def save(
         self,

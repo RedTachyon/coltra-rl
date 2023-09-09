@@ -161,7 +161,7 @@ class RelationModel(BaseModel):
         self.config = self.config.to_dict()
 
     def forward(
-        self, x: Observation, state: Tuple = (), get_value: bool = True
+        self, x: Observation, state: Tuple = (), get_value: bool = False
     ) -> Tuple[Distribution, Tuple, dict[str, Tensor]]:
         action_distribution: Distribution
         if self.beta:
@@ -208,7 +208,7 @@ class FlattenRelationModel(RelationModel):
         raise NotImplementedError
 
     def forward(
-        self, x: Observation, state: Tuple = (), get_value: bool = True
+        self, x: Observation, state: Tuple = (), get_value: bool = False
     ) -> Tuple[Distribution, Tuple[Tensor, Tensor], dict[str, Tensor]]:
         return super().forward(self._flatten(x), state, get_value)
 

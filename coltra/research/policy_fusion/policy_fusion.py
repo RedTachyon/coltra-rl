@@ -47,7 +47,7 @@ class JointModel(BaseModel):
         self.value_head = nn.Linear(self.latent_size, 1).to(self.device)
 
     def forward(
-        self, x: Observation, state: tuple = (), get_value: bool = True
+        self, x: Observation, state: tuple = (), get_value: bool = False
     ) -> tuple[Distribution, Tuple, dict[str, Tensor]]:
 
         latent = [model.latent(x, state) for model in self.models]

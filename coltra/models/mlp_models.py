@@ -105,7 +105,7 @@ class MLPModel(BaseModel):
         self.config = self.config.to_dict()  # Convert to a dictionary for pickling
 
     def forward(
-        self, x: Observation, state: Tuple = (), get_value: bool = True
+        self, x: Observation, state: Tuple = (), get_value: bool = False
     ) -> Tuple[Distribution, tuple, dict[str, Tensor]]:
 
         action_distribution: Distribution
@@ -164,7 +164,7 @@ class FlattenMLPModel(MLPModel):
         raise NotImplementedError
 
     def forward(
-        self, x: Observation, state: Tuple = (), get_value: bool = True
+        self, x: Observation, state: Tuple = (), get_value: bool = False
     ) -> Tuple[Distribution, tuple, dict[str, Tensor]]:
         return super().forward(self._flatten(x), state, get_value)
 

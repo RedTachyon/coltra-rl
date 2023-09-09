@@ -151,11 +151,12 @@ class CrowdPPOptimizer:
         rewards: Tensor = data.reward
         dones: Tensor = data.done
         last_values: Tensor = data.last_value
+        states: Optional[tuple] = data.state if data.state is not None else ()
 
         # Evaluate actions to have values that require gradients
         with torch.no_grad():
             old_logprobs, old_values, old_entropies = agents.embed_evaluate(
-                obs, actions
+                obs, actions, states
             )
 
         # breakpoint()
@@ -223,7 +224,11 @@ class CrowdPPOptimizer:
                     raise ValueError("NaN detected in KL Divergence!")
                 if kl_divergence > self.config.target_kl:
                     broken = True
-                    if self.config.rewind and gradient_updates > self.config.min_rewind_steps and saved_state_dict is not None:
+                    if (
+                        self.config.rewind
+                        and gradient_updates > self.config.min_rewind_steps
+                        and saved_state_dict is not None
+                    ):
                         self.agents.agent.model.load_state_dict(saved_state_dict)
                     break
 
@@ -250,7 +255,9 @@ class CrowdPPOptimizer:
                 )
 
                 if self.config.rewind:
-                    saved_state_dict = copy.deepcopy(self.agents.agent.model.state_dict())
+                    saved_state_dict = copy.deepcopy(
+                        self.agents.agent.model.state_dict()
+                    )
 
                 ############################################# Update step ##############################################
                 self.policy_optimizer.zero_grad()
@@ -280,7 +287,9 @@ class CrowdPPOptimizer:
         metrics[f"meta/{agent_id}/ppo_steps_made"] = ppo_step + 1
         metrics[f"meta/{agent_id}/gradient_updates"] = gradient_updates
         metrics[f"meta/{agent_id}/policy_loss"] = policy_loss.mean().cpu().item()
-        metrics[f"meta/{agent_id}/value_loss"] = torch.sqrt(value_loss.mean()).cpu().item()
+        metrics[f"meta/{agent_id}/value_loss"] = (
+            torch.sqrt(value_loss.mean()).cpu().item()
+        )
         metrics[f"meta/{agent_id}/mean_value"] = old_values.mean().cpu().item()
         # metrics[f"{agent_id}/{agent_id}/total_loss"] = loss.detach().cpu().item()
         metrics[f"meta/{agent_id}/total_steps"] = rewards.numel()

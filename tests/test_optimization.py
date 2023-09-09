@@ -5,8 +5,8 @@ from coltra.buffers import Observation
 from coltra.groups import HomogeneousGroup
 from coltra.policy_optimization import minibatches, CrowdPPOptimizer
 from coltra.models.mlp_models import MLPModel
-from coltra.agents import CAgent
-from coltra.envs.probe_envs import ConstRewardEnv
+from coltra.agents import CAgent, DAgent
+from coltra.envs.probe_envs import ConstRewardEnv, ActionDependentRewardEnv
 from coltra.collectors import collect_crowd_data
 
 
@@ -94,6 +94,40 @@ def test_ppo_step():
     )
     old_params = list([param.detach().clone() for param in model.parameters()])
     agent = CAgent(model)
+    agents = HomogeneousGroup(agent)
+
+    data, metrics, shape = collect_crowd_data(
+        agents, env, num_steps=100
+    )  # 1000 steps total
+
+    ppo = CrowdPPOptimizer(
+        agents=agents,
+        config={
+            # 30 updates total
+            "minibatch_size": 100,
+            "ppo_epochs": 3,
+            "use_gpu": torch.cuda.is_available(),
+        },
+    )
+
+    metrics = ppo.train_on_data(data, shape)
+    new_params = model.parameters()
+
+    # Check that something has changed
+    allclose = []
+    for (p1, p2) in zip(old_params, new_params):
+        allclose.append(torch.allclose(p1.cpu(), p2.cpu()))
+
+    assert not all(allclose)
+
+
+def test_ppo_lstm():
+    env = ActionDependentRewardEnv(num_agents=10)
+    model = MLPModel(
+        {}, observation_space=env.observation_space, action_space=env.action_space
+    )
+    old_params = list([param.detach().clone() for param in model.parameters()])
+    agent = DAgent(model)
     agents = HomogeneousGroup(agent)
 
     data, metrics, shape = collect_crowd_data(

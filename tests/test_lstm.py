@@ -64,7 +64,7 @@ def test_lstm_model_forward():
     obs = Observation(vector=obs_tensor)
     state = model.get_initial_state(batch_size=1)
 
-    action_dist, new_state, extra_outputs = model.forward(obs, state)
+    action_dist, new_state, extra_outputs = model.forward(obs, state, get_value=True)
 
     assert isinstance(action_dist, torch.distributions.Normal)
     assert "value" in extra_outputs
