@@ -179,6 +179,10 @@ class CAgent(Agent):  # Continuous Agent
         """
         obs_batch = obs_batch.tensor(self.model.device)
         action_batch = action_batch.tensor(self.model.device)
+        state_batch = tuple(
+            tuple(tensor.to(self.model.device) for tensor in state)
+            for state in state_batch
+        )
 
         action_distribution, _, extra_outputs = self.model(
             obs_batch, state=state_batch, get_value=True
@@ -270,6 +274,10 @@ class DAgent(Agent):
         """
         obs_batch = obs_batch.tensor(self.model.device)
         action_batch = action_batch.tensor(self.model.device)
+        state_batch = tuple(
+            tuple(tensor.to(self.model.device) for tensor in state)
+            for state in state_batch
+        )
 
         action_distribution, _, extra_outputs = self.model(
             obs_batch, state=state_batch, get_value=True
