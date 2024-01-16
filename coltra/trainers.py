@@ -9,7 +9,6 @@ import optuna
 import shortuuid
 import torch
 import yaml
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import trange
 
 from coltra.collectors import collect_crowd_data, collect_family_data
@@ -67,8 +66,10 @@ class PPOCrowdTrainer(Trainer):
         )
 
         # Setup tensorboard
-        self.writer: Optional[SummaryWriter]
+        # self.writer: Optional[SummaryWriter]
         if self.config.tensorboard_name:
+            from torch.utils.tensorboard import SummaryWriter
+
             dt_string = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             if use_uuid:
                 dt_string += "_" + shortuuid.uuid()
@@ -242,8 +243,9 @@ class PPOFamilyTrainer(Trainer):
         )
 
         # Setup tensorboard
-        self.writer: Optional[SummaryWriter]
         if self.config.tensorboard_name:
+            from torch.utils.tensorboard import SummaryWriter
+
             dt_string = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             if use_uuid:
                 dt_string += "_" + shortuuid.uuid()

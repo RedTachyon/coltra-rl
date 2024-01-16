@@ -8,7 +8,6 @@ from coltra.groups import HomogeneousGroup, FamilyGroup
 from numpy.random import Generator
 import torch
 from torch import Tensor
-from torch.utils.tensorboard import SummaryWriter
 from typarse import BaseConfig
 
 from coltra.agents import Agent
@@ -114,7 +113,7 @@ class CrowdPPOptimizer:
         data_dict: dict[str, OnPolicyRecord],
         shape: tuple[int, int],
         step: int = 0,
-        writer: Optional[SummaryWriter] = None,
+        writer: Optional["SummaryWriter"] = None,
     ) -> dict[str, float]:
         """
         Performs a single update step with PPO on the given batch of data.

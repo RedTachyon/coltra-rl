@@ -25,7 +25,7 @@ from torch.optim.adamw import AdamW
 from torch.optim.adamax import Adamax
 from torch.optim.sgd import SGD
 
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 
 from coltra.buffers import Observation, Action
 
@@ -37,7 +37,7 @@ from coltra.buffers import Observation, Action
 def write_dict(
     metrics: dict[str, Union[int, float]],
     step: int,
-    writer: Optional[SummaryWriter] = None,
+    writer: Optional["SummaryWriter"] = None,
 ):
     """Writes a dictionary to a tensorboard SummaryWriter"""
     if writer is not None:
