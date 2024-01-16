@@ -12,7 +12,7 @@ from coltra.envs.spaces import ObservationSpace
 from coltra.models import MLPModel
 import pytest
 
-from coltra.research.policy_fusion import JointModel
+from coltra.research.policy_fusion.policy_fusion import JointModel
 
 
 def assert_models_equal(model1: nn.Module, model2: nn.Module):
